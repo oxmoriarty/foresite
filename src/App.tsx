@@ -12,8 +12,20 @@ import {
   getUserProjects,
   getUserInspections,
   createProject as createFirestoreProject,
+  updateProject as updateFirestoreProject,
+  deleteProject as deleteFirestoreProject,
+  createInspection as createFirestoreInspection,
   updateInspection as updateFirestoreInspection,
+  deleteInspection as deleteFirestoreInspection,
 } from "./services/firestore";
+import {
+  saveLocalProject,
+  deleteProjectCascade,
+  deleteEvidencePhotosByInspection,
+  deleteLocalDraft,
+  getAllEvidencePhotosCount,
+  getAllLocalDrafts,
+} from "./services/indexeddb";
 
 // Initial realistic seed dataset for Scaffolding & Demo preview
 const INITIAL_PROJECTS: Project[] = [
@@ -22,6 +34,7 @@ const INITIAL_PROJECTS: Project[] = [
     name: "Metro North Station Redevelopment",
     siteLabel: "MNS-SECTOR-4",
     location: "420 Transit Way, North Corridor",
+    description: "Phase 2 underground concourse and structural pier excavation.",
     inspectionCount: 2,
     createdAt: Date.now() - 86400000 * 5,
     updatedAt: Date.now() - 86400000 * 1,
@@ -31,6 +44,7 @@ const INITIAL_PROJECTS: Project[] = [
     name: "Terminal 3 Gate Pier Expansion",
     siteLabel: "T3-EXP-B2",
     location: "Concourse C, International Airport",
+    description: "Soffit slab falsework and heavy-duty steel shoring inspection.",
     inspectionCount: 1,
     createdAt: Date.now() - 86400000 * 10,
     updatedAt: Date.now() - 86400000 * 2,
@@ -154,6 +168,23 @@ const ForeSiteApp: React.FC = () => {
   const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+  const [isNewInspectionModalOpen, setIsNewInspectionModalOpen] = useState(false);
+  const [localPhotoCount, setLocalPhotoCount] = useState<number>(0);
+  const [localDraftCount, setLocalDraftCount] = useState<number>(0);
+
+  // Refresh IndexedDB statistics
+  const refreshLocalStorageCounts = useCallback(async () => {
+    try {
+      const [photos, drafts] = await Promise.all([
+        getAllEvidencePhotosCount(),
+        getAllLocalDrafts(),
+      ]);
+      setLocalPhotoCount(photos);
+      setLocalDraftCount(drafts.length);
+    } catch {
+      // Ignore if IndexedDB is not yet initialized
+    }
+  }, []);
 
   // Load Firestore data when authenticated
   const loadUserData = useCallback(async (uid: string) => {
@@ -165,7 +196,6 @@ const ForeSiteApp: React.FC = () => {
       if (userProjects.length > 0) {
         setProjects(userProjects);
       } else {
-        // If user has no projects yet, retain initial templates
         setProjects(INITIAL_PROJECTS);
       }
       if (userInspections.length > 0) {
@@ -185,7 +215,8 @@ const ForeSiteApp: React.FC = () => {
       setProjects(INITIAL_PROJECTS);
       setInspections(INITIAL_INSPECTIONS);
     }
-  }, [currentUser, isConfigured, loadUserData]);
+    refreshLocalStorageCounts();
+  }, [currentUser, isConfigured, loadUserData, refreshLocalStorageCounts]);
 
   // Compute live statistics
   const stats: AppStats = {
@@ -198,6 +229,8 @@ const ForeSiteApp: React.FC = () => {
     rejectedCount: inspections.filter((i) => i.reviewStatus === "rejected").length,
     onDeviceInferences: inspections.filter((i) => i.inferenceSource === "ON_DEVICE").length,
     cloudInferences: inspections.filter((i) => i.inferenceSource === "IN_CLOUD").length,
+    localPhotosCount: localPhotoCount,
+    localDraftsCount: localDraftCount,
   };
 
   // Handler: Create new project
@@ -208,6 +241,7 @@ const ForeSiteApp: React.FC = () => {
       try {
         const created = await createFirestoreProject(currentUser.uid, newProj);
         setProjects([created, ...projects]);
+        await saveLocalProject(created);
         return;
       } catch (err) {
         console.warn("Firestore project creation failed, creating local project:", err);
@@ -224,6 +258,118 @@ const ForeSiteApp: React.FC = () => {
       updatedAt: Date.now(),
     };
     setProjects([localProject, ...projects]);
+    await saveLocalProject(localProject);
+  };
+
+  // Handler: Update project
+  const handleUpdateProject = async (projectId: string, updates: Partial<Project>) => {
+    if (currentUser?.uid && isConfigured) {
+      try {
+        await updateFirestoreProject(currentUser.uid, projectId, updates);
+      } catch (err) {
+        console.warn("Firestore project update failed:", err);
+      }
+    }
+
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === projectId) {
+          const updated = { ...p, ...updates, updatedAt: Date.now() };
+          saveLocalProject(updated);
+          return updated;
+        }
+        return p;
+      })
+    );
+  };
+
+  // Handler: Cascade delete project
+  const handleDeleteProject = async (projectId: string) => {
+    if (currentUser?.uid && isConfigured) {
+      try {
+        await deleteFirestoreProject(currentUser.uid, projectId);
+      } catch (err) {
+        console.warn("Firestore project deletion failed:", err);
+      }
+    }
+
+    // Clean up local IndexedDB evidence Blobs, drafts, and local cache
+    await deleteProjectCascade(projectId);
+
+    setProjects((prev) => prev.filter((p) => p.id !== projectId));
+    setInspections((prev) => prev.filter((i) => i.projectId !== projectId));
+    if (selectedProjectId === projectId) {
+      setSelectedProjectId(null);
+    }
+    await refreshLocalStorageCounts();
+  };
+
+  // Handler: Save / Publish inspection
+  const handleSaveInspection = async (inspection: Inspection) => {
+    const existingIndex = inspections.findIndex((i) => i.id === inspection.id);
+
+    if (currentUser?.uid && isConfigured) {
+      try {
+        if (existingIndex >= 0) {
+          await updateFirestoreInspection(currentUser.uid, inspection.id, inspection);
+        } else {
+          // Firestore receives only structured metadata, never photo binaries
+          const { id: _ignoredId, ...rest } = inspection;
+          await createFirestoreInspection(currentUser.uid, rest);
+        }
+      } catch (err) {
+        console.warn("Firestore inspection sync failed, saving locally:", err);
+      }
+    }
+
+    if (existingIndex >= 0) {
+      setInspections((prev) =>
+        prev.map((i) => (i.id === inspection.id ? inspection : i))
+      );
+    } else {
+      setInspections([inspection, ...inspections]);
+      // Increment inspectionCount on associated project
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === inspection.projectId
+            ? { ...p, inspectionCount: (p.inspectionCount || 0) + 1 }
+            : p
+        )
+      );
+    }
+
+    await refreshLocalStorageCounts();
+  };
+
+  // Handler: Delete inspection
+  const handleDeleteInspection = async (inspectionId: string) => {
+    const target = inspections.find((i) => i.id === inspectionId);
+
+    if (currentUser?.uid && isConfigured) {
+      try {
+        await deleteFirestoreInspection(currentUser.uid, inspectionId);
+      } catch (err) {
+        console.warn("Firestore inspection deletion failed:", err);
+      }
+    }
+
+    // Clean up associated photo Blobs and draft from IndexedDB
+    await deleteEvidencePhotosByInspection(inspectionId);
+    await deleteLocalDraft(inspectionId);
+
+    setInspections((prev) => prev.filter((i) => i.id !== inspectionId));
+
+    if (target?.projectId) {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === target.projectId
+            ? { ...p, inspectionCount: Math.max((p.inspectionCount || 1) - 1, 0) }
+            : p
+        )
+      );
+    }
+
+    await refreshLocalStorageCounts();
   };
 
   // Handler: Update inspection status
@@ -298,6 +444,8 @@ const ForeSiteApp: React.FC = () => {
           <ProjectsScreen
             projects={projects}
             onCreateProject={handleCreateProject}
+            onUpdateProject={handleUpdateProject}
+            onDeleteProject={handleDeleteProject}
             onSelectProject={handleSelectProject}
             isCreateModalOpen={isProjectModalOpen}
             setIsCreateModalOpen={setIsProjectModalOpen}
@@ -307,9 +455,14 @@ const ForeSiteApp: React.FC = () => {
         {currentView === "inspections" && (
           <InspectionsScreen
             inspections={inspections}
+            projects={projects}
             onUpdateStatus={handleUpdateInspectionStatus}
+            onSaveInspection={handleSaveInspection}
+            onDeleteInspection={handleDeleteInspection}
             selectedProjectId={selectedProjectId}
             onClearProjectFilter={() => setSelectedProjectId(null)}
+            isNewInspectionModalOpen={isNewInspectionModalOpen}
+            setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
           />
         )}
 
