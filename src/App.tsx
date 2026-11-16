@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ViewMode, Project, Inspection, AppStats, ReviewStatus } from "./types";
 import { Header } from "./components/layout/Header";
 import { Navigation } from "./components/layout/Navigation";
@@ -7,8 +7,15 @@ import { OverviewScreen } from "./screens/OverviewScreen";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import {
+  getUserProjects,
+  getUserInspections,
+  createProject as createFirestoreProject,
+  updateInspection as updateFirestoreInspection,
+} from "./services/firestore";
 
-// Initial realistic seed dataset for Phase 1 Scaffolding
+// Initial realistic seed dataset for Scaffolding & Demo preview
 const INITIAL_PROJECTS: Project[] = [
   {
     id: "proj-metro-01",
@@ -116,9 +123,7 @@ const INITIAL_INSPECTIONS: Inspection[] = [
       "Mudsill timbers level and in firm contact with compacted subgrade",
       "Heavy-duty screw jacks engaged without tilt",
     ],
-    uncertainties: [
-      "Subgrade moisture content beneath mudsills not verified",
-    ],
+    uncertainties: ["Subgrade moisture content beneath mudsills not verified"],
     inspectorFollowUp: [
       "Check torque on formwork ledger bolts",
       "Sign off pre-pour shoring checklist",
@@ -142,12 +147,45 @@ const INITIAL_INSPECTIONS: Inspection[] = [
   },
 ];
 
-export const App: React.FC = () => {
+const ForeSiteApp: React.FC = () => {
+  const { currentUser, isConfigured } = useAuth();
   const [currentView, setCurrentView] = useState<ViewMode>("overview");
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
+
+  // Load Firestore data when authenticated
+  const loadUserData = useCallback(async (uid: string) => {
+    try {
+      const [userProjects, userInspections] = await Promise.all([
+        getUserProjects(uid),
+        getUserInspections(uid),
+      ]);
+      if (userProjects.length > 0) {
+        setProjects(userProjects);
+      } else {
+        // If user has no projects yet, retain initial templates
+        setProjects(INITIAL_PROJECTS);
+      }
+      if (userInspections.length > 0) {
+        setInspections(userInspections);
+      } else {
+        setInspections(INITIAL_INSPECTIONS);
+      }
+    } catch (err) {
+      console.warn("Could not load user Firestore data, falling back to local seed:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (currentUser?.uid && isConfigured) {
+      loadUserData(currentUser.uid);
+    } else {
+      setProjects(INITIAL_PROJECTS);
+      setInspections(INITIAL_INSPECTIONS);
+    }
+  }, [currentUser, isConfigured, loadUserData]);
 
   // Compute live statistics
   const stats: AppStats = {
@@ -163,33 +201,60 @@ export const App: React.FC = () => {
   };
 
   // Handler: Create new project
-  const handleCreateProject = (
+  const handleCreateProject = async (
     newProj: Omit<Project, "id" | "inspectionCount" | "createdAt" | "updatedAt">
   ) => {
-    const project: Project = {
+    if (currentUser?.uid && isConfigured) {
+      try {
+        const created = await createFirestoreProject(currentUser.uid, newProj);
+        setProjects([created, ...projects]);
+        return;
+      } catch (err) {
+        console.warn("Firestore project creation failed, creating local project:", err);
+      }
+    }
+
+    // Local / unauthenticated fallback
+    const localProject: Project = {
       ...newProj,
       id: `proj-${Date.now()}`,
+      ownerUid: currentUser?.uid,
       inspectionCount: 0,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     };
-    setProjects([project, ...projects]);
+    setProjects([localProject, ...projects]);
   };
 
   // Handler: Update inspection status
-  const handleUpdateInspectionStatus = (
+  const handleUpdateInspectionStatus = async (
     inspectionId: string,
     newStatus: ReviewStatus
   ) => {
+    const reviewerUid = currentUser?.uid || "current-inspector-uid";
+    const now = Date.now();
+
+    if (currentUser?.uid && isConfigured) {
+      try {
+        await updateFirestoreInspection(currentUser.uid, inspectionId, {
+          reviewStatus: newStatus,
+          reviewedAt: now,
+          reviewedByUid: reviewerUid,
+        });
+      } catch (err) {
+        console.warn("Firestore inspection update failed, updating local state:", err);
+      }
+    }
+
     setInspections((prev) =>
       prev.map((insp) =>
         insp.id === inspectionId
           ? {
               ...insp,
               reviewStatus: newStatus,
-              updatedAt: Date.now(),
-              reviewedAt: Date.now(),
-              reviewedByUid: "current-inspector-uid",
+              updatedAt: now,
+              reviewedAt: now,
+              reviewedByUid: reviewerUid,
             }
           : insp
       )
@@ -204,7 +269,7 @@ export const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Accessible Header */}
+      {/* Accessible Header with Auth */}
       <Header />
 
       {/* Primary Navigation Tabs */}
@@ -254,5 +319,13 @@ export const App: React.FC = () => {
       {/* Accessible Footer */}
       <Footer />
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <AuthProvider>
+      <ForeSiteApp />
+    </AuthProvider>
   );
 };

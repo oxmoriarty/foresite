@@ -18,8 +18,25 @@ export type InferenceSource = "ON_DEVICE" | "IN_CLOUD" | "UNKNOWN";
 
 export type StorageProvider = "indexeddb" | "cloud_pending" | "cloud_synced";
 
+/**
+ * ForeSite Authenticated Inspector Profile
+ * Stored in Firestore under `/users/{uid}`
+ */
+export interface UserProfile {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL?: string | null;
+  emailVerified: boolean;
+  createdAt: number;
+  lastLoginAt: number;
+  role?: string;
+  company?: string;
+}
+
 export interface Project {
   id: string;
+  ownerUid?: string;
   name: string;
   siteLabel: string;
   location?: string;
@@ -41,6 +58,7 @@ export interface InspectionPhotoMeta {
 
 export interface Inspection {
   id: string;
+  ownerUid?: string;
   projectId: string;
   projectName: string;
   title: string;

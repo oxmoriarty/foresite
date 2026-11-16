@@ -10,7 +10,7 @@ import {
   HelpCircle,
   Clock,
 } from "lucide-react";
-import { Inspection, ReviewStatus, ObservationCategory } from "../types";
+import { Inspection, ReviewStatus } from "../types";
 import { Card, CardBody, CardFooter } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";

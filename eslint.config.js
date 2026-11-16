@@ -3,7 +3,7 @@ import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
 
 export default tseslint.config(
-  { ignores: ["dist", "node_modules", "ForeSite_Antigravity_Starter_Pack"] },
+  { ignores: ["dist", "node_modules", "ForeSite_Antigravity_Starter_Pack", "Forsite UI"] },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],

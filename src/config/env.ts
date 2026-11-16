@@ -16,6 +16,10 @@ export interface AppConfig {
     messagingSenderId: string;
     appId: string;
   };
+  appCheck: {
+    debugToken?: string;
+    siteKey?: string;
+  };
 }
 
 const env = import.meta.env;
@@ -36,5 +40,9 @@ export const config: AppConfig = {
     storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || "",
     messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
     appId: env.VITE_FIREBASE_APP_ID || "",
+  },
+  appCheck: {
+    debugToken: env.VITE_APP_CHECK_DEBUG_TOKEN || undefined,
+    siteKey: env.VITE_RECAPTCHA_ENTERPRISE_SITE_KEY || undefined,
   },
 };
