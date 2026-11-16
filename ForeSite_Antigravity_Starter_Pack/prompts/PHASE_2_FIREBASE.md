@@ -1,0 +1,1 @@
+After Phase 1 approval, implement Firebase Web initialization, Auth, App Check, Firestore client, environment validation, deny-by-default owner-scoped rules, and emulator/security tests. Verify current Spark/no-billing compatibility first. No billing, Blaze, service-account secrets in browser, or debug tokens in Git. Stop if any required step needs billing. No AI yet.

@@ -1,0 +1,1 @@
+Use ForeSite naming. Follow AGENTS.md. Never invent Firebase APIs/model IDs/quotas. Firebase AI Logic must be the runtime AI path. Verify inference source from SDK metadata. AI drafts require human approval. Photos stay in IndexedDB. No billing or paid services. Work phase-by-phase and report actual test results.

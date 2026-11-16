@@ -1,0 +1,1 @@
+Assessment only; do not implement Android. Research current official Firebase AI Logic Android hybrid documentation. Compare SDK, Gemini Nano 4/device constraints, image inputs, inference metadata, fallback, cost, data/storage, and scope against Chrome MVP. Cite sources and provide a separate plan for approval.
