@@ -21,6 +21,50 @@ export type StorageProvider = "indexeddb" | "cloud_pending" | "cloud_synced";
 export type SupportedPhotoMimeType = "image/jpeg" | "image/png" | "image/webp";
 
 /**
+ * 8 Approved Inspection Domain Categories for ForeSite Hybrid AI
+ */
+export type InspectionCategory =
+  | "structural"
+  | "electrical"
+  | "plumbing"
+  | "hvac"
+  | "fire_safety"
+  | "general"
+  | "environmental"
+  | "finishes";
+
+/**
+ * State-based Automatic Cloud Fallback Preference Contract
+ */
+export type PreferenceSyncStatus = "synced" | "pending" | "failed" | "unavailable";
+export type PreferenceSource = "firestore" | "local" | "default";
+
+export interface CloudFallbackPreference {
+  enabled: boolean;
+  source: PreferenceSource;
+  syncStatus: PreferenceSyncStatus;
+}
+
+/**
+ * ForeSite AI Generated Draft Output Schema
+ */
+export interface AIInspectionDraftOutput {
+  title: string;
+  observation: string;
+  category: InspectionCategory;
+  visibleEvidence: string[];
+  uncertainties: string[];
+  inspectorFollowUp: string[];
+  aiDisclaimer: string;
+}
+
+export interface AIInspectionDraftResult {
+  draft: AIInspectionDraftOutput;
+  inferenceSource: InferenceSource;
+  rawResponse?: string;
+}
+
+/**
  * ForeSite Authenticated Inspector Profile
  * Stored in Firestore under `/users/{uid}`
  */
@@ -34,6 +78,9 @@ export interface UserProfile {
   lastLoginAt: number;
   role?: string;
   company?: string;
+  preferences?: {
+    autoCloudFallback?: boolean;
+  };
 }
 
 export interface Project {

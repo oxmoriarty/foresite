@@ -11,6 +11,8 @@ import {
   RefreshCw,
   Trash2,
   Lock,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
@@ -25,7 +27,12 @@ import {
   clearAllLocalEvidence,
 } from "../services/indexeddb";
 import { formatBytes } from "../services/photoValidation";
-import { StorageEstimateInfo } from "../types";
+import { StorageEstimateInfo, CloudFallbackPreference } from "../types";
+import {
+  getAutoCloudFallbackPreference,
+  setAutoCloudFallbackSetting,
+  SAFE_DEFAULT_PREFERENCE,
+} from "../services/preferences";
 
 export const SettingsScreen: React.FC = () => {
   const { currentUser, userProfile, isConfigured } = useAuth();
@@ -43,6 +50,56 @@ export const SettingsScreen: React.FC = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [refreshingQuota, setRefreshingQuota] = useState(false);
+
+  // AI & Privacy: Persistent Automatic Cloud Fallback Preference
+  const [cloudFallbackPref, setCloudFallbackPref] = useState<CloudFallbackPreference>(SAFE_DEFAULT_PREFERENCE);
+  const [prefLoading, setPrefLoading] = useState<boolean>(true);
+  const [prefSaving, setPrefSaving] = useState<boolean>(false);
+  const [prefStatusMessage, setPrefStatusMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    const loadPref = async () => {
+      setPrefLoading(true);
+      try {
+        const pref = await getAutoCloudFallbackPreference(currentUser?.uid);
+        if (isMounted) {
+          setCloudFallbackPref(pref);
+        }
+      } catch (err) {
+        console.warn("Failed to load cloud fallback preference:", err);
+      } finally {
+        if (isMounted) {
+          setPrefLoading(false);
+        }
+      }
+    };
+
+    loadPref();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser?.uid]);
+
+  const handleToggleFallback = async (newVal: boolean) => {
+    setPrefSaving(true);
+    setPrefStatusMessage(null);
+    try {
+      const updated = await setAutoCloudFallbackSetting(currentUser?.uid, newVal);
+      setCloudFallbackPref(updated);
+      if (updated.syncStatus === "synced") {
+        setPrefStatusMessage("Setting saved and synchronized with your account.");
+      } else if (updated.syncStatus === "failed") {
+        setPrefStatusMessage("Saved locally on this device; cloud synchronization failed.");
+      }
+    } catch (err) {
+      console.error("Failed to update cloud fallback setting:", err);
+      setPrefStatusMessage("Failed to update setting. Please try again.");
+    } finally {
+      setPrefSaving(false);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -396,35 +453,167 @@ export const SettingsScreen: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Section 3: Hybrid AI & Chrome Prerequisites */}
+      {/* Section 3: AI & Privacy — Automatic Cloud Fallback */}
       <Card>
-        <CardHeader className="flex items-center gap-3 bg-slate-50/60">
-          <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
-            <Cpu className="w-5 h-5" />
+        <CardHeader className="flex items-center justify-between bg-slate-50/60">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+              <Cpu className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-sm font-semibold text-slate-900">
+                AI & Privacy — Automatic Cloud Fallback
+              </h2>
+              <p className="text-xs text-slate-500">
+                Hybrid AI inference routing policy and Google Cloud transmission control
+              </p>
+            </div>
           </div>
+          {/* Sync Status Badge */}
           <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Chrome Built-in AI & Hybrid Fallback
-            </h2>
-            <p className="text-xs text-slate-500">
-              On-device Gemini Nano and cloud Gemini Flash configuration
-            </p>
+            {prefLoading ? (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-medium bg-slate-100 text-slate-600 border border-slate-200">
+                Loading...
+              </span>
+            ) : cloudFallbackPref.syncStatus === "synced" ? (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" />
+                Synced with Cloud
+              </span>
+            ) : cloudFallbackPref.syncStatus === "failed" ? (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-amber-600" />
+                ON (Local Only - Unsynced)
+              </span>
+            ) : (
+              <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                Offline Default (OFF)
+              </span>
+            )}
           </div>
         </CardHeader>
-        <CardBody className="space-y-3 text-xs text-slate-700 leading-relaxed">
-          <p>
-            ForeSite uses the official <code>firebase/ai</code> Web SDK configured in <code>PREFER_ON_DEVICE</code> mode:
-          </p>
-          <div className="bg-slate-900 text-slate-200 p-3 rounded-lg font-mono text-[11px] overflow-x-auto">
-            {`// Hybrid Routing Contract\nconst model = getGenerativeModel(ai, {\n  mode: InferenceMode.PREFER_ON_DEVICE,\n  inCloudParams: { model: "gemini-2.5-flash-lite" }\n});`}
+        <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed">
+          {/* Main Setting Toggle Row */}
+          <div className="flex items-start justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-slate-900 text-sm">
+                  Automatic cloud fallback
+                </span>
+                <span
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                    cloudFallbackPref.enabled
+                      ? "bg-brand-100 text-brand-800"
+                      : "bg-slate-200 text-slate-600"
+                  }`}
+                >
+                  {cloudFallbackPref.enabled ? "Enabled" : "Disabled (Default)"}
+                </span>
+              </div>
+              <p className="text-slate-600 text-xs">
+                {cloudFallbackPref.enabled
+                  ? "Mode A active: On-device inference is attempted first; automatically falls back to gemini-3.5-flash-lite if the local model is unavailable or unready. Per-request consent modal is bypassed."
+                  : "Mode B active (Default): Strictly on-device inference. Awaits on-device model download. If on-device inference is unavailable, execution halts locally before network transmission, requiring explicit consent per request."}
+              </p>
+              {prefStatusMessage && (
+                <p className="text-brand-600 font-medium text-[11px] pt-1">
+                  {prefStatusMessage}
+                </p>
+              )}
+            </div>
+
+            {/* Toggle Button */}
+            <div className="shrink-0 pt-0.5">
+              <button
+                type="button"
+                role="switch"
+                aria-checked={cloudFallbackPref.enabled}
+                disabled={prefSaving || prefLoading}
+                onClick={() => handleToggleFallback(!cloudFallbackPref.enabled)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                  cloudFallbackPref.enabled ? "bg-brand-600" : "bg-slate-300"
+                } ${prefSaving || prefLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              >
+                <span className="sr-only">Toggle automatic cloud fallback</span>
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                    cloudFallbackPref.enabled ? "translate-x-5" : "translate-x-0"
+                  }`}
+                />
+              </button>
+            </div>
           </div>
+
+          {/* Operational Policy Comparison */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+            <div
+              className={`p-3 rounded-lg border ${
+                cloudFallbackPref.enabled
+                  ? "bg-brand-50/50 border-brand-200 ring-1 ring-brand-200"
+                  : "bg-slate-50 border-slate-200"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 font-semibold text-slate-900 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-brand-600" />
+                <span>Setting ON — Automatic Cloud Fallback</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
+                <li>Uses Firebase AI Logic <code>PREFER_ON_DEVICE</code>.</li>
+                <li>Target cloud model: <code>gemini-3.5-flash-lite</code>.</li>
+                <li>Initializes on-device model without blocking inference.</li>
+                <li>Seamless cloud fallback during background model download.</li>
+                <li>Does not show a per-request cloud consent modal.</li>
+              </ul>
+            </div>
+
+            <div
+              className={`p-3 rounded-lg border ${
+                !cloudFallbackPref.enabled
+                  ? "bg-brand-50/50 border-brand-200 ring-1 ring-brand-200"
+                  : "bg-slate-50 border-slate-200"
+              }`}
+            >
+              <div className="flex items-center gap-1.5 font-semibold text-slate-900 mb-1">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                <span>Setting OFF — Consent-Controlled (Default)</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
+                <li>Uses Firebase AI Logic <code>ONLY_ON_DEVICE</code>.</li>
+                <li>Awaits on-device model download (with % progress bar).</li>
+                <li>If on-device inference fails, halts before cloud transmission.</li>
+                <li>Requires explicit user consent via Cloud Consent Dialog.</li>
+                <li>If declined, cancels AI processing; manual authoring continues.</li>
+              </ul>
+            </div>
+          </div>
+
+          {/* Mandatory Privacy & Data Terms Disclosures */}
+          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
+            <div className="font-semibold text-slate-900 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5 text-slate-600" />
+              <span>Data Protection & Privacy Terms</span>
+            </div>
+            <p className="text-slate-600">
+              <strong>Google Gemini Developer API Free-Tier Terms:</strong> Under Google&apos;s Gemini Developer API free-tier terms, content submitted to the API (including inspection photographs and notes) may be processed by Google and used to improve Google products and services.
+            </p>
+            <p className="text-slate-600">
+              <strong>IndexedDB & Firestore Data Isolation:</strong> Original photo binaries remain in browser IndexedDB. ForeSite does not upload them to Firestore or cloud storage. Declining cloud AI processing prevents transmission of photographs and notes for AI processing, but does <em>not</em> disable ordinary Firestore synchronization of saved structured inspection records.
+            </p>
+          </div>
+
+          {/* Chrome Built-in AI Prerequisites */}
           <div className="pt-2 border-t border-slate-100">
-            <h4 className="font-semibold text-slate-900 mb-1">Chrome Prerequisites for On-Device Inference:</h4>
+            <h4 className="font-semibold text-slate-900 mb-1">
+              Chrome Desktop Prerequisites for On-Device Gemini Nano:
+            </h4>
             <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>Google Chrome Desktop version 138 or higher.</li>
-              <li>Chrome Flag: <code>chrome://flags/#prompt-api-for-gemini-nano-multimodal-input</code> (Enabled).</li>
-              <li>Chrome Flag: <code>chrome://flags/#optimization-guide-on-device-model</code> (Enabled BypassPerfRequirement).</li>
-              <li>When local inference is unavailable, requests automatically fall back to cloud-hosted Gemini Flash.</li>
+              <li>Google Chrome Desktop version 139 or later (Windows, macOS, Linux).</li>
+              <li>Approximately 22 GB free disk space on the volume containing your Chrome profile.</li>
+              <li>Hardware requirements: GPU with strictly more than 4 GB VRAM, OR CPU with at least 16 GB system RAM and 4 or more cores.</li>
+              <li>Flag: <code>chrome://flags/#prompt-api-for-gemini-nano-multimodal-input</code> set to <strong>Enabled</strong>.</li>
+              <li>Flag: <code>chrome://flags/#optimization-guide-on-device-model</code> set to <strong>Enabled</strong>.</li>
+              <li className="text-slate-500 italic">Note: Gemini Nano model availability is managed by Chrome; exact sub-version identifiers (e.g. &quot;Nano 4&quot;) remain unverified at runtime.</li>
             </ul>
           </div>
         </CardBody>
