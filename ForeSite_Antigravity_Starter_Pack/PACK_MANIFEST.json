@@ -1,6 +1,14 @@
 {
   "project": "ForeSite",
-  "type": "fresh Antigravity starter pack",
-  "contains": "product/requirements/architecture/security/testing/build docs and phase prompts",
-  "file_count": 31
+  "type": "Antigravity reference starter pack",
+  "version": "2.0.0",
+  "contains": "product, requirements, architecture, security, hybrid AI, testing, build docs, decision registers, and phase prompts",
+  "master_reference": "FORESITE_MASTER_REFERENCE.md",
+  "status": {
+    "phase_0": "APPROVED",
+    "phase_1": "IMPLEMENTED_AND_VERIFIED",
+    "phase_2": "IMPLEMENTED_AND_VERIFIED",
+    "phase_3": "IMPLEMENTED_AND_VERIFIED",
+    "phase_4": "AUTHORIZED_NOT_STARTED"
+  }
 }
