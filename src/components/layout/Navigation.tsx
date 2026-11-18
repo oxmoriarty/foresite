@@ -1,17 +1,19 @@
 import React from "react";
-import { LayoutDashboard, FolderKanban, ClipboardCheck, Settings } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ClipboardCheck, Settings, ArrowLeftRight } from "lucide-react";
 import { ViewMode } from "../../types";
 
 export interface NavigationProps {
   currentView: ViewMode;
   onSelectView: (view: ViewMode) => void;
   inspectionBadgeCount?: number;
+  syncBadgeCount?: number;
 }
 
 export const Navigation: React.FC<NavigationProps> = ({
   currentView,
   onSelectView,
   inspectionBadgeCount = 0,
+  syncBadgeCount = 0,
 }) => {
   const navItems: { id: ViewMode; label: string; icon: React.FC<{ className?: string }>; badge?: number }[] = [
     { id: "overview", label: "Overview", icon: LayoutDashboard },
@@ -21,6 +23,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: "Inspections",
       icon: ClipboardCheck,
       badge: inspectionBadgeCount > 0 ? inspectionBadgeCount : undefined,
+    },
+    {
+      id: "sync",
+      label: "Sync Center",
+      icon: ArrowLeftRight,
+      badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,
     },
     { id: "settings", label: "Settings", icon: Settings },
   ];

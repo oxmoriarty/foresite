@@ -6,6 +6,7 @@ import { Footer } from "./components/layout/Footer";
 import { OverviewScreen } from "./screens/OverviewScreen";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
+import { SyncCenterScreen } from "./screens/SyncCenterScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import {
@@ -14,7 +15,6 @@ import {
   createProject as createFirestoreProject,
   updateProject as updateFirestoreProject,
   deleteProject as deleteFirestoreProject,
-  createInspection as createFirestoreInspection,
   updateInspection as updateFirestoreInspection,
   deleteInspection as deleteFirestoreInspection,
 } from "./services/firestore";
@@ -26,6 +26,8 @@ import {
   getAllEvidencePhotosCount,
   getAllLocalDrafts,
 } from "./services/indexeddb";
+import { enqueueMutation } from "./services/mutationQueue";
+import { replayQueuedMutations } from "./services/mutationReplay";
 
 // Initial realistic seed dataset for Scaffolding & Demo preview
 const INITIAL_PROJECTS: Project[] = [
@@ -308,17 +310,41 @@ const ForeSiteApp: React.FC = () => {
   const handleSaveInspection = async (inspection: Inspection) => {
     const existingIndex = inspections.findIndex((i) => i.id === inspection.id);
 
-    if (currentUser?.uid && isConfigured) {
-      try {
-        if (existingIndex >= 0) {
-          await updateFirestoreInspection(currentUser.uid, inspection.id, inspection);
-        } else {
-          // Firestore receives only structured metadata, never photo binaries
-          const { id: _ignoredId, ...rest } = inspection;
-          await createFirestoreInspection(currentUser.uid, rest);
+    if (currentUser?.uid) {
+      if (existingIndex >= 0) {
+        if (isConfigured) {
+          try {
+            await updateFirestoreInspection(currentUser.uid, inspection.id, inspection);
+          } catch (err) {
+            console.warn("Firestore inspection update failed, saving locally:", err);
+          }
         }
-      } catch (err) {
-        console.warn("Firestore inspection sync failed, saving locally:", err);
+      } else {
+        // Enqueue CREATE_INSPECTION only if draft belongs to current authenticated user
+        if (inspection.ownerUid === currentUser.uid) {
+          try {
+            await enqueueMutation({
+              ownerUid: currentUser.uid,
+              targetInspectionId: inspection.id,
+              type: "CREATE_INSPECTION",
+              payload: {
+                type: "CREATE_INSPECTION",
+                inspection: {
+                  ...inspection,
+                  ownerUid: currentUser.uid,
+                },
+              },
+              baseRevision: inspection.revision || 1,
+            });
+
+            // Trigger asynchronous replay in the background without blocking the UI
+            void replayQueuedMutations().catch((err) => {
+              console.warn("Background replay execution error:", err);
+            });
+          } catch (queueErr) {
+            console.warn("Failed to enqueue CREATE_INSPECTION mutation:", queueErr);
+          }
+        }
       }
     }
 
@@ -407,6 +433,13 @@ const ForeSiteApp: React.FC = () => {
     );
   };
 
+  // Handler: Update in-memory inspection for local review transitions (strictly local-only, no Firestore write)
+  const handleLocalReviewTransition = (updatedInspection: Inspection) => {
+    setInspections((prev) =>
+      prev.map((insp) => (insp.id === updatedInspection.id ? updatedInspection : insp))
+    );
+  };
+
   // Handler: Select a project to filter inspections
   const handleSelectProject = (projectId: string) => {
     setSelectedProjectId(projectId);
@@ -457,12 +490,19 @@ const ForeSiteApp: React.FC = () => {
             inspections={inspections}
             projects={projects}
             onUpdateStatus={handleUpdateInspectionStatus}
+            onLocalReviewTransition={handleLocalReviewTransition}
             onSaveInspection={handleSaveInspection}
             onDeleteInspection={handleDeleteInspection}
             selectedProjectId={selectedProjectId}
             onClearProjectFilter={() => setSelectedProjectId(null)}
             isNewInspectionModalOpen={isNewInspectionModalOpen}
             setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
+          />
+        )}
+
+        {currentView === "sync" && (
+          <SyncCenterScreen
+            onNavigateToInspections={() => setCurrentView("inspections")}
           />
         )}
 
