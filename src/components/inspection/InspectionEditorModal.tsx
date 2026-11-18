@@ -50,6 +50,7 @@ import {
   SAFE_DEFAULT_PREFERENCE,
 } from "../../services/preferences";
 import { useAuth } from "../../context/AuthContext";
+import { auth } from "../../lib/firebase";
 
 export interface InspectionEditorModalProps {
   isOpen: boolean;
@@ -249,23 +250,42 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
     }
   }, [isOpen, initialDraft, initialInspection, initialProjectId, projects]);
 
-  // Construct draft object
+  // Construct draft object with strict owner derivation
   const buildDraftPayload = useCallback(
-    (): LocalDraftInspection => ({
-      id: inspectionId,
-      projectId,
-      projectName: projects.find((p) => p.id === projectId)?.name,
-      title: title.trim() || "Untitled Inspection Draft",
-      observation: observation.trim(),
-      category,
-      visibleEvidence,
-      uncertainties,
-      inspectorFollowUp,
-      photoIds: photos.map((p) => p.id),
-      isSynced: false,
-      lastSavedAt: Date.now(),
-      createdAt: initialInspection?.createdAt || initialDraft?.createdAt || Date.now(),
-    }),
+    (): LocalDraftInspection => {
+      // Establish ownership:
+      // - If editing existing draft: strictly preserve initialDraft.ownerUid (never reassign legacy drafts)
+      // - If editing existing inspection: strictly preserve initialInspection.ownerUid
+      // - If brand new: obtain exclusively from currently authenticated Firebase user
+      const effectiveOwnerUid =
+        initialDraft !== undefined && initialDraft !== null
+          ? initialDraft.ownerUid
+          : initialInspection !== undefined && initialInspection !== null
+          ? initialInspection.ownerUid
+          : auth.currentUser?.uid || currentUser?.uid || undefined;
+
+      return {
+        id: inspectionId,
+        ownerUid: effectiveOwnerUid,
+        projectId,
+        projectName: projects.find((p) => p.id === projectId)?.name,
+        title: title.trim() || "Untitled Inspection Draft",
+        observation: observation.trim(),
+        category,
+        visibleEvidence,
+        uncertainties,
+        inspectorFollowUp,
+        photoIds: photos.map((p) => p.id),
+        isSynced: false,
+        reviewStatus: initialInspection?.reviewStatus || initialDraft?.reviewStatus || "draft_generated",
+        reviewHistory: initialInspection?.reviewHistory || initialDraft?.reviewHistory || [],
+        reviewedAt: initialInspection?.reviewedAt || initialDraft?.reviewedAt,
+        reviewedByUid: initialInspection?.reviewedByUid || initialDraft?.reviewedByUid,
+        revision: initialInspection?.revision || initialDraft?.revision,
+        lastSavedAt: Date.now(),
+        createdAt: initialInspection?.createdAt || initialDraft?.createdAt || Date.now(),
+      };
+    },
     [
       inspectionId,
       projectId,
@@ -279,6 +299,7 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       photos,
       initialInspection,
       initialDraft,
+      currentUser?.uid,
     ]
   );
 
@@ -470,8 +491,16 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
     // Prepare primary photo metadata if photo attached
     const primaryPhoto = photos[0];
 
+    const effectiveOwnerUid =
+      initialDraft !== undefined && initialDraft !== null
+        ? initialDraft.ownerUid
+        : initialInspection !== undefined && initialInspection !== null
+        ? initialInspection.ownerUid
+        : auth.currentUser?.uid || currentUser?.uid || undefined;
+
     const completedInspection: Inspection = {
       id: inspectionId,
+      ownerUid: effectiveOwnerUid,
       projectId,
       projectName: selectedProject ? selectedProject.name : "Unassigned Project",
       title: title.trim(),
@@ -480,7 +509,11 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       visibleEvidence,
       uncertainties,
       inspectorFollowUp,
-      reviewStatus: initialInspection?.reviewStatus || "draft_generated",
+      reviewStatus: initialInspection?.reviewStatus || initialDraft?.reviewStatus || "draft_generated",
+      reviewHistory: initialInspection?.reviewHistory || initialDraft?.reviewHistory || [],
+      reviewedAt: initialInspection?.reviewedAt || initialDraft?.reviewedAt,
+      reviewedByUid: initialInspection?.reviewedByUid || initialDraft?.reviewedByUid,
+      revision: initialInspection?.revision || initialDraft?.revision,
       aiAssisted: aiAssisted || initialInspection?.aiAssisted || false,
       inferenceSource: inferenceSource || initialInspection?.inferenceSource,
       photoIds: photos.map((p) => p.id),
@@ -500,10 +533,10 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
     };
 
     try {
-      // Also save completed version to IndexedDB drafts as backup
+      // Save completed version to IndexedDB drafts (strictly isSynced: false until remote acknowledgment)
       await saveLocalDraft({
         ...buildDraftPayload(),
-        isSynced: true,
+        isSynced: false,
       });
 
       onSaveSuccess(completedInspection);
