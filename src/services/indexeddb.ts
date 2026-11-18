@@ -17,15 +17,19 @@ import {
   LocalDraftInspection,
   Project,
   StorageEstimateInfo,
+  Inspection,
+  ReviewAuditEvent,
 } from "../types";
 
 export const DB_NAME = "ForeSiteEvidenceDB";
-export const DB_VERSION = 1;
+export const DB_VERSION = 3;
 
 export const STORES = {
   PHOTOS: "evidencePhotos",
   DRAFTS: "localInspections",
   PROJECTS: "localProjects",
+  MUTATIONS: "mutations",
+  SEQUENCES: "sequenceGenerators",
 } as const;
 
 export class ForeSiteStorageError extends Error {
@@ -93,6 +97,32 @@ export function getDatabase(): Promise<IDBDatabase> {
         if (!db.objectStoreNames.contains(STORES.PROJECTS)) {
           const projectStore = db.createObjectStore(STORES.PROJECTS, { keyPath: "id" });
           projectStore.createIndex("by_updatedAt", "updatedAt", { unique: false });
+        }
+      }
+
+      // Version 2 Migration: Add reviewStatus index to drafts store non-destructively
+      if (oldVersion < 2) {
+        const transaction = request.transaction;
+        if (transaction && db.objectStoreNames.contains(STORES.DRAFTS)) {
+          const draftStore = transaction.objectStore(STORES.DRAFTS);
+          if (!draftStore.indexNames.contains("by_reviewStatus")) {
+            draftStore.createIndex("by_reviewStatus", "reviewStatus", { unique: false });
+          }
+        }
+      }
+
+      // Version 3 Migration: Add mutations and sequenceGenerators stores non-destructively
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains(STORES.MUTATIONS)) {
+          const mutationStore = db.createObjectStore(STORES.MUTATIONS, { keyPath: "id" });
+          mutationStore.createIndex("by_ownerUid", "ownerUid", { unique: false });
+          mutationStore.createIndex("by_targetInspectionId", "targetInspectionId", { unique: false });
+          mutationStore.createIndex("by_status", "status", { unique: false });
+          mutationStore.createIndex("by_owner_status", ["ownerUid", "status"], { unique: false });
+          mutationStore.createIndex("by_owner_sequence", ["ownerUid", "sequenceNumber"], { unique: false });
+        }
+        if (!db.objectStoreNames.contains(STORES.SEQUENCES)) {
+          db.createObjectStore(STORES.SEQUENCES, { keyPath: "id" });
         }
       }
     };
@@ -431,7 +461,16 @@ export async function getLocalDraft(draftId: string): Promise<LocalDraftInspecti
       const request = store.get(draftId);
 
       request.onsuccess = () => {
-        resolve((request.result as LocalDraftInspection) || null);
+        const result = (request.result as LocalDraftInspection) || null;
+        if (!result) {
+          resolve(null);
+          return;
+        }
+        resolve({
+          ...result,
+          reviewStatus: result.reviewStatus || "draft_generated",
+          reviewHistory: result.reviewHistory || [],
+        });
       };
       request.onerror = () => {
         reject(
@@ -459,8 +498,13 @@ export async function getAllLocalDrafts(): Promise<LocalDraftInspection[]> {
       const request = store.getAll();
 
       request.onsuccess = () => {
-        // Return drafts sorted by newest lastSavedAt
-        const drafts = (request.result as LocalDraftInspection[]) || [];
+        // Return drafts sorted by newest lastSavedAt with backward-compatible defaults
+        const rawDrafts = (request.result as LocalDraftInspection[]) || [];
+        const drafts = rawDrafts.map((d) => ({
+          ...d,
+          reviewStatus: d.reviewStatus || "draft_generated",
+          reviewHistory: d.reviewHistory || [],
+        }));
         drafts.sort((a, b) => b.lastSavedAt - a.lastSavedAt);
         resolve(drafts);
       };
@@ -493,7 +537,12 @@ export async function getLocalDraftsByProject(
       const request = index.getAll(projectId);
 
       request.onsuccess = () => {
-        const drafts = (request.result as LocalDraftInspection[]) || [];
+        const rawDrafts = (request.result as LocalDraftInspection[]) || [];
+        const drafts = rawDrafts.map((d) => ({
+          ...d,
+          reviewStatus: d.reviewStatus || "draft_generated",
+          reviewHistory: d.reviewHistory || [],
+        }));
         drafts.sort((a, b) => b.lastSavedAt - a.lastSavedAt);
         resolve(drafts);
       };
@@ -509,6 +558,66 @@ export async function getLocalDraftsByProject(
     } catch (err: unknown) {
       reject(
         new ForeSiteStorageError("Unexpected error during project drafts query.", "UNKNOWN", err)
+      );
+    }
+  });
+}
+
+/**
+ * Atomically persists an inspection review transition and its audit event
+ * to IndexedDB within a single readwrite transaction.
+ */
+export async function persistLocalReviewTransition(
+  inspectionId: string,
+  updatedInspection: Inspection,
+  newEvent: ReviewAuditEvent
+): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.DRAFTS], "readwrite");
+      const store = transaction.objectStore(STORES.DRAFTS);
+
+      const draftPayload: LocalDraftInspection = {
+        id: updatedInspection.id,
+        projectId: updatedInspection.projectId,
+        projectName: updatedInspection.projectName,
+        title: updatedInspection.title,
+        observation: updatedInspection.observation,
+        category: updatedInspection.category,
+        visibleEvidence: updatedInspection.visibleEvidence || [],
+        uncertainties: updatedInspection.uncertainties || [],
+        inspectorFollowUp: updatedInspection.inspectorFollowUp || [],
+        photoIds: updatedInspection.photoIds || (updatedInspection.photoMeta ? [updatedInspection.photoMeta.id] : []),
+        isSynced: false,
+        reviewStatus: updatedInspection.reviewStatus,
+        reviewHistory: updatedInspection.reviewHistory || [newEvent],
+        reviewedAt: updatedInspection.reviewedAt,
+        reviewedByUid: updatedInspection.reviewedByUid,
+        revision: updatedInspection.revision,
+        lastSavedAt: Date.now(),
+        createdAt: updatedInspection.createdAt,
+      };
+
+      const request = store.put(draftPayload);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to persist review transition locally for ${inspectionId}: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError(
+          "Unexpected error during review transition local persistence.",
+          "UNKNOWN",
+          err
+        )
       );
     }
   });
@@ -747,18 +856,62 @@ export async function requestPersistentStorage(): Promise<boolean> {
 
 /**
  * Resets all local IndexedDB evidence data (destructive).
+ * Purges photographic Blobs ('evidencePhotos'), local drafts ('localInspections'),
+ * and local projects cache ('localProjects').
+ *
+ * Invariant: Preserves durable offline mutation queue and sequence generators.
+ * Called by Settings screen "Reset Local Evidence Database".
  */
 export async function clearAllLocalEvidence(): Promise<void> {
   const db = await getDatabase();
   return new Promise((resolve, reject) => {
     try {
-      const transaction = db.transaction(
-        [STORES.PHOTOS, STORES.DRAFTS, STORES.PROJECTS],
-        "readwrite"
-      );
-      transaction.objectStore(STORES.PHOTOS).clear();
-      transaction.objectStore(STORES.DRAFTS).clear();
-      transaction.objectStore(STORES.PROJECTS).clear();
+      const storeNames = [
+        STORES.PHOTOS,
+        STORES.DRAFTS,
+        STORES.PROJECTS,
+      ].filter((name) => db.objectStoreNames.contains(name));
+
+      if (storeNames.length === 0) {
+        resolve();
+        return;
+      }
+
+      const transaction = db.transaction(storeNames, "readwrite");
+      for (const name of storeNames) {
+        transaction.objectStore(name).clear();
+      }
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+/**
+ * Dedicated administrative / test-only utility to purge mutation queues and sequence generators.
+ * Strictly separated from ordinary local evidence reset to avoid unintended queue destruction.
+ */
+export async function clearAllMutationQueueData(): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const storeNames = [
+        STORES.MUTATIONS,
+        STORES.SEQUENCES,
+      ].filter((name) => db.objectStoreNames.contains(name));
+
+      if (storeNames.length === 0) {
+        resolve();
+        return;
+      }
+
+      const transaction = db.transaction(storeNames, "readwrite");
+      for (const name of storeNames) {
+        transaction.objectStore(name).clear();
+      }
 
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);
