@@ -4,7 +4,6 @@ import {
   Flame,
   Camera,
   CheckCircle2,
-  HardHat,
   Database,
   Search,
   Sparkles,
@@ -237,41 +236,19 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 </div>
               </div>
 
-              {/* Small Visual Card: Inspector examining concrete footing rebar on tablet */}
+              {/* Small Visual Card: Inspector examining construction site on tablet */}
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg border border-slate-200/80 bg-slate-100 group hover:-translate-y-1 transition-all duration-300">
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-900">
-                  <svg
-                    className="w-full h-full object-cover"
-                    viewBox="0 0 400 300"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="400" height="300" fill="#1e293b" />
-                    <circle cx="200" cy="100" r="150" fill="#334155" opacity="0.6" />
-                    {/* Rebar grid inspection drawing */}
-                    <line x1="40" y1="60" x2="360" y2="60" stroke="#64748b" strokeWidth="2" strokeDasharray="4 4" />
-                    <line x1="40" y1="120" x2="360" y2="120" stroke="#64748b" strokeWidth="2" strokeDasharray="4 4" />
-                    <line x1="40" y1="180" x2="360" y2="180" stroke="#64748b" strokeWidth="2" strokeDasharray="4 4" />
-                    {/* Inspector silhouette seated at desk with field tablet */}
-                    <ellipse cx="240" cy="180" rx="45" ry="55" fill="#0f172a" />
-                    <circle cx="250" cy="120" r="28" fill="#38bdf8" opacity="0.3" />
-                    <circle cx="250" cy="118" r="24" fill="#0f172a" />
-                    {/* Hard hat */}
-                    <path d="M228,105 C232,85 268,85 272,105 Z" fill="#facc15" />
-                    <rect x="224" y="103" width="52" height="4" rx="2" fill="#eab308" />
-                    {/* Field tablet on desk */}
-                    <polygon points="110,210 200,210 185,160 125,160" fill="#94a3b8" />
-                    <polygon points="90,218 220,218 200,210 110,210" fill="#64748b" />
-                    {/* Tablet screen showing rebar observation */}
-                    <polygon points="127,162 183,162 198,208 112,208" fill="#2563eb" />
-                    <line x1="125" y1="175" x2="175" y2="175" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" />
-                    <line x1="125" y1="185" x2="160" y2="185" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-                    <line x1="125" y1="195" x2="170" y2="195" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-                    <rect x="40" y="215" width="320" height="85" fill="#0b0f19" />
-                  </svg>
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-[11px]">
+                  <img
+                    src="/images/inspector-tablet.jpg"
+                    alt="Civil engineer inspecting construction site with digital tablet"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-[11px] z-10">
                     <span className="font-semibold">Pier Footing Rebar Audit</span>
-                    <span className="text-slate-400">Sector 4 Field Hub</span>
+                    <span className="text-slate-300">Sector 4 Field Hub</span>
                   </div>
                 </div>
               </div>
@@ -281,48 +258,14 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             <div className="lg:col-span-7">
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-50 group hover:-translate-y-1 transition-all duration-300">
                 <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-100">
-                  <svg
-                    className="w-full h-full object-cover"
-                    viewBox="0 0 700 480"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <rect width="700" height="480" fill="#f8fafc" />
-                    <rect x="0" y="0" width="700" height="420" fill="#f1f5f9" />
-                    <rect x="0" y="420" width="700" height="60" fill="#e2e8f0" />
-                    {/* Planning whiteboard with structural drawings & review checklists */}
-                    <rect x="70" y="40" width="560" height="340" rx="8" fill="#ffffff" stroke="#cbd5e1" strokeWidth="3" />
-                    {/* Inspection status cards */}
-                    <rect x="110" y="80" width="55" height="55" rx="3" fill="#fef08a" />
-                    <rect x="180" y="80" width="55" height="55" rx="3" fill="#bbf7d0" />
-                    <rect x="250" y="80" width="55" height="55" rx="3" fill="#fed7aa" />
-                    <rect x="110" y="150" width="55" height="55" rx="3" fill="#bae6fd" />
-                    <rect x="180" y="150" width="55" height="55" rx="3" fill="#bbf7d0" />
-                    <rect x="250" y="150" width="55" height="55" rx="3" fill="#fef08a" />
-                    {/* Structural drawing sheet */}
-                    <rect x="340" y="70" width="120" height="150" rx="4" fill="#2563eb" opacity="0.9" />
-                    <line x1="360" y1="100" x2="440" y2="100" stroke="#ffffff" strokeWidth="2" />
-                    <line x1="360" y1="130" x2="440" y2="130" stroke="#93c5fd" strokeWidth="2" />
-                    <line x1="360" y1="160" x2="440" y2="160" stroke="#93c5fd" strokeWidth="2" />
-                    <circle cx="400" cy="190" r="12" fill="#60a5fa" />
-                    {/* Foundation spec sheet */}
-                    <rect x="480" y="70" width="120" height="150" rx="4" fill="#0f172a" />
-                    <rect x="500" y="95" width="80" height="40" rx="3" fill="#38bdf8" opacity="0.3" />
-                    <rect x="500" y="150" width="80" height="8" rx="2" fill="#ffffff" />
-                    <rect x="500" y="165" width="60" height="8" rx="2" fill="#94a3b8" />
-                    <rect x="500" y="180" width="70" height="8" rx="2" fill="#94a3b8" />
-                    {/* Left Inspector (Viewing structural drawing) */}
-                    <ellipse cx="280" cy="360" rx="50" ry="70" fill="#1e293b" />
-                    <circle cx="280" cy="270" r="30" fill="#0f172a" />
-                    <path d="M260,255 C264,240 296,240 300,255 Z" fill="#facc15" />
-                    {/* Right Lead Inspector (Reviewing checklist sign off) */}
-                    <ellipse cx="480" cy="350" rx="45" ry="75" fill="#0f172a" />
-                    <circle cx="480" cy="260" r="28" fill="#1e293b" />
-                    <path d="M462,245 C466,230 494,230 498,245 Z" fill="#facc15" />
-                    <path d="M450,290 L390,240 L395,230 L460,280 Z" fill="#0f172a" />
-                    <circle cx="388" cy="235" r="5" fill="#0f172a" />
-                  </svg>
-                  <div className="absolute bottom-4 left-6 right-6 flex items-center justify-between text-slate-800 text-xs bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200/80 shadow-xs">
+                  <img
+                    src="/images/engineers-collaboration.jpg"
+                    alt="Engineers collaborating in field office over structural blueprints and inspection schedule"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute bottom-4 left-6 right-6 flex items-center justify-between text-slate-800 text-xs bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200/80 shadow-xs z-10">
                     <span className="font-semibold text-slate-900">
                       Structural inspection sign off review
                     </span>
@@ -382,55 +325,13 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               </div>
 
               {/* Center 3D Yellow Structural Crane / Heavy Equipment Object */}
-              <div className="relative my-8 flex items-center justify-center">
-                <svg
-                  className="w-72 h-72 sm:w-80 sm:h-80 drop-shadow-[0_25px_35px_rgba(234,179,8,0.25)] transition-transform duration-500 group-hover:scale-105"
-                  viewBox="0 0 300 300"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <defs>
-                    <radialGradient id="spaceGlow" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.2" />
-                      <stop offset="100%" stopColor="#020617" stopOpacity="0" />
-                    </radialGradient>
-                    <linearGradient id="yellowShine" x1="0%" y1="0%" x2="100%" y2="100%">
-                      <stop offset="0%" stopColor="#fef08a" />
-                      <stop offset="35%" stopColor="#facc15" />
-                      <stop offset="70%" stopColor="#eab308" />
-                      <stop offset="100%" stopColor="#ca8a04" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Ambient sphere and background grid */}
-                  <circle cx="80" cy="100" r="45" fill="url(#spaceGlow)" />
-                  <circle cx="80" cy="100" r="30" fill="#1e293b" />
-                  <ellipse cx="80" cy="100" rx="42" ry="8" fill="none" stroke="#64748b" strokeWidth="2" strokeDasharray="3 3" />
-
-                  {/* 3D Bold Yellow Object: Heavy Lift Foundation Rig */}
-                  <path
-                    d="M150,25 C165,65 195,115 195,180 L105,180 C105,115 135,65 150,25 Z"
-                    fill="url(#yellowShine)"
-                  />
-                  <path
-                    d="M150,30 C158,65 175,115 175,175 L160,175 C160,115 145,65 150,30 Z"
-                    fill="#fef9c3"
-                    opacity="0.6"
-                  />
-                  <ellipse cx="150" cy="95" rx="28" ry="6" fill="#ca8a04" />
-                  <ellipse cx="150" cy="140" rx="38" ry="7" fill="#ca8a04" />
-                  <ellipse cx="150" cy="180" rx="45" ry="8" fill="#a16207" />
-                  <path
-                    d="M105,140 C85,150 70,190 65,225 C80,215 100,205 110,185 Z"
-                    fill="url(#yellowShine)"
-                  />
-                  <path
-                    d="M195,140 C215,150 230,190 235,225 C220,215 200,205 190,185 Z"
-                    fill="url(#yellowShine)"
-                  />
-                  <rect x="130" y="185" width="40" height="40" rx="4" fill="#a16207" />
-                  <ellipse cx="150" cy="225" rx="20" ry="5" fill="#facc15" />
-                </svg>
+              <div className="relative my-6 flex items-center justify-center">
+                <img
+                  src="/images/yellow-rig-3d.jpg"
+                  alt="3D rendered stylized heavy civil foundation crane rig"
+                  className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-[0_25px_35px_rgba(234,179,8,0.25)] transition-transform duration-500 group-hover:scale-105 rounded-2xl"
+                  loading="lazy"
+                />
               </div>
 
               {/* Bottom Card Footer */}
@@ -479,15 +380,14 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     </h4>
                   </div>
 
-                  {/* Central Glowing Orb & Radar Sensor Visualization */}
-                  <div className="relative my-6 flex items-center justify-center">
-                    <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-brand-600 via-sky-400 to-indigo-500 flex items-center justify-center shadow-lg shadow-brand-500/30 animate-pulse">
-                      <div className="w-14 h-14 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center">
-                        <HardHat className="w-7 h-7 text-white" />
-                      </div>
-                    </div>
-                    <div className="absolute w-36 h-36 rounded-full border border-brand-200/60 pointer-events-none" />
-                    <div className="absolute w-48 h-48 rounded-full border border-brand-100 pointer-events-none" />
+                  {/* Central 3D Spatial Sensor & Intelligence Sphere Image */}
+                  <div className="relative my-4 flex items-center justify-center">
+                    <img
+                      src="/images/ecosystem-orb-3d.jpg"
+                      alt="3D rendered crystal spatial inspection intelligence sphere with holographic rings"
+                      className="w-36 h-36 sm:w-44 sm:h-44 object-contain rounded-2xl drop-shadow-[0_15px_25px_rgba(99,102,241,0.35)] transition-transform duration-500 group-hover:scale-105"
+                      loading="lazy"
+                    />
                   </div>
 
                   {/* Bottom Tool Dock with 5 Site Tool Icons */}
