@@ -1,9 +1,188 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: /users/{uid}
+    // Document ID: Firebase Auth UID
+    // Fields:
+    //   - uid: string (required) - Authenticated inspector user ID
+    //   - email: string (optional) - Inspector email address
+    //   - displayName: string (optional) - User display name
+    //   - photoURL: string (optional) - Profile photo URL
+    //   - createdAt: int (optional) - Creation timestamp (epoch ms)
+    //   - lastLoginAt: int (optional) - Last login timestamp (epoch ms)
+    //   - preferences: map (optional) - User settings (e.g. autoCloudFallback)
+    //
+    // Collection: /users/{uid}/projects/{id}
+    // Document ID: Project ID string
+    // Fields:
+    //   - id: string (required) - Unique project ID
+    //   - ownerUid: string (required, immutable) - Must match request.auth.uid
+    //   - name: string (required) - Project name
+    //   - siteLabel: string (required) - Construction site identifier
+    //   - location: string (optional) - Site physical location
+    //   - description: string (optional) - Project description
+    //   - inspectionCount: int (optional) - Total inspections counter
+    //   - createdAt: int (required, immutable) - Creation timestamp
+    //   - updatedAt: int (required) - Last updated timestamp
+    //
+    // Collection: /users/{uid}/inspections/{id}
+    // Document ID: Inspection ID string (max 100 chars)
+    // Fields:
+    //   - id: string (required, immutable)
+    //   - ownerUid: string (required, immutable) - Must match request.auth.uid
+    //   - projectId: string (required) - Associated project ID
+    //   - projectName: string (required) - Associated project title
+    //   - title: string (required) - Inspection heading
+    //   - observation: string (required) - Detailed field observation narrative
+    //   - category: string (required) - Enum category
+    //   - items: list (optional) - Structured checklist items
+    //   - visibleEvidence: list (optional) - AI/Inspector visual evidence observations
+    //   - uncertainties: list (optional) - Identified ambiguities
+    //   - inspectorFollowUp: list (optional) - Action items
+    //   - summary: string (optional) - Concise executive summary
+    //   - weatherNotes: string (optional) - Environmental / weather conditions
+    //   - photoIds: list (optional) - Evidence photo identifiers (max 50)
+    //   - photoMeta: map (optional) - Metadata of primary attached photo
+    //   - reviewStatus: string (required) - Review lifecycle status enum
+    //   - reviewHistory: list (required) - Immutable append-only audit trail
+    //   - revision: int (required) - Monotonically incrementing revision counter
+    //   - creationMutationId: string (optional, immutable) - Offline idempotency ID
+    //   - clientCreationNonce: string (optional, immutable) - Offline idempotency nonce
+    //   - appliedMutationIds: list (required) - Applied mutation ID tracker (max 10)
+    //   - isArchived: bool (required) - Archival toggle flag
+    //   - archivedAt: int (optional) - Epoch timestamp of archival transition
+    //   - archivedByUid: string (optional) - UID of inspector who archived
+    //   - archiveReason: string (optional) - Justification for archival
+    //   - createdAt: int (required, immutable) - Creation timestamp
+    //   - updatedAt: int (required) - Timestamp >= createdAt
+    //   - reviewedAt: int (optional) - Timestamp of latest review status update
+    //   - reviewedByUid: string (optional) - UID of inspector performing review
+    //   - aiAssisted: bool (optional) - Whether drafted via AI
+    //   - inferenceSource: string (optional) - ON_DEVICE, IN_CLOUD, or UNKNOWN
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
     function owns(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
+
+    // Review state machine transitions validator
+    function isValidReviewTransition(oldStatus, newStatus) {
+      return (oldStatus == 'draft_generated' && newStatus == 'in_review')
+        || (oldStatus == 'in_review' && newStatus == 'approved')
+        || (oldStatus == 'in_review' && newStatus == 'rejected')
+        || (oldStatus == 'approved' && newStatus == 'in_review')
+        || (oldStatus == 'rejected' && newStatus == 'in_review');
+    }
+
+    // Single review event verification
+    function isNewReviewEventValid(newEvent, oldStatus, newStatus, rev) {
+      return newEvent.fromStatus == oldStatus
+        && newEvent.toStatus == newStatus
+        && newEvent.byUid == request.auth.uid
+        && newEvent.revision == rev
+        && newEvent.timestamp is int
+        && newEvent.timestamp > 0;
+    }
+
+    // Review history append and byte-for-byte preservation validator
+    function isReviewHistoryValid(oldData, newData) {
+      let oldStatus = oldData.reviewStatus;
+      let newStatus = newData.reviewStatus;
+      let oldHistory = oldData.reviewHistory;
+      let newHistory = newData.reviewHistory;
+      return (oldStatus == newStatus && newHistory == oldHistory)
+        || (oldStatus != newStatus
+            && isValidReviewTransition(oldStatus, newStatus)
+            && newHistory.size() == oldHistory.size() + 1
+            && newHistory.size() > 0
+            && newHistory.size() <= 100
+            && newHistory.hasAll(oldHistory)
+            && isNewReviewEventValid(newHistory[oldHistory.size()], oldStatus, newStatus, newData.revision)
+            && newData.reviewedAt == newHistory[oldHistory.size()].timestamp
+            && newData.reviewedByUid == newHistory[oldHistory.size()].byUid
+            && newData.reviewedByUid == request.auth.uid);
+    }
+
+    // Archival metadata validator across all 4 state transitions
+    function isArchivalAttributionValid(oldData, newData) {
+      // 1) Active to Active
+      return (!oldData.isArchived && !newData.isArchived
+          && (!('archivedAt' in newData) || newData.archivedAt == null)
+          && (!('archivedByUid' in newData) || newData.archivedByUid == null)
+          && (!('archiveReason' in newData) || newData.archiveReason == null))
+        // 2) Active to Archived
+        || (!oldData.isArchived && newData.isArchived
+          && newData.archivedByUid == request.auth.uid
+          && newData.archivedAt is int
+          && newData.archivedAt > 0
+          && (!('archiveReason' in newData) || (newData.archiveReason is string && newData.archiveReason.size() <= 500)))
+        // 3) Archived to Archived
+        || (oldData.isArchived && newData.isArchived
+          && newData.archivedByUid == oldData.archivedByUid
+          && newData.archivedAt == oldData.archivedAt
+          && (!('archiveReason' in newData) || (newData.archiveReason is string && newData.archiveReason.size() <= 500)))
+        // 4) Archived to Active
+        || (oldData.isArchived && !newData.isArchived
+          && (!('archivedAt' in newData) || newData.archivedAt == null)
+          && (!('archivedByUid' in newData) || newData.archivedByUid == null)
+          && (!('archiveReason' in newData) || newData.archiveReason == null));
+    }
+
+    // Inspection field allowlist validator
+    function hasOnlyAllowedInspectionKeys(data) {
+      return data.keys().hasOnly([
+        'id', 'ownerUid', 'projectId', 'projectName', 'title',
+        'observation', 'category', 'items', 'visibleEvidence',
+        'uncertainties', 'inspectorFollowUp', 'summary', 'weatherNotes',
+        'photoIds', 'photoMeta', 'reviewStatus', 'reviewHistory',
+        'revision', 'creationMutationId', 'clientCreationNonce',
+        'appliedMutationIds', 'isArchived', 'archivedAt', 'archivedByUid',
+        'archiveReason', 'createdAt', 'updatedAt', 'reviewedAt',
+        'reviewedByUid', 'aiAssisted', 'inferenceSource'
+      ]);
+    }
+
+    // Payload type and bounds validator
+    function isInspectionPayloadBounded(data) {
+      return data.id is string && data.id.size() <= 100
+        && data.ownerUid is string && data.ownerUid.size() <= 128
+        && data.projectId is string && data.projectId.size() <= 100
+        && data.projectName is string && data.projectName.size() <= 200
+        && data.title is string && data.title.size() <= 200
+        && data.observation is string && data.observation.size() <= 10000
+        && data.category in [
+          'surface_condition', 'installation', 'housekeeping', 'equipment', 'other',
+          'structural', 'electrical', 'plumbing', 'hvac', 'fire_safety',
+          'general', 'environmental', 'finishes'
+        ]
+        && (!('summary' in data) || (data.summary is string && data.summary.size() <= 10000))
+        && (!('weatherNotes' in data) || (data.weatherNotes is string && data.weatherNotes.size() <= 1000))
+        && data.reviewStatus in ['draft_generated', 'in_review', 'approved', 'rejected']
+        && data.reviewHistory is list && data.reviewHistory.size() <= 100
+        && data.appliedMutationIds is list && data.appliedMutationIds.size() <= 10
+        && data.photoIds is list && data.photoIds.size() <= 50
+        && data.isArchived is bool
+        && data.revision is int
+        && (!('creationMutationId' in data) || (data.creationMutationId is string && data.creationMutationId.size() <= 100))
+        && (!('clientCreationNonce' in data) || (data.clientCreationNonce is string && data.clientCreationNonce.size() <= 100))
+        && (('creationMutationId' in data) || ('clientCreationNonce' in data))
+        && data.createdAt is int && data.createdAt > 0
+        && data.updatedAt is int && data.updatedAt >= data.createdAt;
+    }
+
+    // ===============================================================
+    // Collections
+    // ===============================================================
 
     // Inspector user profile record
     match /users/{uid} {
@@ -19,13 +198,40 @@ service cloud.firestore {
       allow delete: if owns(uid) && resource.data.ownerUid == request.auth.uid;
     }
 
-    // Owner-scoped inspection subcollection
+    // Owner-scoped inspection subcollection with state machine enforcement
     match /users/{uid}/inspections/{id} {
       allow read: if owns(uid);
-      allow create: if owns(uid) && request.resource.data.ownerUid == request.auth.uid;
-      allow update: if owns(uid) && resource.data.ownerUid == request.auth.uid
-        && request.resource.data.ownerUid == resource.data.ownerUid;
-      allow delete: if owns(uid) && resource.data.ownerUid == request.auth.uid;
+
+      allow create: if owns(uid)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.id == id
+        && hasOnlyAllowedInspectionKeys(request.resource.data)
+        && isInspectionPayloadBounded(request.resource.data)
+        && request.resource.data.reviewStatus == 'draft_generated'
+        && request.resource.data.reviewHistory.size() == 0
+        && request.resource.data.appliedMutationIds.size() == 0
+        && request.resource.data.isArchived == false
+        && request.resource.data.revision in [0, 1];
+
+      allow update: if owns(uid)
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.id == resource.data.id
+        && ((!('clientCreationNonce' in resource.data)) || (request.resource.data.clientCreationNonce == resource.data.clientCreationNonce))
+        && ((!('creationMutationId' in resource.data)) || (request.resource.data.creationMutationId == resource.data.creationMutationId))
+        && request.resource.data.createdAt == resource.data.createdAt
+        && hasOnlyAllowedInspectionKeys(request.resource.data)
+        && isInspectionPayloadBounded(request.resource.data)
+        && resource.data.revision is int
+        && request.resource.data.revision == resource.data.revision + 1
+        && isReviewHistoryValid(resource.data, request.resource.data)
+        && isArchivalAttributionValid(resource.data, request.resource.data);
+
+      allow delete: if owns(uid)
+        && resource.data.ownerUid == request.auth.uid
+        && resource.data.reviewStatus == 'draft_generated'
+        && resource.data.reviewHistory.size() == 0
+        && resource.data.isArchived == false;
     }
 
     // Deny all other access by default
