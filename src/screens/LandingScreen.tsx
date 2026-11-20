@@ -15,9 +15,13 @@ import { AuthModal } from "../components/auth/AuthModal";
 
 export interface LandingScreenProps {
   onNavigate: (view: ViewMode) => void;
+  onCreateProject?: () => void;
 }
 
-export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigate }) => {
+export const LandingScreen: React.FC<LandingScreenProps> = ({
+  onNavigate,
+  onCreateProject,
+}) => {
   const { currentUser, logout } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -346,7 +350,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigate }) => {
 
           {/* Section Headline */}
           <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 mb-14">
-            Our projects
+            Site inspection projects
           </h2>
 
           {/* Two Large Showcase Cards Side by Side (Exact 2-Col Layout) */}
@@ -544,17 +548,22 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigate }) => {
           </h2>
 
           <p className="text-slate-600 text-base sm:text-lg mb-10 max-w-xl mx-auto leading-relaxed font-normal">
-            Open the workspace to manage inspection projects, record observations
-            offline, and sign off verified structural records.
+            Create a project to manage inspections, record observations offline, and sign off verified structural records.
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4">
             <button
               type="button"
-              onClick={() => onNavigate("overview")}
+              onClick={() => {
+                if (onCreateProject) {
+                  onCreateProject();
+                } else {
+                  onNavigate("projects");
+                }
+              }}
               className="group inline-flex items-center gap-3 pl-6 pr-2 py-3 rounded-full bg-brand-600 text-white font-semibold text-sm sm:text-base hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-pill"
             >
-              <span>Open workspace</span>
+              <span>Create Project</span>
               <span className="w-7 h-7 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
                 <ArrowRight className="w-4 h-4" />
               </span>
@@ -562,10 +571,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({ onNavigate }) => {
 
             <button
               type="button"
-              onClick={() => onNavigate("projects")}
+              onClick={() => setIsAuthModalOpen(true)}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-sm sm:text-base hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer shadow-xs"
             >
-              <span>Explore Projects</span>
+              <span>Sign in</span>
             </button>
           </div>
         </div>
