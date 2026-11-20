@@ -93,7 +93,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
           ) : (
             <button
               type="button"
-              onClick={() => setIsAuthModalOpen(true)}
+              onClick={() => onNavigate("signin")}
               className="group inline-flex items-center gap-3 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
             >
               <span>Sign in</span>
@@ -471,7 +471,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
             <button
               type="button"
-              onClick={() => setIsAuthModalOpen(true)}
+              onClick={() => onNavigate("signin")}
               className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-sm sm:text-base hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer shadow-xs"
             >
               <span>Sign in</span>

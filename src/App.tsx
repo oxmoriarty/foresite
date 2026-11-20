@@ -4,7 +4,9 @@ import { Header } from "./components/layout/Header";
 import { Navigation } from "./components/layout/Navigation";
 import { Footer } from "./components/layout/Footer";
 import { LandingScreen } from "./screens/LandingScreen";
+import { SignInScreen } from "./screens/SignInScreen";
 import { OverviewScreen } from "./screens/OverviewScreen";
+import { User } from "firebase/auth";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
 import { SyncCenterScreen } from "./screens/SyncCenterScreen";
@@ -173,13 +175,25 @@ const INITIAL_INSPECTIONS: Inspection[] = [
 
 export interface AppProps {
   initialView?: ViewMode;
+  initialUser?: User | null;
 }
 
 const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   const { currentUser, isConfigured } = useAuth();
   const defaultInitialView: ViewMode =
-    initialView || (process.env.NODE_ENV === "test" ? "overview" : "landing");
+    !currentUser && initialView && initialView !== "landing"
+      ? "signin"
+      : initialView || (process.env.NODE_ENV === "test" && currentUser ? "overview" : "landing");
   const [currentView, setCurrentView] = useState<ViewMode>(defaultInitialView);
+  const [pendingDestination, setPendingDestination] = useState<{
+    view: ViewMode;
+    openProjectModal?: boolean;
+    projectId?: string;
+  } | null>(
+    !currentUser && initialView && initialView !== "landing" && initialView !== "signin"
+      ? { view: initialView }
+      : null
+  );
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -659,24 +673,84 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
     );
   };
 
+  // Central Guarded Navigation: Enforces authentication on all non-landing views
+  const handleNavigate = useCallback(
+    (targetView: ViewMode, options?: { openProjectModal?: boolean; projectId?: string }) => {
+      if (targetView === "landing") {
+        setCurrentView("landing");
+        return;
+      }
+
+      if (targetView === "signin") {
+        setCurrentView("signin");
+        return;
+      }
+
+      // Check authentication for protected views: overview, projects, inspections, sync, settings
+      if (!currentUser) {
+        setPendingDestination({
+          view: targetView,
+          openProjectModal: options?.openProjectModal,
+          projectId: options?.projectId,
+        });
+        setCurrentView("signin");
+        return;
+      }
+
+      // User is authenticated: proceed to destination
+      setCurrentView(targetView);
+      if (options?.projectId) {
+        setSelectedProjectId(options.projectId);
+      }
+      if (options?.openProjectModal) {
+        setIsProjectModalOpen(true);
+      }
+    },
+    [currentUser]
+  );
+
+  // Reactive redirect: When user signs in, immediately take them to their intended destination
+  useEffect(() => {
+    if (currentUser) {
+      if (pendingDestination) {
+        const dest = pendingDestination;
+        setPendingDestination(null);
+        setCurrentView(dest.view);
+        if (dest.projectId) {
+          setSelectedProjectId(dest.projectId);
+        }
+        if (dest.openProjectModal) {
+          setIsProjectModalOpen(true);
+        }
+      } else if (currentView === "signin") {
+        setCurrentView("overview");
+      }
+    } else {
+      // If user is unauthenticated while on a protected page, redirect to signin
+      if (currentView !== "landing" && currentView !== "signin") {
+        setPendingDestination({ view: currentView });
+        setCurrentView("signin");
+      }
+    }
+  }, [currentUser, pendingDestination, currentView]);
+
   // Handler: Select a project to filter inspections
   const handleSelectProject = (projectId: string) => {
-    setSelectedProjectId(projectId);
-    setCurrentView("inspections");
+    handleNavigate("inspections", { projectId });
   };
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Accessible Header with Auth (rendered in workspace views) */}
-      {currentView !== "landing" && (
-        <Header currentView={currentView} onSelectView={setCurrentView} />
+      {/* Accessible Header with Auth (rendered in workspace views when signed in) */}
+      {currentUser && currentView !== "landing" && currentView !== "signin" && (
+        <Header currentView={currentView} onSelectView={handleNavigate} />
       )}
 
-      {/* Primary Navigation Tabs (rendered in workspace views) */}
-      {currentView !== "landing" && (
+      {/* Primary Navigation Tabs (rendered in workspace views when signed in) */}
+      {currentUser && currentView !== "landing" && currentView !== "signin" && (
         <Navigation
           currentView={currentView}
-          onSelectView={setCurrentView}
+          onSelectView={handleNavigate}
           inspectionBadgeCount={stats.pendingReviews}
         />
       )}
@@ -684,11 +758,26 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
       {/* Main Content Area */}
       {currentView === "landing" ? (
         <LandingScreen
-          onNavigate={setCurrentView}
-          onCreateProject={() => {
-            setCurrentView("projects");
-            setIsProjectModalOpen(true);
+          onNavigate={handleNavigate}
+          onCreateProject={() =>
+            handleNavigate("projects", { openProjectModal: true })
+          }
+        />
+      ) : currentView === "signin" || !currentUser ? (
+        <SignInScreen
+          onSuccess={() => {
+            // Handled reactively by currentUser useEffect
           }}
+          onNavigateHome={() => setCurrentView("landing")}
+          targetDestinationName={
+            pendingDestination?.openProjectModal
+              ? "Project Creation"
+              : pendingDestination?.view
+              ? pendingDestination.view.charAt(0).toUpperCase() + pendingDestination.view.slice(1)
+              : currentView !== "signin"
+              ? currentView.charAt(0).toUpperCase() + currentView.slice(1)
+              : undefined
+          }
         />
       ) : (
         <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -697,10 +786,9 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
               projects={projects}
               inspections={inspections}
               stats={stats}
-              onNavigate={setCurrentView}
+              onNavigate={handleNavigate}
               onOpenNewProjectModal={() => {
-                setCurrentView("projects");
-                setIsProjectModalOpen(true);
+                handleNavigate("projects", { openProjectModal: true });
               }}
             />
           )}
@@ -736,7 +824,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
 
           {currentView === "sync" && (
             <SyncCenterScreen
-              onNavigateToInspections={() => setCurrentView("inspections")}
+              onNavigateToInspections={() => handleNavigate("inspections")}
             />
           )}
 
@@ -744,15 +832,15 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
         </main>
       )}
 
-      {/* Accessible Footer (rendered in workspace views) */}
-      {currentView !== "landing" && <Footer />}
+      {/* Accessible Footer (rendered in workspace views when signed in) */}
+      {currentUser && currentView !== "landing" && currentView !== "signin" && <Footer />}
     </div>
   );
 };
 
-export const App: React.FC<AppProps> = ({ initialView }) => {
+export const App: React.FC<AppProps> = ({ initialView, initialUser }) => {
   return (
-    <AuthProvider>
+    <AuthProvider initialUser={initialUser}>
       <ForeSiteApp initialView={initialView} />
     </AuthProvider>
   );

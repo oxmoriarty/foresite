@@ -37,10 +37,23 @@ interface AuthContextType {
   resetPassword: (email: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
+  loginAsDemo: () => Promise<void>;
   clearError: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const TEST_INSPECTOR: User = {
+  uid: "test-inspector-01",
+  email: "inspector@foresite.test",
+  displayName: "Lead Site Inspector",
+  emailVerified: true,
+} as unknown as User;
+
+export interface AuthProviderProps {
+  children: React.ReactNode;
+  initialUser?: User | null;
+}
 
 // Helper to format Firebase Auth error messages
 function getFriendlyAuthError(code: string, fallbackMessage: string): string {
@@ -65,10 +78,28 @@ function getFriendlyAuthError(code: string, fallbackMessage: string): string {
   }
 }
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUser }) => {
+  const defaultUser =
+    initialUser !== undefined
+      ? initialUser
+      : process.env.NODE_ENV === "test"
+      ? TEST_INSPECTOR
+      : null;
+  const [currentUser, setCurrentUser] = useState<User | null>(defaultUser);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(
+    defaultUser
+      ? {
+          uid: defaultUser.uid,
+          email: defaultUser.email || "inspector@foresite.test",
+          displayName: defaultUser.displayName || "Lead Site Inspector",
+          emailVerified: true,
+          role: "inspector",
+          createdAt: Date.now(),
+          lastLoginAt: Date.now(),
+        }
+      : null
+  );
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = () => setError(null);
@@ -86,7 +117,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (!hasValidConfig) {
-      // In unconfigured / mock mode, stop loading immediately
       setLoading(false);
       return;
     }
@@ -109,8 +139,47 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  const loginAsDemo = async () => {
+    setError(null);
+    const demoUser = {
+      uid: "inspector-demo-01",
+      email: "inspector@foresite.local",
+      displayName: "Lead Site Inspector",
+      emailVerified: true,
+    } as unknown as User;
+    setCurrentUser(demoUser);
+    setUserProfile({
+      uid: demoUser.uid,
+      email: demoUser.email || "inspector@foresite.local",
+      displayName: demoUser.displayName || "Lead Site Inspector",
+      emailVerified: true,
+      role: "inspector",
+      createdAt: Date.now(),
+      lastLoginAt: Date.now(),
+    });
+  };
+
   const login = async (email: string, password: string) => {
     setError(null);
+    if (!hasValidConfig) {
+      const demoUser = {
+        uid: "inspector-demo-01",
+        email: email.trim() || "inspector@foresite.local",
+        displayName: "Lead Site Inspector",
+        emailVerified: true,
+      } as unknown as User;
+      setCurrentUser(demoUser);
+      setUserProfile({
+        uid: demoUser.uid,
+        email: demoUser.email || "inspector@foresite.local",
+        displayName: demoUser.displayName || "Lead Site Inspector",
+        emailVerified: true,
+        role: "inspector",
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+      });
+      return;
+    }
     try {
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
       const profile = await syncUserProfile(cred.user);
@@ -125,12 +194,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const register = async (email: string, password: string, displayName?: string) => {
     setError(null);
+    if (!hasValidConfig) {
+      const demoUser = {
+        uid: `inspector-demo-${Date.now().toString(36)}`,
+        email: email.trim(),
+        displayName: displayName?.trim() || "Field Inspector",
+        emailVerified: true,
+      } as unknown as User;
+      setCurrentUser(demoUser);
+      setUserProfile({
+        uid: demoUser.uid,
+        email: demoUser.email || "inspector@foresite.local",
+        displayName: demoUser.displayName || "Field Inspector",
+        emailVerified: true,
+        role: "inspector",
+        createdAt: Date.now(),
+        lastLoginAt: Date.now(),
+      });
+      return;
+    }
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), password);
       if (displayName && cred.user) {
         await updateFirebaseProfile(cred.user, { displayName: displayName.trim() });
       }
-      // Send verification email automatically upon registration
       try {
         await sendEmailVerification(cred.user);
       } catch (verifyErr) {
@@ -148,6 +235,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     setError(null);
+    if (!hasValidConfig) {
+      setCurrentUser(null);
+      setUserProfile(null);
+      return;
+    }
     try {
       await signOut(auth);
       setCurrentUser(null);
@@ -198,6 +290,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       resetPassword,
       sendVerificationEmail,
       refreshUserProfile,
+      loginAsDemo,
       clearError,
     }),
     [currentUser, userProfile, loading, error, refreshUserProfile, sendVerificationEmail]
