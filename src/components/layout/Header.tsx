@@ -1,10 +1,16 @@
 import React, { useState } from "react";
-import { HardHat, Database, Sparkles, LogIn, LogOut, CheckCircle2, AlertTriangle } from "lucide-react";
+import { Database, Sparkles, LogIn, LogOut, CheckCircle2, AlertTriangle, Home } from "lucide-react";
 import { config } from "../../config/env";
 import { useAuth } from "../../context/AuthContext";
 import { AuthModal } from "../auth/AuthModal";
+import { ViewMode } from "../../types";
 
-export const Header: React.FC = () => {
+export interface HeaderProps {
+  currentView?: ViewMode;
+  onSelectView?: (view: ViewMode) => void;
+}
+
+export const Header: React.FC<HeaderProps> = ({ currentView, onSelectView }) => {
   const { currentUser, userProfile, logout, sendVerificationEmail } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [verifyNoticeSent, setVerifyNoticeSent] = useState(false);
@@ -33,43 +39,64 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Brand Identity */}
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-brand-500 text-white rounded-lg shadow-sm">
-                <HardHat className="w-5 h-5" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-lg font-bold tracking-tight text-slate-900">
-                    ForeSite
-                  </span>
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-brand-50 text-brand-700 border border-brand-200">
-                    <Sparkles className="w-3 h-3 text-brand-500" />
-                    Hybrid AI
-                  </span>
+              <button
+                type="button"
+                onClick={() => onSelectView?.("landing")}
+                className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
+                title="Go to ForeSite Home"
+              >
+                <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-pill group-hover:scale-105 transition-transform duration-200">
+                  FS
                 </div>
-                <p className="text-[11px] text-slate-500 hidden sm:block">
-                  Site Inspection & Observation Workspace
-                </p>
-              </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">
+                      ForeSite
+                    </span>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200">
+                      <Sparkles className="w-3 h-3 text-brand-500" />
+                      Field Intelligence
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 hidden sm:block">
+                    Site inspection and observation workspace
+                  </p>
+                </div>
+              </button>
             </div>
 
             {/* Right Status Indicators & User Authentication */}
             <div className="flex items-center gap-3">
+              {/* Home / Landing Switch Pill */}
+              {onSelectView && (
+                <button
+                  type="button"
+                  onClick={() => onSelectView(currentView === "landing" ? "overview" : "landing")}
+                  className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border border-slate-200 text-slate-700 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer"
+                  title={currentView === "landing" ? "Open Inspection Workspace" : "View Landing Page"}
+                >
+                  <Home className="w-3.5 h-3.5 text-brand-600" />
+                  <span>{currentView === "landing" ? "Open Workspace" : "Landing Page"}</span>
+                </button>
+              )}
+
               {/* Local Evidence Storage Status */}
               <div
-                className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100/80 text-slate-700 border border-slate-200/80"
                 title="Original inspection photos are preserved locally in browser IndexedDB"
               >
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 <Database className="w-3.5 h-3.5 text-slate-500" />
-                <span>Local Storage: Active</span>
+                <span>Local Storage Active</span>
               </div>
 
               {/* Environment Badge */}
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+              <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
                 v{config.appVersion}
               </span>
 
@@ -80,7 +107,7 @@ export const Header: React.FC = () => {
                     {/* User Badge / Avatar */}
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold ring-2 ring-brand-500/30"
+                        className="w-8 h-8 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold ring-2 ring-brand-500/20"
                         title={currentUser.email || "Authenticated Inspector"}
                       >
                         {getInitials(userProfile?.displayName, currentUser.email)}
@@ -110,7 +137,7 @@ export const Header: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => logout()}
-                      className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors"
+                      className="p-1.5 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                       title="Sign Out"
                       aria-label="Sign Out"
                     >
@@ -121,7 +148,7 @@ export const Header: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setIsAuthModalOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-500 text-white hover:bg-brand-600 transition-colors shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold bg-brand-600 text-white hover:bg-brand-700 active:scale-95 transition-all duration-200 shadow-pill cursor-pointer"
                   >
                     <LogIn className="w-3.5 h-3.5" />
                     <span>Sign In</span>
@@ -143,7 +170,7 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={handleResendVerification}
-                className="underline font-semibold ml-2 text-amber-900 hover:text-amber-950"
+                className="underline font-semibold ml-2 text-amber-900 hover:text-amber-950 cursor-pointer"
               >
                 {verifyNoticeSent ? "Verification Link Sent!" : "Resend Link"}
               </button>

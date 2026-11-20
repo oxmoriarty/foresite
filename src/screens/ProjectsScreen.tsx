@@ -154,7 +154,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
       {/* Header & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Inspection Projects
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -166,6 +166,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
           size="md"
           icon={<Plus className="w-4 h-4" />}
           onClick={() => setIsCreateModalOpen(true)}
+          className="rounded-full shadow-pill"
         >
           Create Project
         </Button>
@@ -173,7 +174,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
 
       {/* Search Bar */}
       <div className="relative max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
           <Search className="w-4 h-4" />
         </div>
         <input
@@ -181,7 +182,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by project name, parcel label, or city..."
-          className="w-full pl-9 pr-4 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500"
+          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/80 rounded-full text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
         />
       </div>
 

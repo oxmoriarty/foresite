@@ -299,15 +299,15 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
   return (
     <div className="space-y-6">
       {/* Screen Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-brand-50 text-brand-600 rounded-lg border border-brand-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-brand-50 text-brand-600 rounded-xl flex items-center justify-center border border-brand-200/60 shadow-xs">
               <ArrowLeftRight className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Sync Center</h1>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Sync Center</h1>
+              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                 Monitor offline synchronization, resolve data conflicts, and manage pending changes.
               </p>
             </div>
@@ -318,12 +318,12 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
         <div className="flex items-center gap-2.5">
           <Button
             size="sm"
-            variant="secondary"
+            variant="outline"
             onClick={handleExportDiagnostics}
             disabled={loading || mutations.length === 0}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 rounded-full"
           >
-            <Download className="w-4 h-4 text-slate-500" />
+            <Download className="w-3.5 h-3.5 text-slate-500" />
             Export Diagnostics
           </Button>
 
@@ -332,9 +332,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             variant="primary"
             onClick={handleManualSync}
             disabled={loading || syncing}
-            className="flex items-center gap-1.5"
+            className="flex items-center gap-1.5 rounded-full shadow-pill"
           >
-            <RefreshCw className={`w-4 h-4 ${syncing ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Syncing..." : "Sync Now"}
           </Button>
         </div>

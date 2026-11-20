@@ -25,6 +25,8 @@ import {
   Trash2,
   Database,
   AlertTriangle,
+  Archive,
+  ArchiveRestore,
 } from "lucide-react";
 import {
   Inspection,
@@ -56,8 +58,9 @@ import {
   getEvidencePhotosByInspection,
   persistLocalReviewTransition,
 } from "../services/indexeddb";
-import { getInspectionSyncStatus } from "../services/mutationReplay";
-import { getMutationsByInspection } from "../services/mutationQueue";
+import { getInspectionSyncStatus, replayQueuedMutations } from "../services/mutationReplay";
+import { getMutationsByInspection, enqueueMutation } from "../services/mutationQueue";
+import { isInspectionEligibleForPermanentDeletion } from "../services/photoCleanup";
 import { ConflictResolutionModal } from "../components/conflict/ConflictResolutionModal";
 
 export interface InspectionsScreenProps {
@@ -67,6 +70,8 @@ export interface InspectionsScreenProps {
   onLocalReviewTransition?: (updatedInspection: Inspection) => void;
   onSaveInspection?: (inspection: Inspection) => void | Promise<void>;
   onDeleteInspection?: (inspectionId: string) => void | Promise<void>;
+  onArchiveInspection?: (inspectionId: string, reason?: string) => void | Promise<void>;
+  onUnarchiveInspection?: (inspectionId: string) => void | Promise<void>;
   selectedProjectId?: string | null;
   onClearProjectFilter?: () => void;
   isNewInspectionModalOpen?: boolean;
@@ -80,6 +85,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
   onLocalReviewTransition,
   onSaveInspection,
   onDeleteInspection,
+  onArchiveInspection,
+  onUnarchiveInspection,
   selectedProjectId,
   onClearProjectFilter,
   isNewInspectionModalOpen: externalIsNewModalOpen,
@@ -274,6 +281,9 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         if (selectedProjectId && insp.projectId !== selectedProjectId) {
           return false;
         }
+        if (statusFilter === "archived") {
+          return insp.isArchived === true;
+        }
         if (statusFilter !== "all" && insp.reviewStatus !== statusFilter) {
           return false;
         }
@@ -369,13 +379,34 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         reviewComment.trim() || undefined
       );
 
-      // Persist status and audit event atomically to IndexedDB (strictly local-only in Stage 1)
+      // Persist status and audit event atomically to IndexedDB
       await persistLocalReviewTransition(activeInspection.id, updatedInspection, auditEvent);
 
-      // Notify parent for in-memory React state update (STRICTLY LOCAL-ONLY, NO FIRESTORE WRITE)
+      // Notify parent for in-memory React state update
       if (onLocalReviewTransition) {
         onLocalReviewTransition(updatedInspection);
       }
+
+      // Enqueue durable TRANSITION_REVIEW mutation
+      await enqueueMutation({
+        ownerUid: currentUser.uid,
+        targetInspectionId: activeInspection.id,
+        type: "TRANSITION_REVIEW",
+        payload: {
+          type: "TRANSITION_REVIEW",
+          fromStatus: activeInspection.reviewStatus || "draft_generated",
+          targetStatus,
+          reviewerUid: currentUser.uid,
+          comment: reviewComment.trim() || undefined,
+          auditEventId: auditEvent.id,
+        },
+        baseRevision: activeInspection.revision || 1,
+      });
+
+      // Background replay
+      void replayQueuedMutations().catch((err) => {
+        console.warn("Background replay execution error:", err);
+      });
 
       // Update local modal state and reset comment
       setActiveInspection(updatedInspection);
@@ -414,10 +445,14 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
   const confirmDeleteInspection = async () => {
     if (!inspectionToDelete) return;
-    if (inspectionToDelete.isLocalDraft) {
-      await deleteLocalDraft(inspectionToDelete.id);
-    } else if (onDeleteInspection) {
+    const eligibility = isInspectionEligibleForPermanentDeletion(inspectionToDelete);
+    if (!eligibility.eligible) {
+      return;
+    }
+    if (onDeleteInspection) {
       await onDeleteInspection(inspectionToDelete.id);
+    } else if (inspectionToDelete.isLocalDraft) {
+      await deleteLocalDraft(inspectionToDelete.id);
     }
     setInspectionToDelete(null);
     setIsDetailModalOpen(false);
@@ -430,23 +465,23 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Site Inspections
             </h1>
             {selectedProjectId && (
-              <span className="px-2 py-0.5 text-xs font-semibold bg-brand-100 text-brand-800 rounded">
+              <span className="px-2.5 py-0.5 text-xs font-semibold bg-brand-100 text-brand-800 rounded-full">
                 Filtered by Project
               </span>
             )}
           </div>
           <p className="text-sm text-slate-500 mt-1">
-            Capture field observations, attach local photograph evidence, and record human review sign-offs.
+            Capture field observations, attach local photograph evidence, and record human review sign offs.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           {selectedProjectId && onClearProjectFilter && (
-            <Button variant="outline" size="md" onClick={onClearProjectFilter}>
+            <Button variant="outline" size="md" onClick={onClearProjectFilter} className="rounded-full">
               Show All Projects
             </Button>
           )}
@@ -455,6 +490,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             size="md"
             icon={<Plus className="w-4 h-4" />}
             onClick={handleOpenEditorForNew}
+            className="rounded-full shadow-pill"
           >
             New Inspection
           </Button>
@@ -462,8 +498,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-slate-200 text-xs">
-        <span className="text-slate-400 font-medium flex items-center gap-1 pl-1 pr-2">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span className="text-slate-400 font-semibold flex items-center gap-1 pl-1 pr-2 uppercase tracking-wider text-[11px]">
           <Filter className="w-3.5 h-3.5" />
           Filter:
         </span>
@@ -473,15 +509,16 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           { id: "in_review", label: "In Review" },
           { id: "approved", label: "Approved" },
           { id: "rejected", label: "Rejected" },
+          { id: "archived", label: "Archived" },
         ].map((tab) => (
           <button
             key={tab.id}
             type="button"
             onClick={() => setStatusFilter(tab.id)}
-            className={`px-3 py-1.5 font-medium rounded-lg transition-colors whitespace-nowrap ${
+            className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
               statusFilter === tab.id
-                ? "bg-slate-800 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                ? "bg-slate-900 text-white shadow-xs scale-105"
+                : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
             }`}
           >
             {tab.label}
@@ -534,6 +571,12 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     )}
                     {renderSyncBadge(syncStatuses[insp.id], insp.id)}
                     <Badge variant="status" status={insp.reviewStatus} />
+                    {insp.isArchived && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
+                        <Archive className="w-2.5 h-2.5 text-slate-500" />
+                        Archived
+                      </span>
+                    )}
 
                     {insp.isLocalDraft && (
                       <button
@@ -653,6 +696,58 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   >
                     Delete
                   </Button>
+
+                  {/* Archive / Unarchive Action */}
+                  {activeInspection.isArchived ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={<ArchiveRestore className="w-3.5 h-3.5" />}
+                      onClick={async () => {
+                        if (onUnarchiveInspection) {
+                          await onUnarchiveInspection(activeInspection.id);
+                          setActiveInspection((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  isArchived: false,
+                                  archivedAt: null,
+                                  archivedByUid: null,
+                                  archiveReason: null,
+                                }
+                              : null
+                          );
+                          await loadDrafts();
+                        }
+                      }}
+                    >
+                      Unarchive
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      icon={<Archive className="w-3.5 h-3.5" />}
+                      onClick={async () => {
+                        if (onArchiveInspection) {
+                          await onArchiveInspection(activeInspection.id);
+                          setActiveInspection((prev) =>
+                            prev
+                              ? {
+                                  ...prev,
+                                  isArchived: true,
+                                  archivedAt: Date.now(),
+                                  archivedByUid: currentUser?.uid || null,
+                                }
+                              : null
+                          );
+                          await loadDrafts();
+                        }
+                      }}
+                    >
+                      Archive
+                    </Button>
+                  )}
 
                   {/* Strictly Permitted Review Actions */}
                   {getPermittedReviewTransitions(activeInspection.reviewStatus || "draft_generated").map(
@@ -911,42 +1006,65 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
       )}
 
       {/* Delete Inspection Confirmation Modal */}
-      <Modal
-        isOpen={Boolean(inspectionToDelete)}
-        onClose={() => setInspectionToDelete(null)}
-        title={
-          <div className="flex items-center gap-2 text-red-700">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <span>Confirm Inspection Deletion</span>
-          </div>
-        }
-        footer={
-          <>
-            <Button
-              variant="outline"
-              size="md"
-              onClick={() => setInspectionToDelete(null)}
-            >
-              Cancel
-            </Button>
-            <Button variant="danger" size="md" onClick={confirmDeleteInspection}>
-              Permanently Delete Inspection
-            </Button>
-          </>
-        }
-      >
-        <div className="space-y-3 text-xs text-slate-700">
-          <p>
-            Are you sure you want to delete inspection record &quot;{inspectionToDelete?.title}&quot;?
-          </p>
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-1">
-            <span className="font-semibold block">Local Evidence Notice:</span>
-            <p>
-              Deleting this inspection will permanently remove all attached photographic evidence Blobs stored locally in IndexedDB.
-            </p>
-          </div>
-        </div>
-      </Modal>
+      {inspectionToDelete && (() => {
+        const eligibility = isInspectionEligibleForPermanentDeletion(inspectionToDelete);
+        return (
+          <Modal
+            isOpen={Boolean(inspectionToDelete)}
+            onClose={() => setInspectionToDelete(null)}
+            title={
+              <div className="flex items-center gap-2 text-red-700">
+                <AlertTriangle className="w-5 h-5 text-red-600" />
+                <span>Confirm Permanent Deletion</span>
+              </div>
+            }
+            footer={
+              <>
+                <Button
+                  variant="outline"
+                  size="md"
+                  onClick={() => setInspectionToDelete(null)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="danger"
+                  size="md"
+                  onClick={confirmDeleteInspection}
+                  disabled={!eligibility.eligible}
+                >
+                  Permanently Delete Inspection
+                </Button>
+              </>
+            }
+          >
+            <div className="space-y-3 text-xs text-slate-700">
+              <p>
+                Are you sure you want to delete inspection record &quot;{inspectionToDelete?.title}&quot;?
+              </p>
+              {!eligibility.eligible ? (
+                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 space-y-1">
+                  <span className="font-semibold block">Permanent Deletion Blocked:</span>
+                  <p>{eligibility.reason}</p>
+                </div>
+              ) : (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-2">
+                  <span className="font-semibold block">Photo Evidence &amp; Deletion Lifecycle:</span>
+                  <p>
+                    • Deletion will be queued and verified against Cloud Firestore.
+                  </p>
+                  <p>
+                    • Upon confirmed remote deletion, locally stored photographic evidence Blobs in IndexedDB will be securely removed.
+                  </p>
+                  <p className="font-medium text-red-950">
+                    • Any photographs shared with or referenced by other inspections will be strictly preserved.
+                  </p>
+                </div>
+              )}
+            </div>
+          </Modal>
+        );
+      })()}
 
       {/* Manual Inspection Creation & Editor Modal */}
       <InspectionEditorModal

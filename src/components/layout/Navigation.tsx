@@ -34,9 +34,9 @@ export const Navigation: React.FC<NavigationProps> = ({
   ];
 
   return (
-    <nav className="bg-white border-b border-slate-200" aria-label="Main Navigation">
+    <nav className="bg-white/80 backdrop-blur-md border-b border-slate-200/70 sticky top-16 z-30" aria-label="Main Navigation">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex space-x-1 sm:space-x-8 overflow-x-auto py-2 sm:py-0">
+        <div className="flex space-x-2 sm:space-x-3 overflow-x-auto py-2">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.id;
@@ -46,20 +46,20 @@ export const Navigation: React.FC<NavigationProps> = ({
                 type="button"
                 onClick={() => onSelectView(item.id)}
                 aria-current={isActive ? "page" : undefined}
-                className={`inline-flex items-center gap-2 px-3 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors rounded-t-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                className={`inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   isActive
-                    ? "border-brand-600 text-brand-600 font-semibold"
-                    : "border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300"
+                    ? "bg-brand-50 text-brand-700 font-semibold shadow-xs ring-1 ring-brand-200/60"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 active:scale-[0.98]"
                 }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? "text-brand-600" : "text-slate-400"}`} />
+                <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive ? "text-brand-600 scale-105" : "text-slate-400 group-hover:text-slate-600"}`} />
                 <span>{item.label}</span>
                 {item.badge !== undefined && (
                   <span
-                    className={`ml-1 px-1.5 py-0.2 rounded-full text-[11px] font-bold ${
+                    className={`ml-0.5 px-2 py-0.2 rounded-full text-[11px] font-bold ${
                       isActive
-                        ? "bg-brand-100 text-brand-700"
-                        : "bg-slate-100 text-slate-600"
+                        ? "bg-brand-600 text-white"
+                        : "bg-slate-200 text-slate-700"
                     }`}
                   >
                     {item.badge}
