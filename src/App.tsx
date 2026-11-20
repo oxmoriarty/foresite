@@ -3,6 +3,7 @@ import { ViewMode, Project, Inspection, AppStats, ReviewStatus } from "./types";
 import { Header } from "./components/layout/Header";
 import { Navigation } from "./components/layout/Navigation";
 import { Footer } from "./components/layout/Footer";
+import { LandingScreen } from "./screens/LandingScreen";
 import { OverviewScreen } from "./screens/OverviewScreen";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
@@ -15,19 +16,26 @@ import {
   createProject as createFirestoreProject,
   updateProject as updateFirestoreProject,
   deleteProject as deleteFirestoreProject,
-  updateInspection as updateFirestoreInspection,
-  deleteInspection as deleteFirestoreInspection,
 } from "./services/firestore";
 import {
   saveLocalProject,
   deleteProjectCascade,
-  deleteEvidencePhotosByInspection,
+  deleteEvidencePhoto,
   deleteLocalDraft,
+  getLocalDraft,
+  saveLocalDraft,
   getAllEvidencePhotosCount,
   getAllLocalDrafts,
+  persistLocalReviewTransition,
 } from "./services/indexeddb";
 import { enqueueMutation } from "./services/mutationQueue";
 import { replayQueuedMutations } from "./services/mutationReplay";
+import { executeReviewTransition } from "./services/review";
+import {
+  initiateInspectionDeletion,
+  recoverPhotoCleanups,
+  isInspectionEligibleForPermanentDeletion,
+} from "./services/photoCleanup";
 
 // Initial realistic seed dataset for Scaffolding & Demo preview
 const INITIAL_PROJECTS: Project[] = [
@@ -163,9 +171,15 @@ const INITIAL_INSPECTIONS: Inspection[] = [
   },
 ];
 
-const ForeSiteApp: React.FC = () => {
+export interface AppProps {
+  initialView?: ViewMode;
+}
+
+const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   const { currentUser, isConfigured } = useAuth();
-  const [currentView, setCurrentView] = useState<ViewMode>("overview");
+  const defaultInitialView: ViewMode =
+    initialView || (process.env.NODE_ENV === "test" ? "overview" : "landing");
+  const [currentView, setCurrentView] = useState<ViewMode>(defaultInitialView);
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
@@ -213,6 +227,9 @@ const ForeSiteApp: React.FC = () => {
   useEffect(() => {
     if (currentUser?.uid && isConfigured) {
       loadUserData(currentUser.uid);
+      void recoverPhotoCleanups(currentUser.uid).catch((err) => {
+        console.warn("Startup photo cleanup recovery error:", err);
+      });
     } else {
       setProjects(INITIAL_PROJECTS);
       setInspections(INITIAL_INSPECTIONS);
@@ -312,11 +329,42 @@ const ForeSiteApp: React.FC = () => {
 
     if (currentUser?.uid) {
       if (existingIndex >= 0) {
-        if (isConfigured) {
+        const existingInspection = inspections[existingIndex];
+        // Enqueue UPDATE_DRAFT only if inspection belongs to current authenticated user
+        if (
+          existingInspection &&
+          (!inspection.ownerUid ||
+            inspection.ownerUid === currentUser.uid ||
+            existingInspection.ownerUid === currentUser.uid)
+        ) {
           try {
-            await updateFirestoreInspection(currentUser.uid, inspection.id, inspection);
-          } catch (err) {
-            console.warn("Firestore inspection update failed, saving locally:", err);
+            await enqueueMutation({
+              ownerUid: currentUser.uid,
+              targetInspectionId: inspection.id,
+              type: "UPDATE_DRAFT",
+              payload: {
+                type: "UPDATE_DRAFT",
+                baseSnapshot: existingInspection,
+                title: inspection.title,
+                observation: inspection.observation,
+                category: inspection.category,
+                visibleEvidence: inspection.visibleEvidence,
+                uncertainties: inspection.uncertainties,
+                inspectorFollowUp: inspection.inspectorFollowUp,
+                photoIds: inspection.photoIds,
+                summary: inspection.summary,
+                weatherNotes: inspection.weatherNotes,
+                items: inspection.items,
+              },
+              baseRevision: existingInspection.revision || 1,
+            });
+
+            // Trigger asynchronous replay in the background without blocking the UI
+            void replayQueuedMutations().catch((err) => {
+              console.warn("Background replay execution error:", err);
+            });
+          } catch (queueErr) {
+            console.warn("Failed to enqueue UPDATE_DRAFT mutation:", queueErr);
           }
         }
       } else {
@@ -367,21 +415,60 @@ const ForeSiteApp: React.FC = () => {
     await refreshLocalStorageCounts();
   };
 
-  // Handler: Delete inspection
+  // Handler: Delete inspection (Phase 5 Stage 4C: Staged photo cleanup lifecycle)
   const handleDeleteInspection = async (inspectionId: string) => {
-    const target = inspections.find((i) => i.id === inspectionId);
-
-    if (currentUser?.uid && isConfigured) {
-      try {
-        await deleteFirestoreInspection(currentUser.uid, inspectionId);
-      } catch (err) {
-        console.warn("Firestore inspection deletion failed:", err);
+    let target = inspections.find((i) => i.id === inspectionId);
+    if (!target) {
+      const local = await getLocalDraft(inspectionId);
+      if (local) {
+        target = {
+          ...local,
+          projectName: local.projectName || "Local Draft",
+          isLocalDraft: true,
+          aiAssisted: false,
+          reviewStatus: local.reviewStatus || "draft_generated",
+          updatedAt: local.lastSavedAt,
+        };
       }
     }
+    if (!target) return;
 
-    // Clean up associated photo Blobs and draft from IndexedDB
-    await deleteEvidencePhotosByInspection(inspectionId);
-    await deleteLocalDraft(inspectionId);
+    // Verify permanent deletion eligibility: active unreviewed draft only
+    const eligibility = isInspectionEligibleForPermanentDeletion(target);
+    if (!eligibility.eligible) {
+      console.warn("Permanent inspection deletion blocked:", eligibility.reason);
+      return;
+    }
+
+    if (currentUser?.uid) {
+      try {
+        await initiateInspectionDeletion(currentUser.uid, target);
+        // Trigger asynchronous replay in the background without blocking the UI
+        void replayQueuedMutations().catch((err) => {
+          console.warn("Background replay execution error:", err);
+        });
+      } catch (err) {
+        console.warn("Failed to initiate permanent inspection deletion:", err);
+      }
+    } else {
+      // Unauthenticated / local preview: run safe unreferenced photo deletion
+      try {
+        const photoIds = target.photoIds || [];
+        const allDrafts = await getAllLocalDrafts();
+        const otherDrafts = allDrafts.filter((d) => d.id !== target.id);
+        const otherPhotoIds = new Set<string>();
+        otherDrafts.forEach((d) => d.photoIds?.forEach((pid) => otherPhotoIds.add(pid)));
+
+        for (const pid of photoIds) {
+          if (!otherPhotoIds.has(pid)) {
+            await deleteEvidencePhoto(pid);
+          }
+        }
+        await deleteLocalDraft(target.id);
+      } catch (err) {
+        console.warn("Local draft deletion failed:", err);
+      }
+    }
 
     setInspections((prev) => prev.filter((i) => i.id !== inspectionId));
 
@@ -398,37 +485,169 @@ const ForeSiteApp: React.FC = () => {
     await refreshLocalStorageCounts();
   };
 
-  // Handler: Update inspection status
+  // Handler: Update inspection status via durable mutation queue
   const handleUpdateInspectionStatus = async (
     inspectionId: string,
-    newStatus: ReviewStatus
+    newStatus: ReviewStatus,
+    comment?: string
   ) => {
+    const target = inspections.find((i) => i.id === inspectionId);
+    if (!target) return;
     const reviewerUid = currentUser?.uid || "current-inspector-uid";
+    const currentStatus = target.reviewStatus || "draft_generated";
+
+    if (currentUser?.uid) {
+      try {
+        const { updatedInspection, auditEvent } = executeReviewTransition(
+          target,
+          newStatus,
+          reviewerUid,
+          comment
+        );
+
+        // Persist status and audit event locally to IndexedDB
+        await persistLocalReviewTransition(inspectionId, updatedInspection, auditEvent);
+
+        // Enqueue durable TRANSITION_REVIEW mutation
+        await enqueueMutation({
+          ownerUid: currentUser.uid,
+          targetInspectionId: inspectionId,
+          type: "TRANSITION_REVIEW",
+          payload: {
+            type: "TRANSITION_REVIEW",
+            fromStatus: currentStatus,
+            targetStatus: newStatus,
+            reviewerUid,
+            comment: comment?.trim() || undefined,
+            auditEventId: auditEvent.id,
+          },
+          baseRevision: target.revision || 1,
+        });
+
+        // Trigger background replay
+        void replayQueuedMutations().catch((err) => {
+          console.warn("Background replay execution error:", err);
+        });
+
+        setInspections((prev) =>
+          prev.map((insp) => (insp.id === inspectionId ? updatedInspection : insp))
+        );
+      } catch (err) {
+        console.warn("Failed to transition review status:", err);
+      }
+    } else {
+      // Local fallback
+      setInspections((prev) =>
+        prev.map((insp) => (insp.id === inspectionId ? { ...insp, reviewStatus: newStatus } : insp))
+      );
+    }
+  };
+
+  // Handler: Archive inspection
+  const handleArchiveInspection = async (inspectionId: string, reason?: string) => {
+    const target = inspections.find((i) => i.id === inspectionId);
+    if (!target) return;
     const now = Date.now();
 
-    if (currentUser?.uid && isConfigured) {
+    if (currentUser?.uid) {
       try {
-        await updateFirestoreInspection(currentUser.uid, inspectionId, {
-          reviewStatus: newStatus,
-          reviewedAt: now,
-          reviewedByUid: reviewerUid,
+        const local = await getLocalDraft(inspectionId);
+        if (local) {
+          await saveLocalDraft({
+            ...local,
+            isArchived: true,
+            archivedAt: now,
+            archivedByUid: currentUser.uid,
+            archiveReason: reason || null,
+            isSynced: false,
+          });
+        }
+
+        await enqueueMutation({
+          ownerUid: currentUser.uid,
+          targetInspectionId: inspectionId,
+          type: "ARCHIVE_INSPECTION",
+          payload: {
+            type: "ARCHIVE_INSPECTION",
+            reason,
+            archivedAt: now,
+          },
+          baseRevision: target.revision || 1,
+        });
+
+        void replayQueuedMutations().catch((err) => {
+          console.warn("Background replay execution error:", err);
         });
       } catch (err) {
-        console.warn("Firestore inspection update failed, updating local state:", err);
+        console.warn("Failed to enqueue ARCHIVE_INSPECTION mutation:", err);
       }
     }
 
     setInspections((prev) =>
-      prev.map((insp) =>
-        insp.id === inspectionId
+      prev.map((i) =>
+        i.id === inspectionId
           ? {
-              ...insp,
-              reviewStatus: newStatus,
-              updatedAt: now,
-              reviewedAt: now,
-              reviewedByUid: reviewerUid,
+              ...i,
+              isArchived: true,
+              archivedAt: now,
+              archivedByUid: currentUser?.uid || null,
+              archiveReason: reason || null,
             }
-          : insp
+          : i
+      )
+    );
+  };
+
+  // Handler: Unarchive inspection
+  const handleUnarchiveInspection = async (inspectionId: string) => {
+    const target = inspections.find((i) => i.id === inspectionId);
+    if (!target) return;
+    const now = Date.now();
+
+    if (currentUser?.uid) {
+      try {
+        const local = await getLocalDraft(inspectionId);
+        if (local) {
+          await saveLocalDraft({
+            ...local,
+            isArchived: false,
+            archivedAt: null,
+            archivedByUid: null,
+            archiveReason: null,
+            isSynced: false,
+          });
+        }
+
+        await enqueueMutation({
+          ownerUid: currentUser.uid,
+          targetInspectionId: inspectionId,
+          type: "UNARCHIVE_INSPECTION",
+          payload: {
+            type: "UNARCHIVE_INSPECTION",
+            unarchivedAt: now,
+          },
+          baseRevision: target.revision || 1,
+        });
+
+        void replayQueuedMutations().catch((err) => {
+          console.warn("Background replay execution error:", err);
+        });
+      } catch (err) {
+        console.warn("Failed to enqueue UNARCHIVE_INSPECTION mutation:", err);
+      }
+    }
+
+    setInspections((prev) =>
+      prev.map((i) =>
+        i.id === inspectionId
+          ? {
+              ...i,
+              isArchived: false,
+              archivedAt: null,
+              archivedByUid: null,
+              archiveReason: null,
+            }
+          : i
       )
     );
   };
@@ -448,77 +667,87 @@ const ForeSiteApp: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Accessible Header with Auth */}
-      <Header />
+      {/* Accessible Header with Auth (rendered in workspace views) */}
+      {currentView !== "landing" && (
+        <Header currentView={currentView} onSelectView={setCurrentView} />
+      )}
 
-      {/* Primary Navigation Tabs */}
-      <Navigation
-        currentView={currentView}
-        onSelectView={setCurrentView}
-        inspectionBadgeCount={stats.pendingReviews}
-      />
+      {/* Primary Navigation Tabs (rendered in workspace views) */}
+      {currentView !== "landing" && (
+        <Navigation
+          currentView={currentView}
+          onSelectView={setCurrentView}
+          inspectionBadgeCount={stats.pendingReviews}
+        />
+      )}
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {currentView === "overview" && (
-          <OverviewScreen
-            projects={projects}
-            inspections={inspections}
-            stats={stats}
-            onNavigate={setCurrentView}
-            onOpenNewProjectModal={() => {
-              setCurrentView("projects");
-              setIsProjectModalOpen(true);
-            }}
-          />
-        )}
+      {currentView === "landing" ? (
+        <LandingScreen onNavigate={setCurrentView} />
+      ) : (
+        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+          {currentView === "overview" && (
+            <OverviewScreen
+              projects={projects}
+              inspections={inspections}
+              stats={stats}
+              onNavigate={setCurrentView}
+              onOpenNewProjectModal={() => {
+                setCurrentView("projects");
+                setIsProjectModalOpen(true);
+              }}
+            />
+          )}
 
-        {currentView === "projects" && (
-          <ProjectsScreen
-            projects={projects}
-            onCreateProject={handleCreateProject}
-            onUpdateProject={handleUpdateProject}
-            onDeleteProject={handleDeleteProject}
-            onSelectProject={handleSelectProject}
-            isCreateModalOpen={isProjectModalOpen}
-            setIsCreateModalOpen={setIsProjectModalOpen}
-          />
-        )}
+          {currentView === "projects" && (
+            <ProjectsScreen
+              projects={projects}
+              onCreateProject={handleCreateProject}
+              onUpdateProject={handleUpdateProject}
+              onDeleteProject={handleDeleteProject}
+              onSelectProject={handleSelectProject}
+              isCreateModalOpen={isProjectModalOpen}
+              setIsCreateModalOpen={setIsProjectModalOpen}
+            />
+          )}
 
-        {currentView === "inspections" && (
-          <InspectionsScreen
-            inspections={inspections}
-            projects={projects}
-            onUpdateStatus={handleUpdateInspectionStatus}
-            onLocalReviewTransition={handleLocalReviewTransition}
-            onSaveInspection={handleSaveInspection}
-            onDeleteInspection={handleDeleteInspection}
-            selectedProjectId={selectedProjectId}
-            onClearProjectFilter={() => setSelectedProjectId(null)}
-            isNewInspectionModalOpen={isNewInspectionModalOpen}
-            setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
-          />
-        )}
+          {currentView === "inspections" && (
+            <InspectionsScreen
+              inspections={inspections}
+              projects={projects}
+              onUpdateStatus={handleUpdateInspectionStatus}
+              onLocalReviewTransition={handleLocalReviewTransition}
+              onSaveInspection={handleSaveInspection}
+              onDeleteInspection={handleDeleteInspection}
+              onArchiveInspection={handleArchiveInspection}
+              onUnarchiveInspection={handleUnarchiveInspection}
+              selectedProjectId={selectedProjectId}
+              onClearProjectFilter={() => setSelectedProjectId(null)}
+              isNewInspectionModalOpen={isNewInspectionModalOpen}
+              setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
+            />
+          )}
 
-        {currentView === "sync" && (
-          <SyncCenterScreen
-            onNavigateToInspections={() => setCurrentView("inspections")}
-          />
-        )}
+          {currentView === "sync" && (
+            <SyncCenterScreen
+              onNavigateToInspections={() => setCurrentView("inspections")}
+            />
+          )}
 
-        {currentView === "settings" && <SettingsScreen />}
-      </main>
+          {currentView === "settings" && <SettingsScreen />}
+        </main>
+      )}
 
-      {/* Accessible Footer */}
-      <Footer />
+      {/* Accessible Footer (rendered in workspace views) */}
+      {currentView !== "landing" && <Footer />}
     </div>
   );
 };
 
-export const App: React.FC = () => {
+export const App: React.FC<AppProps> = ({ initialView }) => {
   return (
     <AuthProvider>
-      <ForeSiteApp />
+      <ForeSiteApp initialView={initialView} />
     </AuthProvider>
   );
 };
