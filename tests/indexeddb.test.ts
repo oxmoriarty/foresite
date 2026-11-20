@@ -17,10 +17,16 @@ import {
   getLocalProject,
   deleteProjectCascade,
   clearAllLocalEvidence,
+  saveDeletionReceipt,
+  getDeletionReceipt,
+  getDeletionReceiptByInspection,
+  getAllDeletionReceipts,
+  deleteDeletionReceipt,
+  clearAllDeletionReceipts,
   STORES,
   DB_VERSION,
 } from "../src/services/indexeddb";
-import { LocalEvidencePhoto, LocalDraftInspection, Project } from "../src/types";
+import { LocalEvidencePhoto, LocalDraftInspection, Project, DeletionReceipt } from "../src/types";
 
 describe("ForeSite Versioned IndexedDB Storage Engine", () => {
   beforeEach(async () => {
@@ -39,6 +45,45 @@ describe("ForeSite Versioned IndexedDB Storage Engine", () => {
     expect(db.objectStoreNames.contains(STORES.PHOTOS)).toBe(true);
     expect(db.objectStoreNames.contains(STORES.DRAFTS)).toBe(true);
     expect(db.objectStoreNames.contains(STORES.PROJECTS)).toBe(true);
+    expect(db.objectStoreNames.contains(STORES.RECEIPTS)).toBe(true);
+  });
+
+  it("stores, retrieves, and purges deletion receipts with typed lifecycle stages", async () => {
+    const receipt: DeletionReceipt = {
+      id: "del-rcpt-test-01",
+      inspectionId: "insp-test-01",
+      ownerUid: "user-test-uid",
+      mutationId: "mut-del-01",
+      stage: "pending_remote_delete",
+      photoIds: ["photo-1", "photo-2"],
+      deletedPhotoIds: [],
+      retainedPhotoIds: [],
+      photosDeletedCount: 0,
+      createdAt: 1000,
+      retryCount: 0,
+    };
+
+    await saveDeletionReceipt(receipt);
+
+    const retrieved = await getDeletionReceipt("del-rcpt-test-01");
+    expect(retrieved).not.toBeNull();
+    expect(retrieved?.id).toBe("del-rcpt-test-01");
+    expect(retrieved?.stage).toBe("pending_remote_delete");
+    expect(retrieved?.photoIds).toEqual(["photo-1", "photo-2"]);
+
+    const byInspection = await getDeletionReceiptByInspection("insp-test-01");
+    expect(byInspection).not.toBeNull();
+    expect(byInspection?.id).toBe("del-rcpt-test-01");
+
+    const byOwner = await getAllDeletionReceipts("user-test-uid");
+    expect(byOwner.length).toBe(1);
+
+    await deleteDeletionReceipt("del-rcpt-test-01");
+    expect(await getDeletionReceipt("del-rcpt-test-01")).toBeNull();
+
+    await saveDeletionReceipt(receipt);
+    await clearAllDeletionReceipts();
+    expect(await getDeletionReceipt("del-rcpt-test-01")).toBeNull();
   });
 
   it("stores and retrieves photographic evidence Blobs", async () => {

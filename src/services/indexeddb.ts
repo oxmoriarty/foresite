@@ -19,10 +19,11 @@ import {
   StorageEstimateInfo,
   Inspection,
   ReviewAuditEvent,
+  DeletionReceipt,
 } from "../types";
 
 export const DB_NAME = "ForeSiteEvidenceDB";
-export const DB_VERSION = 3;
+export const DB_VERSION = 4;
 
 export const STORES = {
   PHOTOS: "evidencePhotos",
@@ -30,6 +31,7 @@ export const STORES = {
   PROJECTS: "localProjects",
   MUTATIONS: "mutations",
   SEQUENCES: "sequenceGenerators",
+  RECEIPTS: "deletionReceipts",
 } as const;
 
 export class ForeSiteStorageError extends Error {
@@ -123,6 +125,17 @@ export function getDatabase(): Promise<IDBDatabase> {
         }
         if (!db.objectStoreNames.contains(STORES.SEQUENCES)) {
           db.createObjectStore(STORES.SEQUENCES, { keyPath: "id" });
+        }
+      }
+
+      // Version 4 Migration: Add deletionReceipts store non-destructively
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains(STORES.RECEIPTS)) {
+          const receiptStore = db.createObjectStore(STORES.RECEIPTS, { keyPath: "id" });
+          receiptStore.createIndex("by_inspectionId", "inspectionId", { unique: false });
+          receiptStore.createIndex("by_ownerUid", "ownerUid", { unique: false });
+          receiptStore.createIndex("by_stage", "stage", { unique: false });
+          receiptStore.createIndex("by_createdAt", "createdAt", { unique: false });
         }
       }
     };
@@ -912,6 +925,206 @@ export async function clearAllMutationQueueData(): Promise<void> {
       for (const name of storeNames) {
         transaction.objectStore(name).clear();
       }
+
+      transaction.oncomplete = () => resolve();
+      transaction.onerror = () => reject(transaction.error);
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+// ============================================================================
+// 5. Deletion Receipts Repository (Phase 5 Stage 4C)
+// ============================================================================
+
+/**
+ * Persists or updates a durable deletion receipt in IndexedDB.
+ */
+export async function saveDeletionReceipt(receipt: DeletionReceipt): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.RECEIPTS], "readwrite");
+      const store = transaction.objectStore(STORES.RECEIPTS);
+      const request = store.put(receipt);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to save deletion receipt ${receipt.id}: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError("Unexpected error during deletion receipt save.", "UNKNOWN", err)
+      );
+    }
+  });
+}
+
+/**
+ * Retrieves a deletion receipt by receipt ID.
+ */
+export async function getDeletionReceipt(receiptId: string): Promise<DeletionReceipt | null> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.RECEIPTS], "readonly");
+      const store = transaction.objectStore(STORES.RECEIPTS);
+      const request = store.get(receiptId);
+
+      request.onsuccess = () => {
+        resolve((request.result as DeletionReceipt) || null);
+      };
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to retrieve deletion receipt ${receiptId}: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError("Unexpected error during deletion receipt read.", "UNKNOWN", err)
+      );
+    }
+  });
+}
+
+/**
+ * Retrieves a deletion receipt by target inspection ID.
+ */
+export async function getDeletionReceiptByInspection(
+  inspectionId: string
+): Promise<DeletionReceipt | null> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.RECEIPTS], "readonly");
+      const store = transaction.objectStore(STORES.RECEIPTS);
+      const index = store.index("by_inspectionId");
+      const request = index.getAll(inspectionId);
+
+      request.onsuccess = () => {
+        const results = (request.result as DeletionReceipt[]) || [];
+        if (results.length === 0) {
+          resolve(null);
+          return;
+        }
+        // If multiple exist, return the newest by createdAt
+        results.sort((a, b) => b.createdAt - a.createdAt);
+        resolve(results[0] || null);
+      };
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to query deletion receipt for inspection ${inspectionId}: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError(
+          "Unexpected error during deletion receipt inspection query.",
+          "UNKNOWN",
+          err
+        )
+      );
+    }
+  });
+}
+
+/**
+ * Retrieves all deletion receipts, optionally filtered by ownerUid.
+ */
+export async function getAllDeletionReceipts(ownerUid?: string): Promise<DeletionReceipt[]> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.RECEIPTS], "readonly");
+      const store = transaction.objectStore(STORES.RECEIPTS);
+
+      let request: IDBRequest;
+      if (ownerUid) {
+        const index = store.index("by_ownerUid");
+        request = index.getAll(ownerUid);
+      } else {
+        request = store.getAll();
+      }
+
+      request.onsuccess = () => {
+        const receipts = (request.result as DeletionReceipt[]) || [];
+        receipts.sort((a, b) => b.createdAt - a.createdAt);
+        resolve(receipts);
+      };
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to query deletion receipts: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError("Unexpected error during deletion receipts query.", "UNKNOWN", err)
+      );
+    }
+  });
+}
+
+/**
+ * Deletes a deletion receipt by receipt ID.
+ */
+export async function deleteDeletionReceipt(receiptId: string): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      const transaction = db.transaction([STORES.RECEIPTS], "readwrite");
+      const store = transaction.objectStore(STORES.RECEIPTS);
+      const request = store.delete(receiptId);
+
+      request.onsuccess = () => resolve();
+      request.onerror = () => {
+        reject(
+          new ForeSiteStorageError(
+            `Failed to delete deletion receipt ${receiptId}: ${request.error?.message}`,
+            "TRANSACTION_FAILED",
+            request.error
+          )
+        );
+      };
+    } catch (err: unknown) {
+      reject(
+        new ForeSiteStorageError("Unexpected error during deletion receipt deletion.", "UNKNOWN", err)
+      );
+    }
+  });
+}
+
+/**
+ * Purges all deletion receipts from IndexedDB (test and administrative use).
+ */
+export async function clearAllDeletionReceipts(): Promise<void> {
+  const db = await getDatabase();
+  return new Promise((resolve, reject) => {
+    try {
+      if (!db.objectStoreNames.contains(STORES.RECEIPTS)) {
+        resolve();
+        return;
+      }
+      const transaction = db.transaction([STORES.RECEIPTS], "readwrite");
+      transaction.objectStore(STORES.RECEIPTS).clear();
 
       transaction.oncomplete = () => resolve();
       transaction.onerror = () => reject(transaction.error);

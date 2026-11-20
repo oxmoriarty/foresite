@@ -3,7 +3,7 @@
  * Construction Site Inspection & Observation Workspace
  */
 
-export type ViewMode = "overview" | "projects" | "inspections" | "sync" | "settings";
+export type ViewMode = "landing" | "overview" | "projects" | "inspections" | "sync" | "settings";
 
 export type ReviewStatus = "draft_generated" | "in_review" | "approved" | "rejected";
 
@@ -182,6 +182,7 @@ export interface LocalDraftInspection {
   archivedByUid?: string | null;
   archiveReason?: string | null;
   appliedMutationIds?: string[];
+  deletionStage?: DeletionCleanupStage;
 }
 
 export interface Inspection {
@@ -308,6 +309,7 @@ export interface UnarchiveInspectionPayload {
 export interface DeleteInspectionPayload {
   type: "DELETE_INSPECTION";
   deletedAt?: number;
+  cleanupReceiptId?: string;
 }
 
 export type MutationPayload =
@@ -547,4 +549,49 @@ export type FieldClassificationCategory =
   | "IMMUTABLE_IDENTITY"
   | "CONFLICT_MANUAL_RESOLUTION"
   | "EXCLUDED_FROM_MERGE";
+
+// ============================================================================
+// Phase 5 Stage 4C: Staged Four-Stage Photo Cleanup Lifecycle & Deletion Receipts
+// ============================================================================
+
+export type DeletionCleanupStage =
+  | "pending_remote_delete"               // Stage 1: Deletion enqueued; local draft marked; Blobs preserved
+  | "remote_confirmed_pending_blob_purge"  // Stage 3: Remote Firestore deletion confirmed; Blobs pending safe purge
+  | "completed"                           // Stage 4: Blobs purged safely; draft removed; receipt finalized
+  | "failed";                             // Cleanup failed / requires retry or recovery
+
+export interface DeletionReceipt {
+  id: string;                             // Deterministic identifier: `del-rcpt-${inspectionId}`
+  inspectionId: string;                   // Canonical target inspection ID
+  ownerUid: string;                       // Authenticated owner UID
+  mutationId?: string;                    // Associated mutation ID
+  stage: DeletionCleanupStage;            // Current lifecycle stage
+  photoIds: string[];                     // List of photo IDs associated with the inspection
+  deletedPhotoIds: string[];              // List of photo IDs confirmed deleted from IndexedDB
+  retainedPhotoIds: string[];             // List of photo IDs retained due to active cross-references
+  photosDeletedCount: number;             // Count of Blobs removed
+  createdAt: number;                      // Receipt creation timestamp (Stage 1)
+  remoteConfirmedAt?: number;             // Timestamp remote deletion confirmed (Stage 3)
+  completedAt?: number;                   // Timestamp cleanup finalized (Stage 4)
+  error?: string;                         // Last error message if failed
+  retryCount?: number;                    // Cleanup retry attempts
+}
+
+export interface CleanupExecutionResult {
+  receiptId: string;
+  inspectionId: string;
+  stage: DeletionCleanupStage;
+  deletedPhotosCount: number;
+  retainedPhotosCount: number;
+  error?: string;
+  draftPurged: boolean;
+}
+
+export interface CleanupRecoveryResult {
+  inspectedReceiptsCount: number;
+  recoveredCount: number;
+  failedCount: number;
+  results: CleanupExecutionResult[];
+}
+
 
