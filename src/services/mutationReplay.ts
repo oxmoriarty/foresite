@@ -57,7 +57,14 @@ import {
   saveLocalDraft,
   getAllLocalDrafts,
   deleteLocalDraft,
+  getDeletionReceiptByInspection,
+  saveDeletionReceipt,
 } from "./indexeddb";
+import {
+  confirmRemoteDeletion,
+  executePhotoCleanup,
+  recoverPhotoCleanups,
+} from "./photoCleanup";
 
 // ============================================================================
 // 1. Multi-Tab Coordination (Web Locks API & Safe Fail-Closed Fallback)
@@ -472,6 +479,21 @@ async function executeReplayBatch(
     };
   }
 
+  // Recover any interrupted photo blob cleanups from previous crashes (Phase 5 Stage 4C)
+  await recoverPhotoCleanups(authenticatedUid, now);
+
+  if (auth.currentUser?.uid !== authenticatedUid) {
+    return {
+      status: auth.currentUser ? "USER_SWITCHED" : "UNAUTHENTICATED",
+      processedCount: 0,
+      succeededCount: 0,
+      failedCount: 0,
+      conflictCount: 0,
+      itemResults: [],
+      message: "Authentication state changed during photo cleanup recovery",
+    };
+  }
+
   // Fetch all mutations for this authenticated owner
   const allMutations = await getAllMutationsByOwner(authenticatedUid);
 
@@ -693,11 +715,16 @@ async function processCreateInspectionMutation(
     inspectorFollowUp: inspectionPayload.inspectorFollowUp || [],
     reviewStatus: inspectionPayload.reviewStatus || "draft_generated",
     reviewHistory: inspectionPayload.reviewHistory || [],
+    appliedMutationIds: inspectionPayload.appliedMutationIds || [],
+    isArchived: inspectionPayload.isArchived ?? false,
     revision: inspectionPayload.revision || 1,
     aiAssisted: inspectionPayload.aiAssisted ?? false,
     inferenceSource: inspectionPayload.inferenceSource,
     photoMeta: inspectionPayload.photoMeta,
     photoIds: inspectionPayload.photoIds || [],
+    ...(inspectionPayload.summary ? { summary: inspectionPayload.summary } : {}),
+    ...(inspectionPayload.weatherNotes ? { weatherNotes: inspectionPayload.weatherNotes } : {}),
+    ...(inspectionPayload.items ? { items: inspectionPayload.items } : {}),
     createdAt: inspectionPayload.createdAt || mutation.createdAt || now,
     updatedAt: inspectionPayload.updatedAt || mutation.createdAt || now,
   };
@@ -1423,19 +1450,42 @@ async function processDeleteInspectionMutation(
     }
 
     if (txResult.status === "DELETED") {
-      await transitionMutationStatus({
-        ownerUid: authenticatedUid,
-        mutationId: mutation.id,
-        targetStatus: "succeeded",
-        now,
-      });
+      // Stage 3 & Stage 4 Integration (Phase 5 Stage 4C):
+      // Check for an existing deletion receipt created by initiateInspectionDeletion
+      const receipt = await getDeletionReceiptByInspection(targetInspectionId);
 
-      // Purge ONLY the local draft from localInspections store.
-      // Photographic Blobs in evidencePhotos are NEVER deleted!
-      try {
-        await deleteLocalDraft(targetInspectionId);
-      } catch {
-        // Non-critical local cleanup
+      if (receipt) {
+        // Stage 3: Acknowledge remote deletion on durable receipt
+        await confirmRemoteDeletion(receipt.id, authenticatedUid, mutation.id, now);
+
+        await transitionMutationStatus({
+          ownerUid: authenticatedUid,
+          mutationId: mutation.id,
+          targetStatus: "succeeded",
+          now,
+        });
+
+        // Stage 4: Safely purge photo Blobs and local draft
+        try {
+          await executePhotoCleanup(receipt.id, authenticatedUid, now);
+        } catch (cleanupErr) {
+          console.warn("Photo cleanup interrupted; will resume on recovery:", cleanupErr);
+        }
+      } else {
+        // No deletion receipt was created (bare mutation replay):
+        // Preserves photographic evidence Blobs in IndexedDB (zero unauthorized blob deletion)
+        await transitionMutationStatus({
+          ownerUid: authenticatedUid,
+          mutationId: mutation.id,
+          targetStatus: "succeeded",
+          now,
+        });
+
+        try {
+          await deleteLocalDraft(targetInspectionId);
+        } catch {
+          // Non-critical local cleanup
+        }
       }
 
       return {
@@ -1452,6 +1502,18 @@ async function processDeleteInspectionMutation(
     // CONFLICT: e.g. attempted deletion of approved, in-review, or archived inspection
     const conflictReason =
       txResult.reason || "Inspection is not eligible for deletion";
+
+    // Mark deletion receipt as failed if one exists
+    try {
+      const conflictReceipt = await getDeletionReceiptByInspection(targetInspectionId);
+      if (conflictReceipt && conflictReceipt.stage === "pending_remote_delete") {
+        conflictReceipt.stage = "failed";
+        conflictReceipt.error = conflictReason;
+        await saveDeletionReceipt(conflictReceipt);
+      }
+    } catch {
+      // Non-critical receipt update
+    }
 
     const updated = await transitionMutationStatus({
       ownerUid: authenticatedUid,

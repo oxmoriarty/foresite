@@ -286,6 +286,11 @@ export async function createInspectionTransaction(
     id: inspectionId,
     ownerUid: uid,
     clientCreationNonce: creationNonce,
+    reviewStatus: inspectionData.reviewStatus || "draft_generated",
+    reviewHistory: inspectionData.reviewHistory || [],
+    appliedMutationIds: inspectionData.appliedMutationIds || [],
+    isArchived: inspectionData.isArchived ?? false,
+    revision: inspectionData.revision ?? 1,
     createdAt: inspectionData.createdAt || now,
     updatedAt: inspectionData.updatedAt || now,
   };

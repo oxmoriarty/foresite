@@ -1001,7 +1001,7 @@ describe("ForeSite Phase 5 Stage 2: Durable Offline Mutation Queue", () => {
       const db = await getDatabase();
       expect(db.name).toBe(DB_NAME);
       expect(db.version).toBe(DB_VERSION);
-      expect(db.version).toBe(3);
+      expect(db.version).toBeGreaterThanOrEqual(3);
 
       expect(db.objectStoreNames.contains(STORES.PHOTOS)).toBe(true);
       expect(db.objectStoreNames.contains(STORES.DRAFTS)).toBe(true);
