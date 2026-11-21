@@ -7,7 +7,6 @@ import {
   User as UserIcon,
   AlertCircle,
   CheckCircle2,
-  Sparkles,
   ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -21,9 +20,8 @@ export interface SignInScreenProps {
 export const SignInScreen: React.FC<SignInScreenProps> = ({
   onSuccess,
   onNavigateHome,
-  targetDestinationName,
 }) => {
-  const { login, register, resetPassword, loginAsDemo, isConfigured } = useAuth();
+  const { login, register, resetPassword, loginAsDemo } = useAuth();
 
   const [mode, setMode] = useState<"signin" | "register" | "reset">("signin");
   const [email, setEmail] = useState("");
@@ -113,46 +111,12 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
       </div>
 
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
-        {/* Brand Monogram & Header */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-full bg-slate-950 text-white font-bold text-base flex items-center justify-center mx-auto mb-4 shadow-md">
+        {/* Brand Monogram */}
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-slate-950 text-white font-bold text-base flex items-center justify-center mx-auto shadow-md">
             FS
           </div>
-
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-brand-50 text-brand-700 border border-brand-200 mb-3">
-            <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-            <span>ForeSite Field Intelligence</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
-            Sign in to access your inspection workspace
-          </h1>
-
-          <p className="mt-2 text-xs sm:text-sm text-slate-600 leading-relaxed max-w-sm mx-auto">
-            Authenticate with your inspector account to manage site projects, capture offline findings, and review structural verifications.
-          </p>
         </div>
-
-        {/* Intended Target Notice Banner */}
-        {targetDestinationName && (
-          <div className="mb-6 p-3.5 rounded-2xl bg-blue-50/80 border border-blue-200/80 text-xs text-blue-900 flex items-center gap-2.5 shadow-2xs">
-            <ShieldCheck className="w-4 h-4 text-brand-600 shrink-0" />
-            <span>
-              Please sign in to access <strong className="font-semibold text-brand-700">{targetDestinationName}</strong>. You will be redirected immediately once signed in.
-            </span>
-          </div>
-        )}
-
-        {/* Unconfigured Alert Banner */}
-        {!isConfigured && (
-          <div className="mb-6 p-3.5 rounded-2xl bg-amber-50 border border-amber-200/80 text-xs text-amber-900 flex items-start gap-2.5 shadow-2xs">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold block">Demo Offline Preview Mode</span>
-              Firebase environment keys are not configured in local environment. You can use instant demo access below to test all workspace features.
-            </div>
-          </div>
-        )}
 
         {/* Main Card */}
         <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-slate-200/80">

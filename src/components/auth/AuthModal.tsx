@@ -24,7 +24,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   initialTab = "signin",
 }) => {
-  const { login, register, resetPassword, error, clearError, isConfigured } = useAuth();
+  const { login, register, resetPassword, error, clearError } = useAuth();
 
   const [activeTab, setActiveTab] = useState<"signin" | "register" | "reset">(initialTab);
   const [email, setEmail] = useState("");
@@ -121,17 +121,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     >
       <div className="space-y-5">
-        {/* Unconfigured Alert Banner */}
-        {!isConfigured && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-semibold block">Demo / Offline Preview Mode</span>
-              Firebase environment variables are not yet configured in <code>.env.local</code>. Authentication operations will be simulated or unavailable until configured.
-            </div>
-          </div>
-        )}
-
         {/* Tab Navigation */}
         <div className="flex border-b border-slate-200">
           <button

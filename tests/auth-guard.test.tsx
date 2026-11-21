@@ -17,12 +17,13 @@ describe("ForeSite Authentication Navigation Guard", () => {
     const startInspectionBtn = screen.getByRole("button", { name: /start an inspection/i });
     fireEvent.click(startInspectionBtn);
 
-    // Should now be on the Sign In page with target destination banner
+    // Should now be on the Sign In page
     expect(
-      screen.getByText("Sign in to access your inspection workspace")
+      screen.getByRole("button", { name: /continue as demo inspector/i })
     ).toBeInTheDocument();
-    expect(screen.getByText(/please sign in to access/i)).toBeInTheDocument();
-    expect(screen.getByText("Inspections")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/inspector@agency\.gov/i)
+    ).toBeInTheDocument();
 
     // Click "Continue as Demo Inspector"
     const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
@@ -42,11 +43,13 @@ describe("ForeSite Authentication Navigation Guard", () => {
     const createProjectBtn = screen.getByRole("button", { name: /^create project$/i });
     fireEvent.click(createProjectBtn);
 
-    // Should be on Sign in page with Project Creation banner
+    // Should be on Sign in page
     expect(
-      screen.getByText("Sign in to access your inspection workspace")
+      screen.getByRole("button", { name: /continue as demo inspector/i })
     ).toBeInTheDocument();
-    expect(screen.getByText("Project Creation")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/inspector@agency\.gov/i)
+    ).toBeInTheDocument();
 
     // Authenticate
     const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
@@ -61,7 +64,10 @@ describe("ForeSite Authentication Navigation Guard", () => {
   it("redirects direct unauthenticated access to a protected page to Sign in screen", () => {
     render(<App initialView="projects" initialUser={null} />);
     expect(
-      screen.getByText("Sign in to access your inspection workspace")
+      screen.getByRole("button", { name: /continue as demo inspector/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText(/inspector@agency\.gov/i)
     ).toBeInTheDocument();
   });
 });
