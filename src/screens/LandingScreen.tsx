@@ -26,84 +26,86 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-brand-500 selection:text-white">
-      {/* Top Studio Nav (Reference Style: Minimalist unboxed header) */}
-      <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-4 flex items-center justify-between text-xs font-medium text-slate-700">
-        {/* Left: Monogram Circle & Navigation Links */}
-        <div className="flex items-center gap-8 sm:gap-12">
-          {/* Black circle monogram logo */}
-          <button
-            type="button"
-            onClick={() => onNavigate("landing")}
-            className="flex items-center gap-2 group cursor-pointer focus:outline-none"
-            title="ForeSite Home"
-          >
-            <div className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200">
-              FS
-            </div>
-          </button>
+      {/* Top Sticky Nav (Remains visible when scrolled up or down) */}
+      <header className="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md border-b border-slate-200/80 transition-all duration-200">
+        <nav className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between text-xs font-medium text-slate-700">
+          {/* Left: Monogram Circle & Navigation Links */}
+          <div className="flex items-center gap-8 sm:gap-12">
+            {/* Black circle monogram logo */}
+            <button
+              type="button"
+              onClick={() => onNavigate("landing")}
+              className="flex items-center gap-2 group cursor-pointer focus:outline-none"
+              title="ForeSite Home"
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200">
+                FS
+              </div>
+            </button>
 
-          <div className="hidden md:flex items-center space-x-7 text-[13px] text-slate-600 font-medium">
-            <button
-              type="button"
-              onClick={() => onNavigate("projects")}
-              className="hover:text-slate-950 transition-colors cursor-pointer"
-            >
-              Projects
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("inspections")}
-              className="hover:text-slate-950 transition-colors cursor-pointer"
-            >
-              Inspections
-            </button>
-            <button
-              type="button"
-              onClick={() => onNavigate("sync")}
-              className="hover:text-slate-950 transition-colors cursor-pointer"
-            >
-              Sync Center
-            </button>
-          </div>
-        </div>
-
-        {/* Right: Sign in Action Button */}
-        <div className="flex items-center gap-3">
-          {currentUser ? (
-            <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center space-x-7 text-[13px] text-slate-600 font-medium">
               <button
                 type="button"
-                onClick={() => onNavigate("overview")}
-                className="group inline-flex items-center gap-2.5 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+                onClick={() => onNavigate("projects")}
+                className="hover:text-slate-950 transition-colors cursor-pointer"
               >
-                <span>Workspace</span>
+                Projects
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("inspections")}
+                className="hover:text-slate-950 transition-colors cursor-pointer"
+              >
+                Inspections
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate("sync")}
+                className="hover:text-slate-950 transition-colors cursor-pointer"
+              >
+                Sync Center
+              </button>
+            </div>
+          </div>
+
+          {/* Right: Sign in Action Button */}
+          <div className="flex items-center gap-3">
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => onNavigate("overview")}
+                  className="group inline-flex items-center gap-2.5 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+                >
+                  <span>Workspace</span>
+                  <span className="w-6 h-6 rounded-full bg-white text-slate-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => logout()}
+                  className="text-xs text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
+                  title="Sign Out"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => onNavigate("signin")}
+                className="group inline-flex items-center gap-3 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+              >
+                <span>Sign in</span>
                 <span className="w-6 h-6 rounded-full bg-white text-slate-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </button>
-              <button
-                type="button"
-                onClick={() => logout()}
-                className="text-xs text-slate-500 hover:text-slate-900 transition-colors cursor-pointer"
-                title="Sign Out"
-              >
-                Sign out
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => onNavigate("signin")}
-              className="group inline-flex items-center gap-3 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
-            >
-              <span>Sign in</span>
-              <span className="w-6 h-6 rounded-full bg-white text-slate-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
-                <ArrowRight className="w-3.5 h-3.5" />
-              </span>
-            </button>
-          )}
-        </div>
-      </nav>
+            )}
+          </div>
+        </nav>
+      </header>
 
       {/* Hero Section with Diagonal Brushstroke Texture (Reference Layout Match) */}
       <section className="relative overflow-hidden pt-12 pb-24 sm:pt-20 sm:pb-36">
