@@ -47,4 +47,69 @@ describe("ForeSite Application Shell Navigation", () => {
     expect(screen.getByText("Local Photograph Retention (IndexedDB)")).toBeInTheDocument();
     expect(screen.getByText("Zero-Billing & Data Security Invariants")).toBeInTheDocument();
   });
+
+  it("navigates to Sync Center screen when Sync Center is clicked in sidebar", () => {
+    render(<App />);
+    const nav = screen.getByRole("navigation", { name: "Main Navigation" });
+    const syncTab = within(nav).getByRole("button", { name: /sync center/i });
+    fireEvent.click(syncTab);
+
+    expect(screen.getByRole("heading", { name: "Sync Center" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Monitor offline synchronization, resolve data conflicts, and manage pending changes.")
+    ).toBeInTheDocument();
+  });
+
+  it("navigates back to Dashboard when Dashboard is clicked in sidebar", () => {
+    render(<App />);
+    const nav = screen.getByRole("navigation", { name: "Main Navigation" });
+    // Navigate away to projects
+    fireEvent.click(within(nav).getByRole("button", { name: /^projects$/i }));
+    expect(screen.getByText("Inspection Projects")).toBeInTheDocument();
+
+    // Navigate back to Dashboard
+    fireEvent.click(within(nav).getByRole("button", { name: /dashboard/i }));
+    expect(screen.getByText("Inspection Workspace Overview")).toBeInTheDocument();
+  });
+
+  it("collapses and expands the sidebar using the collapse control", () => {
+    render(<App />);
+    const collapseBtn = screen.getByRole("button", { name: /collapse sidebar/i });
+    fireEvent.click(collapseBtn);
+
+    // Expand control is now visible
+    const expandBtn = screen.getByRole("button", { name: /expand sidebar/i });
+    expect(expandBtn).toBeInTheDocument();
+
+    // Click expand
+    fireEvent.click(expandBtn);
+    expect(screen.getByRole("button", { name: /collapse sidebar/i })).toBeInTheDocument();
+  });
+
+  it("opens the user profile menu in top navbar and shows inspector details and sign out", () => {
+    render(<App />);
+    const profileBtn = screen.getByRole("button", { name: /user profile menu/i });
+    fireEvent.click(profileBtn);
+
+    expect(screen.getByText("Lead Site Inspector")).toBeInTheDocument();
+    expect(screen.getByText("inspector@foresite.test")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument();
+  });
+
+  it("opens mobile navigation drawer and navigates to selected destination", () => {
+    render(<App />);
+    const menuBtn = screen.getByRole("button", { name: /open navigation menu/i });
+    fireEvent.click(menuBtn);
+
+    // Mobile drawer is open
+    const drawer = screen.getByRole("dialog", { name: /navigation drawer/i });
+    expect(drawer).toBeInTheDocument();
+
+    // Click Projects within mobile drawer
+    const mobileProjectsBtn = within(drawer).getByRole("button", { name: /^projects$/i });
+    fireEvent.click(mobileProjectsBtn);
+
+    // Drawer closes and Projects screen is rendered
+    expect(screen.getByText("Inspection Projects")).toBeInTheDocument();
+  });
 });

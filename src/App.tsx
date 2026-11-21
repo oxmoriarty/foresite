@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { ViewMode, Project, Inspection, AppStats, ReviewStatus } from "./types";
-import { Header } from "./components/layout/Header";
-import { Navigation } from "./components/layout/Navigation";
+import { Sidebar } from "./components/layout/Sidebar";
+import { TopNavbar } from "./components/layout/TopNavbar";
+import { MobileNavDrawer } from "./components/layout/MobileNavDrawer";
 import { Footer } from "./components/layout/Footer";
 import { LandingScreen } from "./screens/LandingScreen";
 import { SignInScreen } from "./screens/SignInScreen";
@@ -200,6 +201,14 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isNewInspectionModalOpen, setIsNewInspectionModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("foresite_sidebar_collapsed") === "true";
+    } catch {
+      return false;
+    }
+  });
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [localPhotoCount, setLocalPhotoCount] = useState<number>(0);
   const [localDraftCount, setLocalDraftCount] = useState<number>(0);
 
@@ -740,23 +749,10 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
     handleNavigate("inspections", { projectId });
   };
 
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Accessible Header with Auth (rendered in workspace views when signed in) */}
-      {currentUser && currentView !== "landing" && currentView !== "signin" && currentView !== "demo" && (
-        <Header currentView={currentView} onSelectView={handleNavigate} />
-      )}
-
-      {/* Primary Navigation Tabs (rendered in workspace views when signed in) */}
-      {currentUser && currentView !== "landing" && currentView !== "signin" && currentView !== "demo" && (
-        <Navigation
-          currentView={currentView}
-          onSelectView={handleNavigate}
-          inspectionBadgeCount={stats.pendingReviews}
-        />
-      )}
-
-      {/* Main Content Area */}
+    <>
       {currentView === "landing" ? (
         <LandingScreen
           onNavigate={handleNavigate}
@@ -790,61 +786,103 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           }
         />
       ) : (
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-          {currentView === "overview" && (
-            <OverviewScreen
-              projects={projects}
-              inspections={inspections}
-              stats={stats}
-              onNavigate={handleNavigate}
-              onOpenNewProjectModal={() => {
-                handleNavigate("projects", { openProjectModal: true });
-              }}
-            />
-          )}
+        <div className="min-h-screen bg-slate-50 text-slate-900 flex">
+          {/* Persistent Collapsible Left Sidebar for Desktop */}
+          <Sidebar
+            currentView={currentView}
+            onSelectView={handleNavigate}
+            inspectionBadgeCount={stats.pendingReviews}
+            isCollapsed={isSidebarCollapsed}
+            onToggleCollapse={() => {
+              const next = !isSidebarCollapsed;
+              setIsSidebarCollapsed(next);
+              try {
+                localStorage.setItem("foresite_sidebar_collapsed", String(next));
+              } catch {
+                /* ignore storage error in restricted environment */
+              }
+            }}
+          />
 
-          {currentView === "projects" && (
-            <ProjectsScreen
-              projects={projects}
-              onCreateProject={handleCreateProject}
-              onUpdateProject={handleUpdateProject}
-              onDeleteProject={handleDeleteProject}
-              onSelectProject={handleSelectProject}
-              isCreateModalOpen={isProjectModalOpen}
-              setIsCreateModalOpen={setIsProjectModalOpen}
-            />
-          )}
-
-          {currentView === "inspections" && (
-            <InspectionsScreen
-              inspections={inspections}
-              projects={projects}
-              onUpdateStatus={handleUpdateInspectionStatus}
-              onLocalReviewTransition={handleLocalReviewTransition}
-              onSaveInspection={handleSaveInspection}
-              onDeleteInspection={handleDeleteInspection}
-              onArchiveInspection={handleArchiveInspection}
-              onUnarchiveInspection={handleUnarchiveInspection}
+          {/* Right Application Column: Compact Top Navbar + Main Content + Footer */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <TopNavbar
+              currentView={currentView}
+              onSelectView={handleNavigate}
               selectedProjectId={selectedProjectId}
+              selectedProjectName={selectedProject?.name}
               onClearProjectFilter={() => setSelectedProjectId(null)}
-              isNewInspectionModalOpen={isNewInspectionModalOpen}
-              setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
+              onOpenMobileMenu={() => setIsMobileNavOpen(true)}
             />
-          )}
 
-          {currentView === "sync" && (
-            <SyncCenterScreen
-              onNavigateToInspections={() => handleNavigate("inspections")}
-            />
-          )}
+            <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+              {currentView === "overview" && (
+                <OverviewScreen
+                  projects={projects}
+                  inspections={inspections}
+                  stats={stats}
+                  onNavigate={handleNavigate}
+                  onOpenNewProjectModal={() => {
+                    handleNavigate("projects", { openProjectModal: true });
+                  }}
+                />
+              )}
 
-          {currentView === "settings" && <SettingsScreen />}
-        </main>
+              {currentView === "projects" && (
+                <ProjectsScreen
+                  projects={projects}
+                  onCreateProject={handleCreateProject}
+                  onUpdateProject={handleUpdateProject}
+                  onDeleteProject={handleDeleteProject}
+                  onSelectProject={handleSelectProject}
+                  isCreateModalOpen={isProjectModalOpen}
+                  setIsCreateModalOpen={setIsProjectModalOpen}
+                />
+              )}
+
+              {currentView === "inspections" && (
+                <InspectionsScreen
+                  inspections={inspections}
+                  projects={projects}
+                  onUpdateStatus={handleUpdateInspectionStatus}
+                  onLocalReviewTransition={handleLocalReviewTransition}
+                  onSaveInspection={handleSaveInspection}
+                  onDeleteInspection={handleDeleteInspection}
+                  onArchiveInspection={handleArchiveInspection}
+                  onUnarchiveInspection={handleUnarchiveInspection}
+                  selectedProjectId={selectedProjectId}
+                  onClearProjectFilter={() => setSelectedProjectId(null)}
+                  isNewInspectionModalOpen={isNewInspectionModalOpen}
+                  setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
+                />
+              )}
+
+              {currentView === "sync" && (
+                <SyncCenterScreen
+                  onNavigateToInspections={() => handleNavigate("inspections")}
+                />
+              )}
+
+              {currentView === "settings" && <SettingsScreen />}
+            </main>
+
+            <Footer />
+          </div>
+
+          {/* Responsive Mobile Navigation Drawer */}
+          <MobileNavDrawer
+            isOpen={isMobileNavOpen}
+            onClose={() => setIsMobileNavOpen(false)}
+            currentView={currentView}
+            onSelectView={(view) => {
+              handleNavigate(view);
+              setIsMobileNavOpen(false);
+            }}
+            inspectionBadgeCount={stats.pendingReviews}
+          />
+        </div>
       )}
-
-      {/* Accessible Footer (rendered in workspace views when signed in) */}
-      {currentUser && currentView !== "landing" && currentView !== "signin" && <Footer />}
-    </div>
+    </>
   );
 };
 
