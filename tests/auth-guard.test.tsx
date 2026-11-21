@@ -61,6 +61,34 @@ describe("ForeSite Authentication Navigation Guard", () => {
     });
   });
 
+  it("renders View Demo button and Powered by Firebase AI Logic badge on landing page", () => {
+    render(<App initialView="landing" initialUser={null} />);
+    expect(screen.getByRole("button", { name: /view demo/i })).toBeInTheDocument();
+    expect(screen.getByText("AI Logic")).toBeInTheDocument();
+  });
+
+  it("intercepts View Demo CTA when unauthenticated and redirects to overview after login", async () => {
+    render(<App initialView="landing" initialUser={null} />);
+
+    // Click "View Demo" CTA in hero
+    const viewDemoBtn = screen.getByRole("button", { name: /view demo/i });
+    fireEvent.click(viewDemoBtn);
+
+    // Should be on Sign in page
+    expect(
+      screen.getByRole("button", { name: /continue as demo inspector/i })
+    ).toBeInTheDocument();
+
+    // Authenticate
+    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
+    fireEvent.click(demoLoginBtn);
+
+    // Should be redirected to Overview workspace
+    await waitFor(() => {
+      expect(screen.getByText("Inspection Workspace Overview")).toBeInTheDocument();
+    });
+  });
+
   it("redirects direct unauthenticated access to a protected page to Sign in screen", () => {
     render(<App initialView="projects" initialUser={null} />);
     expect(

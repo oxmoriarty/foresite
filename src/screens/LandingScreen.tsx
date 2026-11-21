@@ -165,7 +165,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               Inspection intelligence for construction teams ready to build with speed.
             </h1>
 
-            {/* Action Row: Blue Pill Button + Certified Partner Badge */}
+            {/* Action Row: Blue Pill Button + View Demo Button */}
             <div className="flex flex-wrap items-center gap-4">
               {/* Primary Electric Blue Pill Button */}
               <button
@@ -179,16 +179,14 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 </span>
               </button>
 
-              {/* Firebase Cloud Platform Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-xs text-xs font-semibold text-slate-800">
-                <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
-                  <Flame className="w-2.5 h-2.5" />
-                </span>
-                <span>Powered by Firebase</span>
-                <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider">
-                  Firestore
-                </span>
-              </div>
+              {/* View Demo Button */}
+              <button
+                type="button"
+                onClick={() => onNavigate("overview")}
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
+              >
+                <span>View Demo</span>
+              </button>
             </div>
           </div>
         </div>
@@ -223,18 +221,17 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                   replacing lost paperwork and slow manual transcription.
                 </p>
 
-                {/* Pill Button with White Circle Arrow */}
+                {/* Powered by Firebase AI Logic Badge */}
                 <div>
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("inspections")}
-                    className="group inline-flex items-center gap-2.5 pl-4 pr-1.5 py-1.5 rounded-full bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
-                  >
-                    <span>Explore inspections</span>
-                    <span className="w-5 h-5 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
-                      <ArrowRight className="w-3 h-3" />
+                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-slate-200 shadow-xs text-xs font-semibold text-slate-800">
+                    <span className="w-4 h-4 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
+                      <Flame className="w-2.5 h-2.5" />
                     </span>
-                  </button>
+                    <span>Powered by Firebase</span>
+                    <span className="px-2 py-0.5 rounded-full bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider">
+                      AI Logic
+                    </span>
+                  </div>
                 </div>
               </div>
 
