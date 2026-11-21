@@ -67,25 +67,45 @@ describe("ForeSite Authentication Navigation Guard", () => {
     expect(screen.getByText("AI Logic")).toBeInTheDocument();
   });
 
-  it("intercepts View Demo CTA when unauthenticated and redirects to overview after login", async () => {
+  it("navigates directly to the interactive Demo Studio when clicking View Demo without authentication", async () => {
     render(<App initialView="landing" initialUser={null} />);
 
     // Click "View Demo" CTA in hero
     const viewDemoBtn = screen.getByRole("button", { name: /view demo/i });
     fireEvent.click(viewDemoBtn);
 
-    // Should be on Sign in page
-    expect(
-      screen.getByRole("button", { name: /continue as demo inspector/i })
-    ).toBeInTheDocument();
+    // It MUST NOT require authentication; opens Demo Studio directly
+    expect(screen.getByText("ForeSite Interactive Studio")).toBeInTheDocument();
+    expect(screen.getByText(/live testing sandbox/i)).toBeInTheDocument();
+    expect(screen.getByText("Choose a Preloaded Site Scenario")).toBeInTheDocument();
+  });
 
-    // Authenticate
-    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
-    fireEvent.click(demoLoginBtn);
+  it("allows testing live AI analysis and review verification in demo mode without signing in", async () => {
+    render(<App initialView="demo" initialUser={null} />);
 
-    // Should be redirected to Overview workspace
+    // Verify preloaded scenario is displayed
+    expect(screen.getByText("Pier Footing Rebar Audit")).toBeInTheDocument();
+
+    // Trigger AI analysis
+    const runAiBtn = screen.getByRole("button", { name: /run ai observation analysis/i });
+    fireEvent.click(runAiBtn);
+
+    // Verify AI analysis output is generated
     await waitFor(() => {
-      expect(screen.getByText("Inspection Workspace Overview")).toBeInTheDocument();
+      expect(screen.getByText("Review Synthesized AI Draft Findings")).toBeInTheDocument();
+      expect(screen.getByText("Mandatory Human Verification Policy")).toBeInTheDocument();
+    });
+
+    // Test Human review verification: Approve and Sign Off
+    const approveBtn = screen.getByRole("button", { name: /approve and sign off/i });
+    fireEvent.click(approveBtn);
+
+    // Save inspection into local testing workspace
+    const saveBtn = screen.getByRole("button", { name: /save inspection/i });
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Saved to Workspace")).toBeInTheDocument();
     });
   });
 

@@ -46,6 +46,13 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             <div className="hidden md:flex items-center space-x-7 text-[13px] text-slate-600 font-medium">
               <button
                 type="button"
+                onClick={() => onNavigate("demo")}
+                className="text-brand-600 hover:text-brand-700 transition-colors cursor-pointer font-semibold"
+              >
+                Demo
+              </button>
+              <button
+                type="button"
                 onClick={() => onNavigate("projects")}
                 className="hover:text-slate-950 transition-colors cursor-pointer"
               >
@@ -182,7 +189,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               {/* View Demo Button */}
               <button
                 type="button"
-                onClick={() => onNavigate("overview")}
+                onClick={() => onNavigate("demo")}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
               >
                 <span>View Demo</span>

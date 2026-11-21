@@ -6,6 +6,7 @@ import { Footer } from "./components/layout/Footer";
 import { LandingScreen } from "./screens/LandingScreen";
 import { SignInScreen } from "./screens/SignInScreen";
 import { OverviewScreen } from "./screens/OverviewScreen";
+import { DemoScreen } from "./screens/DemoScreen";
 import { User } from "firebase/auth";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
@@ -181,7 +182,7 @@ export interface AppProps {
 const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   const { currentUser, isConfigured } = useAuth();
   const defaultInitialView: ViewMode =
-    !currentUser && initialView && initialView !== "landing"
+    !currentUser && initialView && initialView !== "landing" && initialView !== "demo"
       ? "signin"
       : initialView || (process.env.NODE_ENV === "test" && currentUser ? "overview" : "landing");
   const [currentView, setCurrentView] = useState<ViewMode>(defaultInitialView);
@@ -190,7 +191,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
     openProjectModal?: boolean;
     projectId?: string;
   } | null>(
-    !currentUser && initialView && initialView !== "landing" && initialView !== "signin"
+    !currentUser && initialView && initialView !== "landing" && initialView !== "signin" && initialView !== "demo"
       ? { view: initialView }
       : null
   );
@@ -676,8 +677,8 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   // Central Guarded Navigation: Enforces authentication on all non-landing views
   const handleNavigate = useCallback(
     (targetView: ViewMode, options?: { openProjectModal?: boolean; projectId?: string }) => {
-      if (targetView === "landing") {
-        setCurrentView("landing");
+      if (targetView === "landing" || targetView === "demo") {
+        setCurrentView(targetView);
         return;
       }
 
@@ -727,7 +728,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
       }
     } else {
       // If user is unauthenticated while on a protected page, redirect to signin
-      if (currentView !== "landing" && currentView !== "signin") {
+      if (currentView !== "landing" && currentView !== "signin" && currentView !== "demo") {
         setPendingDestination({ view: currentView });
         setCurrentView("signin");
       }
@@ -742,12 +743,12 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
       {/* Accessible Header with Auth (rendered in workspace views when signed in) */}
-      {currentUser && currentView !== "landing" && currentView !== "signin" && (
+      {currentUser && currentView !== "landing" && currentView !== "signin" && currentView !== "demo" && (
         <Header currentView={currentView} onSelectView={handleNavigate} />
       )}
 
       {/* Primary Navigation Tabs (rendered in workspace views when signed in) */}
-      {currentUser && currentView !== "landing" && currentView !== "signin" && (
+      {currentUser && currentView !== "landing" && currentView !== "signin" && currentView !== "demo" && (
         <Navigation
           currentView={currentView}
           onSelectView={handleNavigate}
@@ -762,6 +763,15 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           onCreateProject={() =>
             handleNavigate("projects", { openProjectModal: true })
           }
+        />
+      ) : currentView === "demo" ? (
+        <DemoScreen
+          projects={projects}
+          inspections={inspections}
+          stats={stats}
+          onNavigate={handleNavigate}
+          onSaveInspection={handleSaveInspection}
+          onUpdateInspectionStatus={handleUpdateInspectionStatus}
         />
       ) : currentView === "signin" || !currentUser ? (
         <SignInScreen
