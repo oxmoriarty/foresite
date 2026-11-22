@@ -6,14 +6,11 @@ import {
   Sparkles,
   Plus,
   ArrowRight,
-  Database,
-  ExternalLink,
 } from "lucide-react";
 import { Project, Inspection, AppStats, ViewMode } from "../types";
 import { Card, CardBody } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
-import { DisclaimerBanner } from "../components/ui/DisclaimerBanner";
 
 export interface OverviewScreenProps {
   projects: Project[];
@@ -65,9 +62,6 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </div>
       </div>
 
-      {/* Mandatory Disclaimer */}
-      <DisclaimerBanner />
-
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
@@ -88,7 +82,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         {/* Metric 2 */}
         <Card className="hover:border-brand-200 transition-all duration-300">
           <CardBody className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
               <ClipboardCheck className="w-6 h-6" />
             </div>
             <div>
@@ -123,7 +117,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
             </div>
             <div>
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                Hybrid AI Drafts
+                AI Drafts
               </p>
               <p className="text-2xl font-extrabold text-slate-900 mt-0.5">
                 {stats.onDeviceInferences + stats.cloudInferences}
@@ -133,7 +127,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
       </div>
 
-      {/* Main Grid: Recent Activity & Architecture Status */}
+      {/* Main Grid: Recent Activity & Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Recent Inspections List (2 Cols) */}
         <div className="lg:col-span-2 space-y-4">
@@ -183,52 +177,54 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
           </div>
         </div>
 
-        {/* Right Sidebar: Storage & Architecture Info */}
+        {/* Right Sidebar: Quick Actions */}
         <div className="space-y-4">
           <h2 className="text-base font-bold text-slate-900">
-            System and Storage Invariants
+            Quick Actions
           </h2>
 
           <Card>
-            <CardBody className="p-5 space-y-4">
-              <div className="flex items-start gap-3.5">
-                <div className="p-2.5 bg-brand-50 rounded-xl text-brand-600 shrink-0 mt-0.5">
-                  <Database className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold uppercase text-slate-800 tracking-wider">
-                    Local Evidence Retention
-                  </h4>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                    Original inspection photographs are retained locally in browser IndexedDB. Structured summaries sync to Firestore when authenticated.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 space-y-2.5 text-xs">
-                <div className="flex justify-between text-slate-600">
-                  <span>Photo Storage:</span>
-                  <span className="font-semibold text-slate-900">IndexedDB Device Local</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Inference Routing:</span>
-                  <span className="font-semibold text-emerald-700">Hybrid Device and Cloud</span>
-                </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Firebase Pricing Tier:</span>
-                  <span className="font-semibold text-slate-900">Spark Zero Cost</span>
-                </div>
-              </div>
+            <CardBody className="p-5 space-y-3">
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-start text-xs rounded-xl"
+                icon={<Plus className="w-4 h-4 text-brand-600" />}
+                onClick={onOpenNewProjectModal}
+              >
+                Create New Project
+              </Button>
 
               <Button
                 variant="outline"
-                size="sm"
-                className="w-full text-xs rounded-full"
-                icon={<ExternalLink className="w-3.5 h-3.5" />}
-                onClick={() => onNavigate("settings")}
+                size="md"
+                className="w-full justify-start text-xs rounded-xl"
+                icon={<ClipboardCheck className="w-4 h-4 text-brand-600" />}
+                onClick={() => onNavigate("inspections")}
               >
-                Inspect Storage and Privacy Settings
+                Start Site Inspection
               </Button>
+
+              <Button
+                variant="outline"
+                size="md"
+                className="w-full justify-start text-xs rounded-xl"
+                icon={<ArrowRight className="w-4 h-4 text-brand-600" />}
+                onClick={() => onNavigate("sync")}
+              >
+                Open Sync Center
+              </Button>
+
+              <div className="pt-3 border-t border-slate-100">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs text-slate-600 hover:text-slate-900 justify-center rounded-xl"
+                  onClick={() => onNavigate("settings")}
+                >
+                  Workspace Settings
+                </Button>
+              </div>
             </CardBody>
           </Card>
         </div>

@@ -18,7 +18,6 @@ import {
   Trash2,
   Maximize2,
   AlertCircle,
-  Database,
   Calendar,
   X,
 } from "lucide-react";
@@ -172,15 +171,6 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Local-Only Disclosure Banner */}
-      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-900 flex items-start gap-2">
-        <Database className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div>
-          <span className="font-semibold block">Local Evidence Storage (No Cloud Backup)</span>
-          Original site photograph binary Blobs remain stored locally in this browser profile (IndexedDB). They are not uploaded to cloud databases.
-        </div>
-      </div>
-
       {/* Validation Error Banner */}
       {validationError && (
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
@@ -391,7 +381,7 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
       >
         <div className="space-y-2 text-xs text-slate-700">
           <p>
-            Are you sure you want to permanently delete this photograph from local IndexedDB storage?
+            Are you sure you want to permanently delete this photograph?
           </p>
           <div className="p-2 bg-slate-100 rounded text-slate-800 font-mono text-[11px]">
             {photoToDelete?.fileName} ({formatBytes(photoToDelete?.fileSizeBytes || 0)})

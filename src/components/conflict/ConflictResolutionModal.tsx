@@ -106,7 +106,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         const remote = await getInspection(currentUser.uid, mutation.targetInspectionId);
         if (!remote) {
           if (isMounted) {
-            setError("Remote inspection document no longer exists in Firestore.");
+            setError("Remote inspection record no longer exists.");
             setLoading(false);
           }
           return;

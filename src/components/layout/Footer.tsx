@@ -10,14 +10,14 @@ export const Footer: React.FC = () => {
             <span className="font-semibold text-slate-700">ForeSite</span>
             <span className="inline-flex items-center gap-1 text-slate-600">
               <Cpu className="w-3.5 h-3.5 text-brand-600" />
-              Hybrid AI inference
+              Field Intelligence Workspace
             </span>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">
-              <ShieldCheck className="w-3.5 h-3.5" />
-              Spark Plan with zero billing
+            <span className="inline-flex items-center gap-1 text-slate-600">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+              Offline Ready
             </span>
             <span>MIT License</span>
           </div>

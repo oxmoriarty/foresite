@@ -37,15 +37,14 @@ describe("ForeSite Application Shell Navigation", () => {
     expect(screen.getByText("Rebar Spacing & Cover Depth — Pier Footing 4")).toBeInTheDocument();
   });
 
-  it("navigates to Settings screen and shows storage invariants", () => {
+  it("navigates to Settings screen and shows storage configuration", () => {
     render(<App />);
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
     const settingsTab = within(nav).getByRole("button", { name: /^settings$/i });
     fireEvent.click(settingsTab);
 
-    expect(screen.getByText("Settings & Architecture Policy")).toBeInTheDocument();
-    expect(screen.getByText("Local Photograph Retention (IndexedDB)")).toBeInTheDocument();
-    expect(screen.getByText("Zero-Billing & Data Security Invariants")).toBeInTheDocument();
+    expect(screen.getByText("Settings & Preferences")).toBeInTheDocument();
+    expect(screen.getByText("Local Storage & Capacity")).toBeInTheDocument();
   });
 
   it("navigates to Sync Center screen when Sync Center is clicked in sidebar", () => {

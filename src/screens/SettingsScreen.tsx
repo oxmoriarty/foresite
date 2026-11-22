@@ -5,7 +5,6 @@ import {
   Cpu,
   HardHat,
   UserCheck,
-  Flame,
   AlertCircle,
   HardDrive,
   RefreshCw,
@@ -35,7 +34,7 @@ import {
 } from "../services/preferences";
 
 export const SettingsScreen: React.FC = () => {
-  const { currentUser, userProfile, isConfigured } = useAuth();
+  const { currentUser, userProfile } = useAuth();
 
   const [storageInfo, setStorageInfo] = useState<StorageEstimateInfo>({
     supported: false,
@@ -152,20 +151,21 @@ export const SettingsScreen: React.FC = () => {
   };
 
   const handleRequestPersistence = async () => {
-    const granted = await requestPersistentStorage();
-    if (granted) {
-      await handleRefreshClick();
-    }
+    const persisted = await requestPersistentStorage();
+    setStorageInfo((prev) => ({ ...prev, persisted }));
   };
 
   const handleClearAllEvidence = async () => {
     setIsClearing(true);
     try {
       await clearAllLocalEvidence();
-      await handleRefreshClick();
+      setLocalPhotoCount(0);
+      setLocalDraftCount(0);
+      const estimate = await getStorageQuotaEstimate();
+      setStorageInfo(estimate);
       setIsClearModalOpen(false);
     } catch (err) {
-      console.error("Failed to clear local evidence:", err);
+      console.error("Failed to clear evidence:", err);
     } finally {
       setIsClearing(false);
     }
@@ -176,10 +176,10 @@ export const SettingsScreen: React.FC = () => {
       {/* Title */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
-          Settings & Architecture Policy
+          Settings & Preferences
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Review inspector identity, IndexedDB storage quotas, hybrid inference configuration, and compliance policies.
+          Review inspector profile, storage management, and AI processing configuration.
         </p>
       </div>
 
@@ -191,10 +191,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              Inspector Authentication & Identity
+              Inspector Profile
             </h2>
             <p className="text-xs text-slate-500">
-              Session state and credential verification from Firebase Auth
+              Account identity and verification status
             </p>
           </div>
         </CardHeader>
@@ -210,12 +210,6 @@ export const SettingsScreen: React.FC = () => {
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="font-medium text-slate-600">Email Address:</span>
                 <span className="font-mono text-slate-900">{currentUser.email}</span>
-              </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="font-medium text-slate-600">Inspector UID:</span>
-                <span className="font-mono text-[11px] text-slate-700 select-all">
-                  {currentUser.uid}
-                </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
                 <span className="font-medium text-slate-600">Email Verification:</span>
@@ -239,29 +233,29 @@ export const SettingsScreen: React.FC = () => {
           ) : (
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 space-y-1">
               <span className="font-semibold text-slate-800 block">
-                Unauthenticated (Guest Preview Session)
+                Preview Session
               </span>
               <p>
-                You are currently viewing ForeSite with local sample data. Sign in using the &quot;Sign In&quot; button in the header to synchronize projects and inspection observations with your isolated Cloud Firestore account.
+                You are currently viewing ForeSite with local sample data.
               </p>
             </div>
           )}
         </CardBody>
       </Card>
 
-      {/* Section 1: Local Photo Evidence & IndexedDB Quota (Phase 3 Core) */}
+      {/* Section 1: Storage Management */}
       <Card>
         <CardHeader className="flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 text-blue-700 rounded-lg">
+            <div className="p-2 bg-brand-100 text-brand-700 rounded-lg">
               <Database className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
-                Local Photograph Retention (IndexedDB)
+                Local Storage & Capacity
               </h2>
               <p className="text-xs text-slate-500">
-                Zero-cloud photo binary storage and browser disk capacity
+                Local photo binary storage and browser disk capacity
               </p>
             </div>
           </div>
@@ -269,7 +263,7 @@ export const SettingsScreen: React.FC = () => {
             type="button"
             onClick={handleRefreshClick}
             disabled={refreshingQuota}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             title="Refresh Storage Quota"
           >
             <RefreshCw className={`w-4 h-4 ${refreshingQuota ? "animate-spin" : ""}`} />
@@ -280,14 +274,14 @@ export const SettingsScreen: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="font-medium">Photos in IndexedDB</span>
-                <Database className="w-3.5 h-3.5 text-blue-600" />
+                <span className="font-medium">Photos Stored</span>
+                <Database className="w-3.5 h-3.5 text-brand-600" />
               </div>
               <span className="text-lg font-bold text-slate-900">
                 {localPhotoCount} photos
               </span>
               <span className="text-[10px] text-slate-400 block mt-0.5">
-                Stored as original Blobs
+                Local evidence files
               </span>
             </div>
 
@@ -316,7 +310,7 @@ export const SettingsScreen: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleRequestPersistence}
-                  className="text-[10px] text-brand-600 font-semibold hover:underline mt-0.5"
+                  className="text-[10px] text-brand-600 font-semibold hover:underline mt-0.5 cursor-pointer"
                 >
                   Request Persistence &rarr;
                 </button>
@@ -344,36 +338,12 @@ export const SettingsScreen: React.FC = () => {
             </div>
           )}
 
-          {/* Local-Only Disclosure Warning */}
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 space-y-2">
-            <div className="flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-700 shrink-0 mt-0.5" />
-              <div>
-                <span className="font-semibold block">Mandatory Local Storage Disclosure:</span>
-                <p className="text-[11px] text-amber-800 leading-normal mt-0.5">
-                  Original site photographs and unfinished inspection drafts are stored exclusively in your local browser profile (IndexedDB). They are <strong>never uploaded to cloud storage</strong>.
-                </p>
-              </div>
-            </div>
-            <ul className="list-disc pl-7 text-[11px] text-amber-800 space-y-1">
-              <li>
-                <strong>No Cloud Backup:</strong> Photos remain on this specific device and browser profile only.
-              </li>
-              <li>
-                <strong>Cache Eviction Risk:</strong> Clearing browser history, deleting site data, or deleting the Chrome user profile will permanently erase locally stored photographic evidence.
-              </li>
-              <li>
-                <strong>External Copy Recommendation:</strong> Inspectors must keep offline backups of primary evidence files before clearing browser cache.
-              </li>
-            </ul>
-          </div>
-
-          {/* Danger Zone: Clear Local Database */}
+          {/* Reset Evidence Storage */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
             <div>
               <span className="font-semibold text-slate-800 block">Reset Local Evidence Database</span>
               <span className="text-[11px] text-slate-500">
-                Purge all photographic Blobs and local drafts stored in IndexedDB.
+                Purge all photographic evidence and local drafts stored on this device.
               </span>
             </div>
             <Button
@@ -389,71 +359,7 @@ export const SettingsScreen: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Section 2: Firebase Foundation & Infrastructure */}
-      <Card>
-        <CardHeader className="flex items-center gap-3 bg-slate-50/60">
-          <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-            <Flame className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Firebase Services & Infrastructure
-            </h2>
-            <p className="text-xs text-slate-500">
-              Spark Plan compliance and service initialization status
-            </p>
-          </div>
-        </CardHeader>
-        <CardBody className="space-y-3 text-xs text-slate-700">
-          <div className="space-y-2">
-            <div className="flex justify-between py-1.5 border-b border-slate-100">
-              <span className="font-medium text-slate-600">Firebase Config Status:</span>
-              <span
-                className={`px-2 py-0.5 rounded text-[11px] font-semibold ${
-                  isConfigured
-                    ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                    : "bg-slate-100 text-slate-600 border border-slate-200"
-                }`}
-              >
-                {isConfigured ? "Connected (Live Client SDK)" : "Offline / Scaffold Preview"}
-              </span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-100">
-              <span className="font-medium text-slate-600">Target Project ID:</span>
-              <span className="font-mono text-slate-800">
-                {config.firebase.projectId || "foresite-preview (unconfigured)"}
-              </span>
-            </div>
-            <div className="flex justify-between py-1.5 border-b border-slate-100">
-              <span className="font-medium text-slate-600">App Check Provider:</span>
-              <span className="font-medium text-slate-800">
-                {config.appCheck.siteKey
-                  ? "reCAPTCHA Enterprise (Production)"
-                  : config.appCheck.debugToken
-                  ? "Custom Debug Provider (Development)"
-                  : "Optional / Disabled (Non-blocking)"}
-              </span>
-            </div>
-            <div className="flex justify-between py-1.5">
-              <span className="font-medium text-slate-600">Billing Tier:</span>
-              <span className="font-semibold text-emerald-700">
-                Firebase Spark Plan ($0.00 / Month - Zero Billing Enforced)
-              </span>
-            </div>
-          </div>
-
-          {!isConfigured && (
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <span>
-                To connect to your own Firebase project, copy <code>.env.example</code> to <code>.env.local</code> and populate your Firebase project credentials. See <code>docs/FIREBASE_SETUP.md</code> for step-by-step instructions.
-              </span>
-            </div>
-          )}
-        </CardBody>
-      </Card>
-
-      {/* Section 3: AI & Privacy — Automatic Cloud Fallback */}
+      {/* Section 2: AI & Privacy — Automatic Cloud Fallback */}
       <Card>
         <CardHeader className="flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-3">
@@ -465,7 +371,7 @@ export const SettingsScreen: React.FC = () => {
                 AI & Privacy — Automatic Cloud Fallback
               </h2>
               <p className="text-xs text-slate-500">
-                Hybrid AI inference routing policy and Google Cloud transmission control
+                Hybrid AI inference routing policy and cloud transmission control
               </p>
             </div>
           </div>
@@ -512,7 +418,7 @@ export const SettingsScreen: React.FC = () => {
               </div>
               <p className="text-slate-600 text-xs">
                 {cloudFallbackPref.enabled
-                  ? "Mode A active: On-device inference is attempted first; automatically falls back to gemini-3.5-flash-lite if the local model is unavailable or unready. Per-request consent modal is bypassed."
+                  ? "Mode A active: On-device inference is attempted first; automatically falls back to cloud AI if the local model is unavailable or unready. Per-request consent modal is bypassed."
                   : "Mode B active (Default): Strictly on-device inference. Awaits on-device model download. If on-device inference is unavailable, execution halts locally before network transmission, requiring explicit consent per request."}
               </p>
               {prefStatusMessage && (
@@ -559,11 +465,9 @@ export const SettingsScreen: React.FC = () => {
                 <span>Setting ON — Automatic Cloud Fallback</span>
               </div>
               <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
-                <li>Uses Firebase AI Logic <code>PREFER_ON_DEVICE</code>.</li>
-                <li>Target cloud model: <code>gemini-3.5-flash-lite</code>.</li>
-                <li>Initializes on-device model without blocking inference.</li>
+                <li>Attempts on-device processing first.</li>
                 <li>Seamless cloud fallback during background model download.</li>
-                <li>Does not show a per-request cloud consent modal.</li>
+                <li>Bypasses per-request consent modal for streamlined workflow.</li>
               </ul>
             </div>
 
@@ -579,86 +483,16 @@ export const SettingsScreen: React.FC = () => {
                 <span>Setting OFF — Consent-Controlled (Default)</span>
               </div>
               <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
-                <li>Uses Firebase AI Logic <code>ONLY_ON_DEVICE</code>.</li>
-                <li>Awaits on-device model download (with % progress bar).</li>
-                <li>If on-device inference fails, halts before cloud transmission.</li>
-                <li>Requires explicit user consent via Cloud Consent Dialog.</li>
-                <li>If declined, cancels AI processing; manual authoring continues.</li>
+                <li>Strictly on-device processing.</li>
+                <li>Halts before cloud transmission if local model is unavailable.</li>
+                <li>Requires explicit inspector confirmation per request.</li>
               </ul>
             </div>
           </div>
-
-          {/* Mandatory Privacy & Data Terms Disclosures */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-2">
-            <div className="font-semibold text-slate-900 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5 text-slate-600" />
-              <span>Data Protection & Privacy Terms</span>
-            </div>
-            <p className="text-slate-600">
-              <strong>Google Gemini Developer API Free-Tier Terms:</strong> Under Google&apos;s Gemini Developer API free-tier terms, content submitted to the API (including inspection photographs and notes) may be processed by Google and used to improve Google products and services.
-            </p>
-            <p className="text-slate-600">
-              <strong>IndexedDB & Firestore Data Isolation:</strong> Original photo binaries remain in browser IndexedDB. ForeSite does not upload them to Firestore or cloud storage. Declining cloud AI processing prevents transmission of photographs and notes for AI processing, but does <em>not</em> disable ordinary Firestore synchronization of saved structured inspection records.
-            </p>
-          </div>
-
-          {/* Chrome Built-in AI Prerequisites */}
-          <div className="pt-2 border-t border-slate-100">
-            <h4 className="font-semibold text-slate-900 mb-1">
-              Chrome Desktop Prerequisites for On-Device Gemini Nano:
-            </h4>
-            <ul className="list-disc pl-5 space-y-1 text-slate-600">
-              <li>Google Chrome Desktop version 139 or later (Windows, macOS, Linux).</li>
-              <li>Approximately 22 GB free disk space on the volume containing your Chrome profile.</li>
-              <li>Hardware requirements: GPU with strictly more than 4 GB VRAM, OR CPU with at least 16 GB system RAM and 4 or more cores.</li>
-              <li>Flag: <code>chrome://flags/#prompt-api-for-gemini-nano-multimodal-input</code> set to <strong>Enabled</strong>.</li>
-              <li>Flag: <code>chrome://flags/#optimization-guide-on-device-model</code> set to <strong>Enabled</strong>.</li>
-              <li className="text-slate-500 italic">Note: Gemini Nano model availability is managed by Chrome; exact sub-version identifiers (e.g. &quot;Nano 4&quot;) remain unverified at runtime.</li>
-            </ul>
-          </div>
         </CardBody>
       </Card>
 
-      {/* Section 4: No-Cost Policy & Security Rules */}
-      <Card>
-        <CardHeader className="flex items-center gap-3 bg-slate-50/60">
-          <div className="p-2 bg-purple-100 text-purple-700 rounded-lg">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Zero-Billing & Data Security Invariants
-            </h2>
-            <p className="text-xs text-slate-500">
-              Mandatory Spark plan and path-scoped security isolation
-            </p>
-          </div>
-        </CardHeader>
-        <CardBody className="space-y-3 text-xs text-slate-700 leading-relaxed">
-          <p>
-            ForeSite operates strictly under the <strong>Firebase Spark Plan</strong> ($0/month, no credit card, no billing account attached):
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <span className="font-semibold text-slate-900 block">Firebase Auth</span>
-              <span className="text-slate-500">50k MAUs Free</span>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <span className="font-semibold text-slate-900 block">Cloud Firestore</span>
-              <span className="text-slate-500">50k Reads / 20k Writes Day</span>
-            </div>
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <span className="font-semibold text-slate-900 block">Firebase Hosting</span>
-              <span className="text-slate-500">10 GB Free Storage</span>
-            </div>
-          </div>
-          <p className="text-slate-600 pt-1">
-            Firestore paths are strictly isolated under <code>/users/&#123;uid&#125;/...</code>. Database security rules enforce deny-by-default multi-tenancy.
-          </p>
-        </CardBody>
-      </Card>
-
-      {/* Section 5: Application & Hackathon Details */}
+      {/* Section 3: Application Information */}
       <Card>
         <CardHeader className="flex items-center gap-3 bg-slate-50/60">
           <div className="p-2 bg-slate-100 text-slate-700 rounded-lg">
@@ -666,10 +500,10 @@ export const SettingsScreen: React.FC = () => {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              Application Build Information
+              Application Information
             </h2>
             <p className="text-xs text-slate-500">
-              Version and hackathon submission details
+              Version and workspace details
             </p>
           </div>
         </CardHeader>
@@ -679,16 +513,8 @@ export const SettingsScreen: React.FC = () => {
             <span className="font-semibold text-slate-900">{config.appName}</span>
           </div>
           <div className="flex justify-between py-1 border-b border-slate-100">
-            <span>Build Phase:</span>
-            <span className="font-semibold text-slate-900">Phase 3: Local Evidence & IndexedDB Management</span>
-          </div>
-          <div className="flex justify-between py-1 border-b border-slate-100">
-            <span>Target Platform:</span>
-            <span className="font-semibold text-slate-900">Web (Google Chrome Desktop)</span>
-          </div>
-          <div className="flex justify-between py-1 border-b border-slate-100">
-            <span>Competition:</span>
-            <span className="font-semibold text-slate-900">BuildHybridAI 2026 Hackathon</span>
+            <span>Version:</span>
+            <span className="font-semibold text-slate-900">{config.appVersion}</span>
           </div>
           <div className="flex justify-between py-1">
             <span>License:</span>
@@ -725,11 +551,11 @@ export const SettingsScreen: React.FC = () => {
       >
         <div className="space-y-3 text-xs text-slate-700">
           <p>
-            Are you sure you want to completely erase all local photographic evidence Blobs and unfinished inspection drafts stored in IndexedDB?
+            Are you sure you want to completely erase all local photographic evidence files and unfinished inspection drafts stored on this device?
           </p>
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800">
             <span className="font-bold block">Destructive Action:</span>
-            This will purge {localPhotoCount} photograph(s) and {localDraftCount} local draft(s). Stored structured records in Cloud Firestore will not be affected.
+            This will purge {localPhotoCount} photograph(s) and {localDraftCount} local draft(s).
           </div>
         </div>
       </Modal>

@@ -231,9 +231,6 @@ describe("ForeSite Phase 4 AI UI Components", () => {
 
       // Verify source badge is rendered
       expect(screen.getByText(/On-Device \(Nano\)/i)).toBeInTheDocument();
-
-      // Verify human review disclaimer banner is displayed
-      expect(screen.getByText(/AI Draft Mode/i)).toBeInTheDocument();
     });
   });
 });

@@ -73,7 +73,7 @@ describe("ForeSite Manual Inspection & Local Evidence Workflows", () => {
     });
   });
 
-  it("navigates to Inspections and displays the Local-Only storage disclosure", async () => {
+  it("navigates to Inspections and opens the New Inspection dialog", async () => {
     render(<App />);
 
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
@@ -86,9 +86,7 @@ describe("ForeSite Manual Inspection & Local Evidence Workflows", () => {
 
     await waitFor(() => {
       expect(screen.getByText("New Site Inspection")).toBeInTheDocument();
-      expect(
-        screen.getByText(/Local Evidence Storage \(No Cloud Backup\)/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText("Photographic Evidence")).toBeInTheDocument();
     });
   });
 

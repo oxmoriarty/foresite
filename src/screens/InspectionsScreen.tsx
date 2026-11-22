@@ -42,7 +42,6 @@ import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { EmptyState } from "../components/ui/EmptyState";
-import { DisclaimerBanner } from "../components/ui/DisclaimerBanner";
 import { InspectionEditorModal } from "../components/inspection/InspectionEditorModal";
 import { PhotoEvidenceManager } from "../components/evidence/PhotoEvidenceManager";
 import { useAuth } from "../context/AuthContext";
@@ -616,7 +615,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   <Camera className="w-3.5 h-3.5 text-slate-400" />
                   <span>
                     {insp.photoIds && insp.photoIds.length > 0
-                      ? `${insp.photoIds.length} photo(s) in IndexedDB`
+                      ? `${insp.photoIds.length} photo(s) attached`
                       : insp.photoMeta
                       ? `${insp.photoMeta.fileName}`
                       : "No photo attached"}
@@ -822,9 +821,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
               </div>
             )}
 
-            {/* Disclaimer */}
-            <DisclaimerBanner compact />
-
             {/* Project & Category Header */}
             <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
               <div>
@@ -855,13 +851,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                       : "Local Only"}
                   </span>
                 )}
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block">Storage Provider</span>
-                <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-700">
-                  <Database className="w-3 h-3" />
-                  IndexedDB Local Blobs
-                </span>
               </div>
             </div>
 
@@ -1048,16 +1037,16 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   <p>{eligibility.reason}</p>
                 </div>
               ) : (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-2">
-                  <span className="font-semibold block">Photo Evidence &amp; Deletion Lifecycle:</span>
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-1.5">
+                  <span className="font-semibold block">Inspection Deletion:</span>
                   <p>
-                    • Deletion will be queued and verified against Cloud Firestore.
+                    • Deletion will be queued and synchronized across your workspace.
                   </p>
                   <p>
-                    • Upon confirmed remote deletion, locally stored photographic evidence Blobs in IndexedDB will be securely removed.
+                    • Associated evidence files will be removed.
                   </p>
                   <p className="font-medium text-red-950">
-                    • Any photographs shared with or referenced by other inspections will be strictly preserved.
+                    • Any photographs referenced by other inspections will be preserved.
                   </p>
                 </div>
               )}

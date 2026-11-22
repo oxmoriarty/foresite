@@ -493,7 +493,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-1">
             <span className="font-semibold block">Cascade Cleanup Warning:</span>
             <p>
-              Deleting this project will permanently remove all associated local photographic evidence Blobs, unfinished inspection drafts, and Firestore metadata linked to this project.
+              Deleting this project will permanently remove all associated inspections, photographic evidence, and project records.
             </p>
             <p className="font-bold">This operation cannot be undone.</p>
           </div>

@@ -93,7 +93,6 @@ describe("ForeSite Authentication Navigation Guard", () => {
     // Verify AI analysis output is generated
     await waitFor(() => {
       expect(screen.getByText("Review Synthesized AI Draft Findings")).toBeInTheDocument();
-      expect(screen.getByText("Mandatory Human Verification Policy")).toBeInTheDocument();
     });
 
     // Test Human review verification: Approve and Sign Off

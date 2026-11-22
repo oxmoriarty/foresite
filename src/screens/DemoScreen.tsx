@@ -611,7 +611,7 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
                       Photographic Evidence
                     </span>
                     <span className="text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                      Local IndexedDB Storage
+                      Original Photograph
                     </span>
                   </div>
 
@@ -769,20 +769,6 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
                 </div>
 
                 <div className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
-                  {/* Governance Disclaimer Banner */}
-                  <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
-                    <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-amber-900 uppercase tracking-wide">
-                        Mandatory Human Verification Policy
-                      </p>
-                      <p className="text-xs text-amber-800 mt-0.5 leading-relaxed font-normal">
-                        All AI draft findings represent preliminary assistance. A qualified inspector must
-                        physically review and sign off every record prior to regulatory or engineering reliance.
-                      </p>
-                    </div>
-                  </div>
-
                   {/* AI Metadata Row */}
                   <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-100 text-xs">
                     <div className="flex items-center gap-2.5">
@@ -994,7 +980,7 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
                   Save this inspection into your local testing workspace.
                 </h3>
                 <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
-                  Saves your test findings into IndexedDB storage and live metrics. View it across all
+                  Saves your test findings into your active workspace and live metrics. View it across all
                   inspection queues without signing in.
                 </p>
               </div>

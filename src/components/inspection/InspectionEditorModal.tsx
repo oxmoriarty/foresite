@@ -39,7 +39,6 @@ import { PhotoEvidenceManager } from "../evidence/PhotoEvidenceManager";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
 import { Badge } from "../ui/Badge";
-import { DisclaimerBanner } from "../ui/DisclaimerBanner";
 import { CloudConsentModal } from "./CloudConsentModal";
 import {
   generateInspectionDraft,
@@ -438,7 +437,7 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
         );
       } else if (err instanceof Error && err.message.includes("INSPECTOR_DECLINED_CLOUD_PROCESSING")) {
         setAiError(
-          "Cloud AI processing was declined. Photographs and notes were not transmitted to Gemini for AI processing. Manual drafting remains active, and ordinary Firestore synchronization continues normally."
+          "Cloud AI processing was declined. Photographs and notes were not transmitted. Manual drafting remains active."
         );
       } else {
         const msg = err instanceof Error ? err.message : String(err);
@@ -698,11 +697,6 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
             </div>
           )}
 
-          {/* AI Disclaimer Banner when draft is generated */}
-          {aiAssisted && (
-            <DisclaimerBanner compact />
-          )}
-
           {/* AI Error or Cancellation Notice */}
           {aiError && (
             <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-start gap-2">
@@ -802,7 +796,7 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
         {/* Photographic Evidence Attachment */}
         <div className="pt-2 border-t border-slate-200">
           <label className="block text-xs font-semibold uppercase text-slate-700 mb-2">
-            Photographic Evidence (IndexedDB Local Blobs)
+            Photographic Evidence
           </label>
           <PhotoEvidenceManager
             inspectionId={inspectionId}

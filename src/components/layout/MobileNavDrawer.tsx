@@ -258,7 +258,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
           <div className="flex items-center justify-between pt-1">
             <div className="inline-flex items-center gap-1.5 text-[11px] text-brand-300">
               <Database className="w-3.5 h-3.5 text-brand-400" />
-              <span>IndexedDB Active</span>
+              <span>Local Storage Active</span>
             </div>
 
             <button

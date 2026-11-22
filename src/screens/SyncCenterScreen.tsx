@@ -525,7 +525,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {activeTab === "attention"
               ? "All your local offline operations have synchronized smoothly without conflicting with remote changes."
-              : "All local modifications have been synchronized with Cloud Firestore."}
+              : "All local modifications have been synchronized."}
           </p>
           {onNavigateToInspections && (
             <Button
