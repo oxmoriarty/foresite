@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Database, Sparkles, LogIn, LogOut, CheckCircle2, AlertTriangle, Home } from "lucide-react";
+import { Sparkles, LogIn, LogOut, CheckCircle2, AlertTriangle, Home } from "lucide-react";
 import { config } from "../../config/env";
 import { useAuth } from "../../context/AuthContext";
 import { AuthModal } from "../auth/AuthModal";
@@ -85,15 +85,6 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onSelectView }) => 
                 </button>
               )}
 
-              {/* Local Evidence Storage Status */}
-              <div
-                className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-100/80 text-slate-700 border border-slate-200/80"
-                title="Original inspection photos are preserved locally in browser IndexedDB"
-              >
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <Database className="w-3.5 h-3.5 text-slate-500" />
-                <span>Local Storage Active</span>
-              </div>
 
               {/* Environment Badge */}
               <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">

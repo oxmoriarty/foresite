@@ -7,7 +7,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Database,
 } from "lucide-react";
 import { ViewMode } from "../../types";
 
@@ -202,9 +201,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </nav>
 
-      {/* Bottom Area: Expand Control when collapsed & Local Storage Indicator */}
-      <div className="p-3 border-t border-brand-800/60 space-y-2">
-        {isCollapsed ? (
+      {/* Bottom Area: Expand Control when collapsed */}
+      {isCollapsed && (
+        <div className="p-3 border-t border-brand-800/60">
           <button
             type="button"
             onClick={onToggleCollapse}
@@ -214,14 +213,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <ChevronRight className="w-5 h-5" />
           </button>
-        ) : (
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-brand-950/70 border border-brand-800/80 text-[11px] font-medium text-brand-200">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-            <Database className="w-3.5 h-3.5 text-brand-400 shrink-0" />
-            <span className="truncate">Local Storage Active</span>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </aside>
   );
 };

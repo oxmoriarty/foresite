@@ -3,7 +3,6 @@ import { ViewMode, Project, Inspection, AppStats, ReviewStatus } from "./types";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopNavbar } from "./components/layout/TopNavbar";
 import { MobileNavDrawer } from "./components/layout/MobileNavDrawer";
-import { Footer } from "./components/layout/Footer";
 import { LandingScreen } from "./screens/LandingScreen";
 import { SignInScreen } from "./screens/SignInScreen";
 import { OverviewScreen } from "./screens/OverviewScreen";
@@ -865,8 +864,6 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
 
               {currentView === "settings" && <SettingsScreen />}
             </main>
-
-            <Footer />
           </div>
 
           {/* Responsive Mobile Navigation Drawer */}

@@ -7,7 +7,6 @@ import {
   Settings,
   X,
   LogOut,
-  Database,
 } from "lucide-react";
 import { ViewMode } from "../../types";
 import { useAuth } from "../../context/AuthContext";
@@ -255,12 +254,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <div className="inline-flex items-center gap-1.5 text-[11px] text-brand-300">
-              <Database className="w-3.5 h-3.5 text-brand-400" />
-              <span>Local Storage Active</span>
-            </div>
-
+          <div className="pt-1">
             <button
               type="button"
               onClick={async () => {
@@ -268,7 +262,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
                 await logout();
                 onSelectView("landing");
               }}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-600/30 transition-colors cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-semibold text-rose-300 hover:text-white bg-rose-500/10 hover:bg-rose-600/30 border border-rose-500/20 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span>Sign Out</span>
