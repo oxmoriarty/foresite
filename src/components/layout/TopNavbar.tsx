@@ -4,7 +4,6 @@ import {
   WifiOff,
   LogOut,
   ChevronDown,
-  Home,
   Settings,
   X,
   CheckCircle2,
@@ -183,18 +182,6 @@ export const TopNavbar: React.FC<TopNavbarProps> = ({
 
                 {/* Menu Action Options */}
                 <div className="py-1">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsProfileMenuOpen(false);
-                      onSelectView("landing");
-                    }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer text-left"
-                  >
-                    <Home className="w-3.5 h-3.5 text-slate-400" />
-                    <span>Landing Page</span>
-                  </button>
-
                   <button
                     type="button"
                     onClick={() => {

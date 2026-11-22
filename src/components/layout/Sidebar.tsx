@@ -80,23 +80,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
         aria-current={isActive ? "page" : undefined}
         title={isCollapsed ? item.label : undefined}
         aria-label={item.label}
-        className={`group relative flex items-center gap-3 w-full rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+        className={`group relative flex items-center gap-3 w-full rounded-xl transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 ${
           isCollapsed ? "justify-center p-2.5" : "px-3 py-2.5 text-xs font-semibold"
         } ${
           isActive
-            ? "bg-brand-50 text-brand-700 shadow-2xs font-bold"
-            : "text-slate-600 hover:text-slate-950 hover:bg-slate-100/80 active:scale-[0.98]"
+            ? "bg-white/15 text-white shadow-xs font-bold border border-white/25 backdrop-blur-xs"
+            : "text-blue-100/80 hover:text-white hover:bg-white/10 active:scale-[0.98]"
         }`}
       >
-        {/* Active Left Indicator Bar */}
-        {isActive && !isCollapsed && (
-          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 rounded-r-full bg-brand-600" />
-        )}
-
         <Icon
           className={`shrink-0 transition-transform duration-200 ${
             isCollapsed ? "w-5 h-5" : "w-4 h-4"
-          } ${isActive ? "text-brand-600 scale-105" : "text-slate-400 group-hover:text-slate-700"}`}
+          } ${isActive ? "text-white scale-105" : "text-blue-200/90 group-hover:text-white"}`}
         />
 
         {!isCollapsed && (
@@ -108,11 +103,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <span
             className={`rounded-full font-bold flex items-center justify-center ${
               isCollapsed
-                ? "absolute top-1 right-1 w-2 h-2 bg-brand-600"
+                ? "absolute top-1 right-1 w-2 h-2 bg-white"
                 : `px-2 py-0.5 text-[10px] ${
                     isActive
-                      ? "bg-brand-600 text-white"
-                      : "bg-slate-200 text-slate-700 group-hover:bg-slate-300"
+                      ? "bg-white text-brand-700"
+                      : "bg-brand-700 text-white border border-brand-500/50 group-hover:bg-brand-800"
                   }`
             }`}
           >
@@ -125,13 +120,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 bg-white border-r border-slate-200/80 transition-all duration-300 ease-in-out select-none ${
+      className={`hidden md:flex flex-col shrink-0 bg-brand-600 text-white border-r border-brand-700/80 transition-all duration-300 ease-in-out select-none shadow-sm ${
         isCollapsed ? "w-20" : "w-64"
       }`}
     >
       {/* Top Header: ForeSite Logo & Collapse Toggle */}
       <div
-        className={`h-16 flex items-center border-b border-slate-100 px-4 ${
+        className={`h-16 flex items-center border-b border-brand-500/40 px-4 ${
           isCollapsed ? "justify-center" : "justify-between"
         }`}
       >
@@ -141,17 +136,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
           title="ForeSite Dashboard"
         >
-          {/* Black circle monogram logo */}
-          <div className="w-9 h-9 rounded-full bg-slate-950 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200 shadow-xs shrink-0">
+          {/* White circle monogram logo on blue sidebar */}
+          <div className="w-9 h-9 rounded-full bg-white text-brand-600 flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200 shadow-sm shrink-0">
             FS
           </div>
 
           {!isCollapsed && (
             <div className="overflow-hidden">
-              <span className="text-base font-extrabold tracking-tight text-slate-950 block leading-tight">
+              <span className="text-base font-extrabold tracking-tight text-white block leading-tight">
                 ForeSite
               </span>
-              <span className="text-[10px] font-semibold text-brand-600 tracking-wide uppercase block">
+              <span className="text-[10px] font-semibold text-blue-200 tracking-wide uppercase block">
                 Field Intelligence
               </span>
             </div>
@@ -162,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="w-7 h-7 rounded-lg border border-slate-200/80 hover:bg-slate-100 text-slate-400 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-lg border border-brand-500/50 hover:bg-white/10 text-blue-200 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             title="Collapse sidebar"
             aria-label="Collapse sidebar"
           >
@@ -179,11 +174,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Workspace Section */}
         <div className="space-y-1">
           {!isCollapsed ? (
-            <div className="px-3 pb-1 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            <div className="px-3 pb-1 text-[11px] font-bold tracking-wider text-blue-200/80 uppercase">
               Workspace
             </div>
           ) : (
-            <div className="w-6 h-px bg-slate-200 mx-auto my-2" />
+            <div className="w-6 h-px bg-brand-500/40 mx-auto my-2" />
           )}
 
           <div className="space-y-1">
@@ -194,11 +189,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Preferences Section */}
         <div className="space-y-1">
           {!isCollapsed ? (
-            <div className="px-3 pb-1 text-[11px] font-bold tracking-wider text-slate-400 uppercase">
+            <div className="px-3 pb-1 text-[11px] font-bold tracking-wider text-blue-200/80 uppercase">
               Preferences
             </div>
           ) : (
-            <div className="w-6 h-px bg-slate-200 mx-auto my-2" />
+            <div className="w-6 h-px bg-brand-500/40 mx-auto my-2" />
           )}
 
           <div className="space-y-1">
@@ -208,21 +203,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Bottom Area: Expand Control when collapsed & Local Storage Indicator */}
-      <div className="p-3 border-t border-slate-100 space-y-2">
+      <div className="p-3 border-t border-brand-500/40 space-y-2">
         {isCollapsed ? (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="w-full py-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-900 flex items-center justify-center transition-colors cursor-pointer"
+            className="w-full py-2 rounded-xl hover:bg-white/10 text-blue-200 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
             title="Expand sidebar"
             aria-label="Expand sidebar"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         ) : (
-          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 text-[11px] font-medium text-slate-600">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <Database className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-brand-700/60 border border-brand-500/40 text-[11px] font-medium text-blue-100">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <Database className="w-3.5 h-3.5 text-blue-200 shrink-0" />
             <span className="truncate">Local Storage Active</span>
           </div>
         )}
