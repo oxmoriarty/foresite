@@ -127,106 +127,51 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
       </div>
 
-      {/* Main Grid: Recent Activity & Quick Actions */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Recent Inspections List (2 Cols) */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-base font-bold text-slate-900">
-              Recent Observations and Inspections
-            </h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<ArrowRight className="w-4 h-4" />}
-              onClick={() => onNavigate("inspections")}
-              className="rounded-full"
-            >
-              All Inspections
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {recentInspections.map((insp) => (
-              <Card key={insp.id} hoverable onClick={() => onNavigate("inspections")}>
-                <CardBody className="p-5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-brand-600 uppercase">
-                          {insp.projectName}
-                        </span>
-                        <span className="text-slate-300">•</span>
-                        <Badge variant="category" category={insp.category} />
-                      </div>
-                      <h3 className="text-sm font-bold text-slate-900">{insp.title}</h3>
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                        {insp.observation}
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 shrink-0">
-                      <Badge variant="status" status={insp.reviewStatus} />
-                      {insp.inferenceSource && (
-                        <Badge variant="source" source={insp.inferenceSource} />
-                      )}
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
-            ))}
-          </div>
+      {/* Recent Inspections List */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-base font-bold text-slate-900">
+            Recent Observations and Inspections
+          </h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<ArrowRight className="w-4 h-4" />}
+            onClick={() => onNavigate("inspections")}
+            className="rounded-full"
+          >
+            All Inspections
+          </Button>
         </div>
 
-        {/* Right Sidebar: Quick Actions */}
-        <div className="space-y-4">
-          <h2 className="text-base font-bold text-slate-900">
-            Quick Actions
-          </h2>
-
-          <Card>
-            <CardBody className="p-5 space-y-3">
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full justify-start text-xs rounded-xl"
-                icon={<Plus className="w-4 h-4 text-brand-600" />}
-                onClick={onOpenNewProjectModal}
-              >
-                Create New Project
-              </Button>
-
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full justify-start text-xs rounded-xl"
-                icon={<ClipboardCheck className="w-4 h-4 text-brand-600" />}
-                onClick={() => onNavigate("inspections")}
-              >
-                Start Site Inspection
-              </Button>
-
-              <Button
-                variant="outline"
-                size="md"
-                className="w-full justify-start text-xs rounded-xl"
-                icon={<ArrowRight className="w-4 h-4 text-brand-600" />}
-                onClick={() => onNavigate("sync")}
-              >
-                Open Sync Center
-              </Button>
-
-              <div className="pt-3 border-t border-slate-100">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="w-full text-xs text-slate-600 hover:text-slate-900 justify-center rounded-xl"
-                  onClick={() => onNavigate("settings")}
-                >
-                  Workspace Settings
-                </Button>
-              </div>
-            </CardBody>
-          </Card>
+        <div className="space-y-3">
+          {recentInspections.map((insp) => (
+            <Card key={insp.id} hoverable onClick={() => onNavigate("inspections")}>
+              <CardBody className="p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-brand-600 uppercase">
+                        {insp.projectName}
+                      </span>
+                      <span className="text-slate-300">•</span>
+                      <Badge variant="category" category={insp.category} />
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900">{insp.title}</h3>
+                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      {insp.observation}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2 shrink-0">
+                    <Badge variant="status" status={insp.reviewStatus} />
+                    {insp.inferenceSource && (
+                      <Badge variant="source" source={insp.inferenceSource} />
+                    )}
+                  </div>
+                </div>
+              </CardBody>
+            </Card>
+          ))}
         </div>
       </div>
     </div>

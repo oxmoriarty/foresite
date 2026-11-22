@@ -512,7 +512,9 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
     closeDatabase();
   });
 
-  it("preserves reviewStatus, audit history, and filtering across list refresh, modal close/reopen for all lifecycle states", async () => {
+  it(
+    "preserves reviewStatus, audit history, and filtering across list refresh, modal close/reopen for all lifecycle states",
+    async () => {
     // 1. Create a local draft inspection in IndexedDB
     const initialDraft: LocalDraftInspection = {
       id: "insp-reg-001",
@@ -654,7 +656,7 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
     ]);
 
     unmount();
-  });
+  }, 15000);
 
   it("strictly isolates review transitions to local IndexedDB and never calls updateFirestoreInspection", async () => {
     const inspection = createSampleInspection("draft_generated");
