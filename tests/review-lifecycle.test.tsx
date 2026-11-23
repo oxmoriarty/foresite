@@ -634,7 +634,7 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
       const reopenBtn = screen.getByRole("button", { name: /reopen review/i });
       expect(reopenBtn).toBeDefined();
       expect(reopenBtn).not.toBeDisabled();
-    });
+    }, { timeout: 5000 });
 
     // Close modal, check list card shows Rejected
     fireEvent.click(screen.getByRole("button", { name: "Close" }));

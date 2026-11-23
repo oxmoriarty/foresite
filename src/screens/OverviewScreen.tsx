@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FolderKanban,
   ClipboardCheck,
@@ -6,13 +6,21 @@ import {
   Sparkles,
   Plus,
   ArrowRight,
-  Calendar,
   Camera,
+  LayoutGrid,
+  List,
+  ArrowUpRight,
+  MapPin,
 } from "lucide-react";
 import { Project, Inspection, AppStats, ViewMode } from "../types";
 import { Card, CardBody } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
+import {
+  useInspectionPhotoMap,
+  formatRelativeTime,
+  formatCategory,
+} from "../services/inspectionPhotoLoader";
 
 export interface OverviewScreenProps {
   projects: Project[];
@@ -28,16 +36,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   onNavigate,
   onOpenNewProjectModal,
 }) => {
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const recentInspections = inspections.slice(0, 6);
-
-  const formatDate = (timestamp?: number) => {
-    if (!timestamp) return "Recent Audit";
-    return new Date(timestamp).toLocaleDateString("en-US", {
-      month: "long",
-      day: "2-digit",
-      year: "numeric",
-    });
-  };
+  const photoUrls = useInspectionPhotoMap(recentInspections);
 
   return (
     <div className="space-y-6">
@@ -141,9 +142,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
       </div>
 
-      {/* Recent Inspections Section (matching reference card grid) */}
+      {/* Recent Inspections Section (matching reference card grid and list view) */}
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
             <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block">
               Field Audits
@@ -152,67 +153,229 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
               Recent Observations and Inspections
             </h2>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            icon={<ArrowRight className="w-4 h-4" />}
-            onClick={() => onNavigate("inspections")}
-            className="rounded-full text-xs"
-          >
-            All Inspections
-          </Button>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {recentInspections.map((insp) => (
-            <div
-              key={insp.id}
-              onClick={() => onNavigate("inspections")}
-              className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
-            >
-              {/* Top Row: Date and Status Badge */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{formatDate(insp.createdAt)}</span>
-                </div>
-                <Badge variant="status" status={insp.reviewStatus} />
-              </div>
-
-              {/* Body: Project Tag, Title, and Observation */}
-              <div className="space-y-1.5">
-                <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
-                  {insp.projectName}
-                </span>
-                <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
-                  {insp.title}
-                </h3>
-                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
-                  {insp.observation || "Field audit findings captured on site."}
-                </p>
-              </div>
-
-              {/* Footer: Photos Count and Badges */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 text-slate-500">
-                  <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                  <span className="text-[11px] truncate">
-                    {insp.photoIds && insp.photoIds.length > 0
-                      ? `${insp.photoIds.length} photos`
-                      : "No photos"}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                  <Badge variant="category" category={insp.category} />
-                  {insp.inferenceSource && (
-                    <Badge variant="source" source={insp.inferenceSource} />
-                  )}
-                </div>
-              </div>
+          <div className="flex items-center gap-2.5">
+            {/* View Mode Switcher */}
+            <div className="flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 shrink-0">
+              <button
+                type="button"
+                onClick={() => setViewMode("grid")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === "grid"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="Grid View"
+                aria-label="Grid View"
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                <span>Grid</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("list")}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  viewMode === "list"
+                    ? "bg-white text-slate-900 shadow-2xs"
+                    : "text-slate-500 hover:text-slate-900"
+                }`}
+                title="List View"
+                aria-label="List View"
+              >
+                <List className="w-3.5 h-3.5" />
+                <span>List</span>
+              </button>
             </div>
-          ))}
+
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<ArrowRight className="w-4 h-4" />}
+              onClick={() => onNavigate("inspections")}
+              className="rounded-full text-xs"
+            >
+              All Inspections
+            </Button>
+          </div>
         </div>
+
+        {recentInspections.length === 0 ? (
+          <div className="p-8 text-center bg-white rounded-2xl border border-slate-200/80">
+            <ClipboardCheck className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-slate-700">No inspections recorded yet</p>
+            <p className="text-xs text-slate-500 mt-1">Start by capturing field observations.</p>
+          </div>
+        ) : viewMode === "grid" ? (
+          /* Grid View */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {recentInspections.map((insp) => {
+              const photoUrl = photoUrls[insp.id];
+              const photoCount = insp.photoIds?.length || (insp.photoMeta ? 1 : 0);
+
+              return (
+                <div
+                  key={insp.id}
+                  onClick={() => onNavigate("inspections")}
+                  className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
+                >
+                  {/* Top: Image or No Image Placeholder */}
+                  <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
+                    {photoUrl ? (
+                      <>
+                        <img
+                          src={photoUrl}
+                          alt={insp.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
+                      </>
+                    ) : (
+                      <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
+                        <Camera className="w-9 h-9 opacity-30 mb-1" />
+                        <span className="text-[11px] font-semibold uppercase tracking-wider opacity-40">
+                          No Image
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Badges Overlay on Image */}
+                    <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono font-medium shadow-2xs">
+                        {insp.id.slice(0, 12).toUpperCase()}
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
+                      <Badge variant="status" status={insp.reviewStatus} />
+                    </div>
+                  </div>
+
+                  {/* Card Body */}
+                  <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between space-y-3">
+                    <div className="space-y-1.5">
+                      {/* Title & Arrow */}
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                          {insp.title}
+                        </h3>
+                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0 mt-0.5" />
+                      </div>
+
+                      {/* Project / Location */}
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{insp.projectName}</span>
+                      </div>
+
+                      {/* Category & Observation snippet */}
+                      <div className="pt-1 space-y-1">
+                        <span className="text-[11px] font-bold text-slate-700 block">
+                          {formatCategory(insp.category)}
+                        </span>
+                        <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                          {insp.observation || "Field audit observation findings captured on site."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Card Footer */}
+                    <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>
+                          {photoCount > 0 ? `${photoCount} photo${photoCount > 1 ? "s" : ""}` : "No photos"}
+                        </span>
+                      </div>
+
+                      <span className="text-slate-400 text-[11px] whitespace-nowrap">
+                        {formatRelativeTime(insp.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* List View */
+          <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
+            {/* Table Header */}
+            <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider items-center">
+              <div className="col-span-6 sm:col-span-4">Inspection / Title</div>
+              <div className="col-span-3 hidden sm:block">Project / Location</div>
+              <div className="col-span-2 hidden md:block">Category</div>
+              <div className="col-span-3 sm:col-span-2">Status</div>
+              <div className="col-span-3 sm:col-span-3 md:col-span-2 lg:col-span-1 hidden sm:block text-right">Activity</div>
+            </div>
+
+            {/* Table Rows */}
+            <div className="divide-y divide-slate-100">
+              {recentInspections.map((insp) => {
+                const photoUrl = photoUrls[insp.id];
+
+                return (
+                  <div
+                    key={insp.id}
+                    onClick={() => onNavigate("inspections")}
+                    className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50/80 transition-colors cursor-pointer items-center group"
+                  >
+                    {/* Column 1: Thumbnail + Title + ID */}
+                    <div className="col-span-6 sm:col-span-4 flex items-center gap-3 min-w-0">
+                      <div className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200/70 relative">
+                        {photoUrl ? (
+                          <img
+                            src={photoUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
+                            <Camera className="w-3.5 h-3.5 opacity-30" />
+                            <span className="text-[8px] font-semibold uppercase tracking-wider opacity-40">
+                              No Image
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <h4 className="text-sm font-bold text-slate-900 group-hover:text-brand-600 transition-colors truncate">
+                          {insp.title}
+                        </h4>
+                        <span className="text-[11px] font-mono text-slate-400 truncate block">
+                          {insp.id.slice(0, 12).toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Column 2: Project / Location */}
+                    <div className="col-span-3 hidden sm:flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span className="truncate">{insp.projectName}</span>
+                    </div>
+
+                    {/* Column 3: Category */}
+                    <div className="col-span-2 hidden md:block">
+                      <Badge variant="category" category={insp.category} />
+                    </div>
+
+                    {/* Column 4: Status */}
+                    <div className="col-span-3 sm:col-span-2">
+                      <Badge variant="status" status={insp.reviewStatus} />
+                    </div>
+
+                    {/* Column 5: Activity & Arrow */}
+                    <div className="col-span-3 sm:col-span-3 md:col-span-2 lg:col-span-1 hidden sm:flex items-center justify-end gap-2 text-right">
+                      <span className="text-xs text-slate-400 whitespace-nowrap">
+                        {formatRelativeTime(insp.createdAt)}
+                      </span>
+                      <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
