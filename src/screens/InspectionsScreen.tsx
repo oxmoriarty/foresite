@@ -67,7 +67,6 @@ import { ConflictResolutionModal } from "../components/conflict/ConflictResoluti
 import {
   useInspectionPhotoMap,
   formatRelativeTime,
-  formatCategory,
 } from "../services/inspectionPhotoLoader";
 
 export interface InspectionsScreenProps {
@@ -706,15 +705,10 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                       <span className="truncate">{insp.projectName}</span>
                     </div>
 
-                    {/* Category & Observation snippet */}
-                    <div className="pt-1 space-y-1">
-                      <span className="text-[11px] font-bold text-slate-700 block">
-                        {formatCategory(insp.category)}
-                      </span>
-                      <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
-                        {insp.observation || "Field audit observation findings captured on site."}
-                      </p>
-                    </div>
+                    {/* Observation snippet */}
+                    <p className="pt-1 text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                      {insp.observation || "Field audit observation findings captured on site."}
+                    </p>
                   </div>
 
                   {/* Card Footer */}
@@ -772,11 +766,10 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
           {/* Table Header */}
           <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider items-center">
-            <div className="col-span-6 sm:col-span-4">Inspection / Title</div>
+            <div className="col-span-6 sm:col-span-5">Inspection / Title</div>
             <div className="col-span-3 hidden sm:block">Project / Location</div>
-            <div className="col-span-2 hidden md:block">Category</div>
-            <div className="col-span-3 sm:col-span-2">Status</div>
-            <div className="col-span-3 sm:col-span-3 md:col-span-2 lg:col-span-1 hidden sm:block text-right">Activity</div>
+            <div className="col-span-6 sm:col-span-2">Status</div>
+            <div className="col-span-2 hidden sm:block text-right">Activity</div>
           </div>
 
           {/* Table Rows */}
@@ -792,7 +785,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50/80 transition-colors cursor-pointer items-center group"
                 >
                   {/* Column 1: Thumbnail + Title + ID */}
-                  <div className="col-span-6 sm:col-span-4 flex items-center gap-3 min-w-0">
+                  <div className="col-span-6 sm:col-span-5 flex items-center gap-3 min-w-0">
                     <div className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200/70 relative">
                       {photoUrl ? (
                         <img
@@ -822,13 +815,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     <span className="truncate">{insp.projectName}</span>
                   </div>
 
-                  {/* Column 3: Category */}
-                  <div className="col-span-2 hidden md:block">
-                    <Badge variant="category" category={insp.category} />
-                  </div>
-
-                  {/* Column 4: Status, Images & Actions */}
-                  <div className="col-span-3 sm:col-span-2 flex items-center gap-2">
+                  {/* Column 3: Status, Images & Actions */}
+                  <div className="col-span-6 sm:col-span-2 flex items-center gap-2">
                     <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                     {insp.isLocalDraft && (
                       <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
@@ -856,8 +844,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     )}
                   </div>
 
-                  {/* Column 5: Activity & Arrow */}
-                  <div className="col-span-3 sm:col-span-3 md:col-span-2 lg:col-span-1 hidden sm:flex items-center justify-end gap-2 text-right">
+                  {/* Column 4: Activity & Arrow */}
+                  <div className="col-span-2 hidden sm:flex items-center justify-end gap-2 text-right">
                     <span
                       title={formatDate(insp.createdAt)}
                       className="text-xs text-slate-400 whitespace-nowrap"

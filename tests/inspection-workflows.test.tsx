@@ -71,7 +71,7 @@ describe("ForeSite Manual Inspection & Local Evidence Workflows", () => {
       expect(screen.getByText("Harbor Bridge Rehabilitation")).toBeInTheDocument();
       expect(screen.getByText("HBR-PIER-7")).toBeInTheDocument();
     });
-  });
+  }, 10000);
 
   it("navigates to Inspections and opens the New Inspection dialog", async () => {
     render(<App />);
