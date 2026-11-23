@@ -492,30 +492,51 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Screen Title & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
-            Field Operations
-          </span>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-              Site Inspections
-            </h1>
-            {selectedProjectId && (
-              <span className="px-2.5 py-0.5 text-xs font-semibold bg-brand-100 text-brand-800 rounded-full">
-                Filtered by Project
-              </span>
-            )}
+      {/* Screen Title */}
+      <div>
+        <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
+          Field Operations
+        </span>
+        <div className="flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+            Site Inspections
+          </h1>
+          {selectedProjectId && (
+            <span className="px-2.5 py-0.5 text-xs font-semibold bg-brand-100 text-brand-800 rounded-full">
+              Filtered by Project
+            </span>
+          )}
+        </div>
+        <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          Capture field observations, attach local photograph evidence, and record human review sign offs.
+        </p>
+      </div>
+
+      {/* Level 1: Search Bar and New Inspection Button */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Search input */}
+        <div className="relative flex-1 max-w-md">
+          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <Search className="w-4 h-4" />
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Capture field observations, attach local photograph evidence, and record human review sign offs.
-          </p>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by inspection title, project, or parcel..."
+            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/90 rounded-full text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs"
+          />
         </div>
 
-        <div className="flex items-center gap-2.5">
+        {/* Right: Actions on the same horizontal level as Search Bar */}
+        <div className="flex items-center gap-2.5 shrink-0">
           {selectedProjectId && onClearProjectFilter && (
-            <Button variant="outline" size="md" onClick={onClearProjectFilter} className="rounded-full text-xs">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={onClearProjectFilter}
+              className="rounded-full text-xs"
+            >
               Show All Projects
             </Button>
           )}
@@ -531,24 +552,39 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         </div>
       </div>
 
-      {/* Search Bar & View Mode Switcher Toolbar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        {/* Left: Search input */}
-        <div className="relative flex-1 max-w-md">
-          <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-            <Search className="w-4 h-4" />
-          </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by inspection title, project, or parcel..."
-            className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/90 rounded-full text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs"
-          />
+      {/* Level 2: Filter Tabs and Grid/List View Mode Switcher */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        {/* Left: Filter Tabs */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+          <span className="text-slate-400 font-semibold flex items-center gap-1 pl-1 pr-2 uppercase tracking-wider text-[11px] shrink-0">
+            <Filter className="w-3.5 h-3.5" />
+            Filter:
+          </span>
+          {[
+            { id: "all", label: "All Records" },
+            { id: "draft_generated", label: `Drafts (${localDrafts.length})` },
+            { id: "in_review", label: "In Review" },
+            { id: "approved", label: "Approved" },
+            { id: "rejected", label: "Rejected" },
+            { id: "archived", label: "Archived" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                statusFilter === tab.id
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {/* Right: Grid / List view mode switcher */}
-        <div className="flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 self-start md:self-auto shrink-0">
+        {/* Right: Grid / List view mode switcher on the same horizontal level */}
+        <div className="flex items-center bg-slate-100/90 p-0.5 rounded-xl border border-slate-200/80 shrink-0 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
@@ -578,35 +614,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             <span>List</span>
           </button>
         </div>
-      </div>
-
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
-        <span className="text-slate-400 font-semibold flex items-center gap-1 pl-1 pr-2 uppercase tracking-wider text-[11px]">
-          <Filter className="w-3.5 h-3.5" />
-          Filter:
-        </span>
-        {[
-          { id: "all", label: "All Records" },
-          { id: "draft_generated", label: `Drafts (${localDrafts.length})` },
-          { id: "in_review", label: "In Review" },
-          { id: "approved", label: "Approved" },
-          { id: "rejected", label: "Rejected" },
-          { id: "archived", label: "Archived" },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setStatusFilter(tab.id)}
-            className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
-              statusFilter === tab.id
-                ? "bg-slate-900 text-white shadow-xs"
-                : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
       </div>
 
       {/* Inspections Content */}
