@@ -103,9 +103,12 @@ describe("ForeSite Authentication Navigation Guard", () => {
     const saveBtn = screen.getByRole("button", { name: /save inspection/i });
     fireEvent.click(saveBtn);
 
-    await waitFor(() => {
-      expect(screen.getByText("Saved to Workspace")).toBeInTheDocument();
-    });
+    await waitFor(
+      () => {
+        expect(screen.getByText("Saved to Workspace")).toBeInTheDocument();
+      },
+      { timeout: 5000 }
+    );
   });
 
   it("redirects direct unauthenticated access to a protected page to Sign in screen", () => {

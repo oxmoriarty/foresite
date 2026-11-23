@@ -82,12 +82,12 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
 
   const getProjectStatus = (metrics: { total: number; approved: number; inReview: number }) => {
     if (metrics.total > 0 && metrics.approved === metrics.total) {
-      return { label: "Active", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+      return { label: "Active", bg: "bg-emerald-600 text-white shadow-xs" };
     }
     if (metrics.total > 0) {
-      return { label: "In Progress", bg: "bg-amber-50 text-amber-700 border-amber-200" };
+      return { label: "In Progress", bg: "bg-blue-600 text-white shadow-xs" };
     }
-    return { label: "Planning Phase", bg: "bg-slate-100 text-slate-700 border-slate-200" };
+    return { label: "Planning Phase", bg: "bg-slate-500 text-white shadow-xs" };
   };
 
   const formatDate = (timestamp: number) => {
@@ -314,8 +314,9 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     <span>{formatDate(project.createdAt)}</span>
                   </div>
                   <span
-                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wide ${status.bg}`}
                   >
+                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                     {status.label}
                   </span>
                 </div>

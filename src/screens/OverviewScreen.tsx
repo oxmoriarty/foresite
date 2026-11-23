@@ -242,13 +242,13 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
                     {/* Badges Overlay on Image */}
                     <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium shadow-2xs ${photoUrl ? "bg-black/60 backdrop-blur-xs text-white" : "bg-white/90 text-slate-600 border border-slate-200/80"}`}>
+                      <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider shadow-xs bg-slate-900/90 text-white backdrop-blur-xs border border-white/10">
                         {insp.id.slice(0, 12).toUpperCase()}
                       </span>
                     </div>
 
                     <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
-                      <Badge variant="status" status={insp.reviewStatus} />
+                      <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                     </div>
                   </div>
 
@@ -359,7 +359,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
                     {/* Column 4: Status */}
                     <div className="col-span-3 sm:col-span-2">
-                      <Badge variant="status" status={insp.reviewStatus} />
+                      <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                     </div>
 
                     {/* Column 5: Activity & Arrow */}

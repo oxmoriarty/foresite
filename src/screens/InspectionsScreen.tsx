@@ -149,25 +149,25 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         );
       case "waiting_to_sync":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3 h-3 text-amber-500" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
+            <Clock className="w-3 h-3 text-white shrink-0" />
             Waiting to Sync
           </span>
         );
       case "synced":
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-emerald-600 text-white shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
             Synced
           </span>
         );
       case "sync_failed":
         return (
           <span
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200"
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-rose-600 text-white shadow-xs"
             title={status.failureReason || "Sync failed"}
           >
-            <XCircle className="w-3 h-3 text-red-500" />
+            <XCircle className="w-3 h-3 text-white shrink-0" />
             Sync Failed
           </span>
         );
@@ -176,20 +176,20 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           <button
             type="button"
             onClick={(e) => inspectionId && handleOpenConflictModal(inspectionId, e)}
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100 cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-purple-600 text-white shadow-xs hover:bg-purple-700 cursor-pointer transition-colors"
             title={status.conflictReason || "Conflict detected - click to resolve"}
           >
-            <AlertTriangle className="w-3 h-3 text-purple-600" />
-            Conflict (Resolve)
+            <AlertTriangle className="w-3 h-3 text-white shrink-0" />
+            Conflict
           </button>
         );
       case "sync_cancelled":
         return (
           <span
-            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-300"
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs"
             title="Synchronization cancelled by user"
           >
-            <XCircle className="w-3 h-3 text-slate-500" />
+            <XCircle className="w-3 h-3 text-white shrink-0" />
             Sync Cancelled
           </span>
         );
@@ -672,11 +672,12 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
                   {/* Badges Overlay on Image */}
                   <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
-                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium shadow-2xs ${photoUrl ? "bg-black/60 backdrop-blur-xs text-white" : "bg-white/90 text-slate-600 border border-slate-200/80"}`}>
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider shadow-xs bg-slate-900/90 text-white backdrop-blur-xs border border-white/10">
                       {insp.id.slice(0, 12).toUpperCase()}
                     </span>
                     {insp.isLocalDraft && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500 text-white shadow-2xs">
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                         Local Draft
                       </span>
                     )}
@@ -684,7 +685,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
                   <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
                     {renderSyncBadge(syncStatuses[insp.id], insp.id)}
-                    <Badge variant="status" status={insp.reviewStatus} />
+                    <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                   </div>
                 </div>
 
@@ -828,9 +829,10 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
                   {/* Column 4: Status, Images & Actions */}
                   <div className="col-span-3 sm:col-span-2 flex items-center gap-2">
-                    <Badge variant="status" status={insp.reviewStatus} />
+                    <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                     {insp.isLocalDraft && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
+                        <span className="w-1 h-1 rounded-full bg-white shrink-0" />
                         Local Draft
                       </span>
                     )}
