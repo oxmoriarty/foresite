@@ -10,15 +10,6 @@ import { Inspection } from "../types";
 import { getEvidencePhotosByInspection } from "./indexeddb";
 import { createPhotoPreviewUrl, revokePhotoPreviewUrl } from "./photoValidation";
 
-const SAMPLE_PHOTO_FALLBACKS: Record<string, string> = {
-  "insp-rebar-01": "/images/inspector-tablet.jpg",
-  "insp-honeycomb-02": "/images/yellow-rig-3d.jpg",
-  "insp-shoring-03": "/images/ecosystem-orb-3d.jpg",
-  "photo-001": "/images/inspector-tablet.jpg",
-  "photo-002": "/images/yellow-rig-3d.jpg",
-  "photo-003": "/images/ecosystem-orb-3d.jpg",
-};
-
 /**
  * Format relative time timestamp for cards
  */
@@ -62,10 +53,14 @@ export function formatCategory(cat: string): string {
 }
 
 /**
- * React hook to load primary photos for an array of inspections
+ * React hook to load primary photos and counts for an array of inspections
  */
-export function useInspectionPhotoMap(inspections: Inspection[]) {
+export function useInspectionPhotoMap(inspections: Inspection[]): {
+  photoUrls: Record<string, string>;
+  photoCounts: Record<string, number>;
+} {
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
+  const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
   const createdUrlsRef = useRef<Record<string, string>>({});
 
   useEffect(() => {
@@ -73,14 +68,17 @@ export function useInspectionPhotoMap(inspections: Inspection[]) {
 
     async function loadThumbnails() {
       const urls: Record<string, string> = {};
+      const counts: Record<string, number> = {};
       const newCreated: Record<string, string> = {};
 
       for (const insp of inspections) {
         let loadedUrl: string | undefined = undefined;
+        let count = 0;
 
-        // 1. Try querying local IndexedDB photos
+        // Try querying local IndexedDB photos
         try {
           const photos = await getEvidencePhotosByInspection(insp.id);
+          count = photos.length;
           const primary = photos[0];
           if (primary && primary.blob) {
             loadedUrl = createPhotoPreviewUrl(primary.blob);
@@ -90,15 +88,7 @@ export function useInspectionPhotoMap(inspections: Inspection[]) {
           // Fall back gracefully
         }
 
-        // 2. Fall back to sample photos if available
-        if (!loadedUrl) {
-          if (insp.photoMeta?.id && SAMPLE_PHOTO_FALLBACKS[insp.photoMeta.id]) {
-            loadedUrl = SAMPLE_PHOTO_FALLBACKS[insp.photoMeta.id];
-          } else if (SAMPLE_PHOTO_FALLBACKS[insp.id]) {
-            loadedUrl = SAMPLE_PHOTO_FALLBACKS[insp.id];
-          }
-        }
-
+        counts[insp.id] = count;
         if (loadedUrl) {
           urls[insp.id] = loadedUrl;
         }
@@ -113,6 +103,7 @@ export function useInspectionPhotoMap(inspections: Inspection[]) {
         });
         createdUrlsRef.current = newCreated;
         setPhotoUrls(urls);
+        setPhotoCounts(counts);
       } else {
         Object.values(newCreated).forEach(revokePhotoPreviewUrl);
       }
@@ -127,5 +118,5 @@ export function useInspectionPhotoMap(inspections: Inspection[]) {
     };
   }, [inspections]);
 
-  return photoUrls;
+  return { photoUrls, photoCounts };
 }

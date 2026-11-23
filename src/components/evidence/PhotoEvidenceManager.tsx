@@ -13,7 +13,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
-  Camera,
+  Image as ImageIcon,
   UploadCloud,
   Trash2,
   Maximize2,
@@ -176,7 +176,7 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-700 flex items-start gap-2">
           <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <span className="font-semibold block">Photo Validation Notice</span>
+            <span className="font-semibold block">Image Validation Notice</span>
             <span>{validationError}</span>
           </div>
           <button
@@ -218,15 +218,15 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
                 {savingPhoto ? (
                   <UploadCloud className="w-5 h-5 animate-bounce" />
                 ) : (
-                  <Camera className="w-5 h-5" />
+                  <ImageIcon className="w-5 h-5" />
                 )}
               </div>
               <div>
                 <p className="text-xs font-semibold text-slate-800">
-                  {savingPhoto ? "Saving photographic evidence..." : "Click or drag photographs to attach evidence"}
+                  {savingPhoto ? "Saving image evidence..." : "Click or drag images to attach evidence"}
                 </p>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  Supported formats: JPEG, PNG, WebP • Maximum size: 10 MB per photo
+                  Supported formats: JPEG, PNG, WebP • Maximum size: 10 MB per image
                 </p>
               </div>
             </div>
@@ -237,7 +237,7 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
       {/* Photos Thumbnail Grid */}
       {photos.length === 0 ? (
         <div className="py-6 text-center text-xs text-slate-400 italic bg-white border border-slate-200 rounded-lg">
-          No photographic evidence attached yet.
+          No image evidence attached yet.
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
@@ -367,27 +367,27 @@ export const PhotoEvidenceManager: React.FC<PhotoEvidenceManagerProps> = ({
       <Modal
         isOpen={Boolean(photoToDelete)}
         onClose={() => setPhotoToDelete(null)}
-        title="Confirm Photo Deletion"
+        title="Confirm Image Deletion"
         footer={
           <>
             <Button variant="outline" size="md" onClick={() => setPhotoToDelete(null)}>
               Cancel
             </Button>
             <Button variant="danger" size="md" onClick={confirmDeletePhoto}>
-              Delete Photograph
+              Delete Image
             </Button>
           </>
         }
       >
         <div className="space-y-2 text-xs text-slate-700">
           <p>
-            Are you sure you want to permanently delete this photograph?
+            Are you sure you want to permanently delete this image?
           </p>
           <div className="p-2 bg-slate-100 rounded text-slate-800 font-mono text-[11px]">
             {photoToDelete?.fileName} ({formatBytes(photoToDelete?.fileSizeBytes || 0)})
           </div>
           <p className="text-slate-500">
-            This action cannot be undone. Any local inspection draft referencing this photo will no longer be able to display it.
+            This action cannot be undone. Any local inspection draft referencing this image will no longer be able to display it.
           </p>
         </div>
       </Modal>

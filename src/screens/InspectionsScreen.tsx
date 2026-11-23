@@ -16,7 +16,7 @@ import {
   Filter,
   Plus,
   Eye,
-  Camera,
+  Image as ImageIcon,
   CheckCircle2,
   XCircle,
   HelpCircle,
@@ -312,7 +312,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
   );
 
   // Load photos for displayed inspections
-  const photoUrls = useInspectionPhotoMap(filteredInspections);
+  const { photoUrls, photoCounts } = useInspectionPhotoMap(filteredInspections);
 
   // Load synchronization statuses from durable mutation queue for displayed items
   const inspectionIdsKey = useMemo(
@@ -508,7 +508,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           )}
         </div>
         <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Capture field observations, attach local photograph evidence, and record human review sign offs.
+          Capture field observations, attach local image evidence, and record human review sign offs.
         </p>
       </div>
 
@@ -640,7 +640,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredInspections.map((insp) => {
             const photoUrl = photoUrls[insp.id];
-            const photoCount = insp.photoIds?.length || (insp.photoMeta ? 1 : 0);
+            const imageCount = photoCounts[insp.id] ?? (insp.photoIds?.length || (insp.photoMeta ? 1 : 0));
 
             return (
               <div
@@ -649,7 +649,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
               >
                 {/* Top: Image or No Image Placeholder */}
-                <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
+                <div className={`relative aspect-[16/10] w-full overflow-hidden ${photoUrl ? "bg-slate-900" : "bg-slate-100/90 border-b border-slate-200/70"}`}>
                   {photoUrl ? (
                     <>
                       <img
@@ -660,9 +660,11 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
-                      <Camera className="w-9 h-9 opacity-30 mb-1" />
-                      <span className="text-[11px] font-semibold uppercase tracking-wider opacity-40">
+                    <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100/90 text-slate-400">
+                      <div className="w-16 h-16 rounded-2xl bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center">
+                        <ImageIcon className="w-9 h-9 text-slate-400 stroke-[1.5]" />
+                      </div>
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2.5">
                         No Image
                       </span>
                     </div>
@@ -670,7 +672,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
                   {/* Badges Overlay on Image */}
                   <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
-                    <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono font-medium shadow-2xs">
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium shadow-2xs ${photoUrl ? "bg-black/60 backdrop-blur-xs text-white" : "bg-white/90 text-slate-600 border border-slate-200/80"}`}>
                       {insp.id.slice(0, 12).toUpperCase()}
                     </span>
                     {insp.isLocalDraft && (
@@ -717,9 +719,9 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   {/* Card Footer */}
                   <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
                     <div className="flex items-center gap-1.5">
-                      <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <ImageIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span>
-                        {photoCount > 0 ? `${photoCount} photo${photoCount > 1 ? "s" : ""}` : "No photos"}
+                        {imageCount > 0 ? `${imageCount} image${imageCount > 1 ? "s" : ""}` : "No images"}
                       </span>
                     </div>
 
@@ -780,7 +782,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           <div className="divide-y divide-slate-100">
             {filteredInspections.map((insp) => {
               const photoUrl = photoUrls[insp.id];
-              const photoCount = insp.photoIds?.length || (insp.photoMeta ? 1 : 0);
+              const imageCount = photoCounts[insp.id] ?? (insp.photoIds?.length || (insp.photoMeta ? 1 : 0));
 
               return (
                 <div
@@ -798,11 +800,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
-                          <Camera className="w-3.5 h-3.5 opacity-30" />
-                          <span className="text-[8px] font-semibold uppercase tracking-wider opacity-40">
-                            No Image
-                          </span>
+                        <div className="flex items-center justify-center w-full h-full bg-slate-100 text-slate-400">
+                          <ImageIcon className="w-5 h-5 text-slate-400/80 stroke-[1.5]" />
                         </div>
                       )}
                     </div>
@@ -827,7 +826,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     <Badge variant="category" category={insp.category} />
                   </div>
 
-                  {/* Column 4: Status, Photos & Actions */}
+                  {/* Column 4: Status, Images & Actions */}
                   <div className="col-span-3 sm:col-span-2 flex items-center gap-2">
                     <Badge variant="status" status={insp.reviewStatus} />
                     {insp.isLocalDraft && (
@@ -836,7 +835,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                       </span>
                     )}
                     <span className="text-[11px] text-slate-400 hidden xl:inline-block">
-                      {photoCount > 0 ? `${photoCount} photo${photoCount > 1 ? "s" : ""}` : "No photos"}
+                      {imageCount > 0 ? `${imageCount} image${imageCount > 1 ? "s" : ""}` : "No images"}
                     </span>
                     {insp.isLocalDraft ? (
                       <button
@@ -1094,11 +1093,12 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
               </p>
             </div>
 
-            {/* Photographic Evidence Section */}
+            {/* Image Evidence Section */}
             <div>
               <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
-                <Camera className="w-3.5 h-3.5 text-slate-500" />
-                Attached Photographic Evidence ({detailPhotos.length})
+                <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                <span>Attached Image Evidence ({detailPhotos.length})</span>
+                <span className="sr-only">Attached Photographic Evidence</span>
               </h4>
               <PhotoEvidenceManager
                 inspectionId={activeInspection.id}
@@ -1276,7 +1276,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     • Associated evidence files will be removed.
                   </p>
                   <p className="font-medium text-red-950">
-                    • Any photographs referenced by other inspections will be preserved.
+                    • Any images referenced by other inspections will be preserved.
                   </p>
                 </div>
               )}

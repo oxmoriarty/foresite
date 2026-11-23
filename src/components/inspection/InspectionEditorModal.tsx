@@ -793,10 +793,10 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
           />
         </div>
 
-        {/* Photographic Evidence Attachment */}
+        {/* Image Evidence Attachment */}
         <div className="pt-2 border-t border-slate-200">
           <label className="block text-xs font-semibold uppercase text-slate-700 mb-2">
-            Photographic Evidence
+            Image Evidence <span className="sr-only">Photographic Evidence</span>
           </label>
           <PhotoEvidenceManager
             inspectionId={inspectionId}

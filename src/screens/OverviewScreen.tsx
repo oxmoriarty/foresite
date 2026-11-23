@@ -6,7 +6,7 @@ import {
   Sparkles,
   Plus,
   ArrowRight,
-  Camera,
+  Image as ImageIcon,
   LayoutGrid,
   List,
   ArrowUpRight,
@@ -38,7 +38,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const recentInspections = inspections.slice(0, 6);
-  const photoUrls = useInspectionPhotoMap(recentInspections);
+  const { photoUrls, photoCounts } = useInspectionPhotoMap(recentInspections);
 
   return (
     <div className="space-y-6">
@@ -210,7 +210,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {recentInspections.map((insp) => {
               const photoUrl = photoUrls[insp.id];
-              const photoCount = insp.photoIds?.length || (insp.photoMeta ? 1 : 0);
+              const imageCount = photoCounts[insp.id] ?? (insp.photoIds?.length || (insp.photoMeta ? 1 : 0));
 
               return (
                 <div
@@ -219,7 +219,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
                 >
                   {/* Top: Image or No Image Placeholder */}
-                  <div className="relative aspect-[16/10] w-full bg-slate-900 overflow-hidden">
+                  <div className={`relative aspect-[16/10] w-full overflow-hidden ${photoUrl ? "bg-slate-900" : "bg-slate-100/90 border-b border-slate-200/70"}`}>
                     {photoUrl ? (
                       <>
                         <img
@@ -230,9 +230,11 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                         <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent pointer-events-none" />
                       </>
                     ) : (
-                      <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
-                        <Camera className="w-9 h-9 opacity-30 mb-1" />
-                        <span className="text-[11px] font-semibold uppercase tracking-wider opacity-40">
+                      <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100/90 text-slate-400">
+                        <div className="w-16 h-16 rounded-2xl bg-white shadow-2xs border border-slate-200/70 flex items-center justify-center">
+                          <ImageIcon className="w-9 h-9 text-slate-400 stroke-[1.5]" />
+                        </div>
+                        <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mt-2.5">
                           No Image
                         </span>
                       </div>
@@ -240,7 +242,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
 
                     {/* Badges Overlay on Image */}
                     <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
-                      <span className="px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-white text-[10px] font-mono font-medium shadow-2xs">
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-mono font-medium shadow-2xs ${photoUrl ? "bg-black/60 backdrop-blur-xs text-white" : "bg-white/90 text-slate-600 border border-slate-200/80"}`}>
                         {insp.id.slice(0, 12).toUpperCase()}
                       </span>
                     </div>
@@ -281,9 +283,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                     {/* Card Footer */}
                     <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
                       <div className="flex items-center gap-1.5">
-                        <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <ImageIcon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                         <span>
-                          {photoCount > 0 ? `${photoCount} photo${photoCount > 1 ? "s" : ""}` : "No photos"}
+                          {imageCount > 0 ? `${imageCount} image${imageCount > 1 ? "s" : ""}` : "No images"}
                         </span>
                       </div>
 
@@ -329,11 +331,8 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="flex flex-col items-center justify-center w-full h-full bg-slate-100 text-slate-400">
-                            <Camera className="w-3.5 h-3.5 opacity-30" />
-                            <span className="text-[8px] font-semibold uppercase tracking-wider opacity-40">
-                              No Image
-                            </span>
+                          <div className="flex items-center justify-center w-full h-full bg-slate-100 text-slate-400">
+                            <ImageIcon className="w-5 h-5 text-slate-400/80 stroke-[1.5]" />
                           </div>
                         )}
                       </div>
