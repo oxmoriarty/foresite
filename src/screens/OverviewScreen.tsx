@@ -7,8 +7,9 @@ import {
   Plus,
   ArrowRight,
   Calendar,
+  Camera,
 } from "lucide-react";
-import { Project, Inspection, AppStats, ViewMode, ReviewStatus } from "../types";
+import { Project, Inspection, AppStats, ViewMode } from "../types";
 import { Card, CardBody } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
@@ -28,19 +29,6 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   onOpenNewProjectModal,
 }) => {
   const recentInspections = inspections.slice(0, 6);
-
-  const getReviewProgress = (status: ReviewStatus) => {
-    switch (status) {
-      case "approved":
-      case "rejected":
-        return 100;
-      case "in_review":
-        return 60;
-      case "draft_generated":
-      default:
-        return 25;
-    }
-  };
 
   const formatDate = (timestamp?: number) => {
     if (!timestamp) return "Recent Audit";
@@ -176,74 +164,54 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {recentInspections.map((insp) => {
-            const progress = getReviewProgress(insp.reviewStatus);
-
-            return (
-              <div
-                key={insp.id}
-                onClick={() => onNavigate("inspections")}
-                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
-              >
-                {/* Top Row: Date and Status Badge */}
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-1.5 text-slate-500 font-medium">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{formatDate(insp.createdAt)}</span>
-                  </div>
-                  <Badge variant="status" status={insp.reviewStatus} />
+          {recentInspections.map((insp) => (
+            <div
+              key={insp.id}
+              onClick={() => onNavigate("inspections")}
+              className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+            >
+              {/* Top Row: Date and Status Badge */}
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{formatDate(insp.createdAt)}</span>
                 </div>
+                <Badge variant="status" status={insp.reviewStatus} />
+              </div>
 
-                {/* Body: Project Tag, Title, and Observation */}
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
-                    {insp.projectName}
+              {/* Body: Project Tag, Title, and Observation */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
+                  {insp.projectName}
+                </span>
+                <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                  {insp.title}
+                </h3>
+                <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                  {insp.observation || "Field audit findings captured on site."}
+                </p>
+              </div>
+
+              {/* Footer: Photos Count and Badges */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                  <span className="text-[11px] truncate">
+                    {insp.photoIds && insp.photoIds.length > 0
+                      ? `${insp.photoIds.length} photos`
+                      : "No photos"}
                   </span>
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
-                    {insp.title}
-                  </h3>
-                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
-                    {insp.observation || "Field audit findings captured on site."}
-                  </p>
                 </div>
 
-                {/* Progress Bar Section */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-500">Progress</span>
-                    <span className="font-bold text-slate-800">{progress} %</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-brand-600 transition-all duration-500"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
-
-                {/* Footer: Avatars and Tags */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                  {/* Left: Avatar Stack */}
-                  <div className="flex items-center">
-                    <div className="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
-                      {insp.projectName.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="w-7 h-7 -ml-2 rounded-full bg-slate-800 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
-                      FS
-                    </div>
-                  </div>
-
-                  {/* Right: Category and Source */}
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                    <Badge variant="category" category={insp.category} />
-                    {insp.inferenceSource && (
-                      <Badge variant="source" source={insp.inferenceSource} />
-                    )}
-                  </div>
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                  <Badge variant="category" category={insp.category} />
+                  {insp.inferenceSource && (
+                    <Badge variant="source" source={insp.inferenceSource} />
+                  )}
                 </div>
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       </div>
     </div>

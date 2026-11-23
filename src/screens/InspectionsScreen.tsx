@@ -458,19 +458,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
     await loadDrafts();
   };
 
-  const getReviewProgress = (status: ReviewStatus) => {
-    switch (status) {
-      case "approved":
-      case "rejected":
-        return 100;
-      case "in_review":
-        return 60;
-      case "draft_generated":
-      default:
-        return 25;
-    }
-  };
-
   const formatDate = (timestamp?: number) => {
     if (!timestamp) return "Recent Audit";
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -568,79 +555,62 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredInspections.map((insp) => {
-            const progress = getReviewProgress(insp.reviewStatus);
-
-            return (
-              <div
-                key={insp.id}
-                onClick={() => handleOpenDetail(insp)}
-                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
-              >
-                {/* Meta Header */}
-                <div className="flex items-center justify-between text-xs gap-2">
-                  <div className="flex items-center gap-1.5 text-slate-500 font-medium shrink-0">
-                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                    <span>{formatDate(insp.createdAt)}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                    {insp.isLocalDraft && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
-                        <Database className="w-3 h-3 text-amber-500" />
-                        Local Draft
-                      </span>
-                    )}
-                    {renderSyncBadge(syncStatuses[insp.id], insp.id)}
-                    <Badge variant="status" status={insp.reviewStatus} />
-                    {insp.isArchived && (
-                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
-                        <Archive className="w-2.5 h-2.5 text-slate-500" />
-                        Archived
-                      </span>
-                    )}
-
-                    {insp.isLocalDraft && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteDraft(insp.id, e)}
-                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                        title="Discard Draft"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
+          {filteredInspections.map((insp) => (
+            <div
+              key={insp.id}
+              onClick={() => handleOpenDetail(insp)}
+              className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+            >
+              {/* Meta Header */}
+              <div className="flex items-center justify-between text-xs gap-2">
+                <div className="flex items-center gap-1.5 text-slate-500 font-medium shrink-0">
+                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  <span>{formatDate(insp.createdAt)}</span>
                 </div>
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                  {insp.isLocalDraft && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <Database className="w-3 h-3 text-amber-500" />
+                      Local Draft
+                    </span>
+                  )}
+                  {renderSyncBadge(syncStatuses[insp.id], insp.id)}
+                  <Badge variant="status" status={insp.reviewStatus} />
+                  {insp.isArchived && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-200 text-slate-700">
+                      <Archive className="w-2.5 h-2.5 text-slate-500" />
+                      Archived
+                    </span>
+                  )}
 
-                {/* Title & Observation */}
-                <div className="space-y-1.5">
-                  <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
-                    {insp.projectName}
-                  </span>
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
-                    {insp.title}
-                  </h3>
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed min-h-[32px]">
-                    {insp.observation || "(No observation recorded yet)"}
-                  </p>
+                  {insp.isLocalDraft && (
+                    <button
+                      type="button"
+                      onClick={(e) => handleDeleteDraft(insp.id, e)}
+                      className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      title="Discard Draft"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
+              </div>
 
-                {/* Progress Bar Section */}
-                <div className="space-y-1.5 pt-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-slate-500">Progress</span>
-                    <span className="font-bold text-slate-800">{progress} %</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-brand-600 transition-all duration-500"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
+              {/* Title & Observation */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
+                  {insp.projectName}
+                </span>
+                <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                  {insp.title}
+                </h3>
+                <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed min-h-[32px]">
+                  {insp.observation || "(No observation recorded yet)"}
+                </p>
+              </div>
 
-                {/* Footer */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
+              {/* Footer */}
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
                   <div className="flex items-center gap-1.5 text-slate-500">
                     <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="text-[11px] truncate">
@@ -671,8 +641,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   </div>
                 </div>
               </div>
-            );
-          })}
+            ))}
         </div>
       )}
 
