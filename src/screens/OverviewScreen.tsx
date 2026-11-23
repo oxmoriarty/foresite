@@ -6,8 +6,9 @@ import {
   Sparkles,
   Plus,
   ArrowRight,
+  Calendar,
 } from "lucide-react";
-import { Project, Inspection, AppStats, ViewMode } from "../types";
+import { Project, Inspection, AppStats, ViewMode, ReviewStatus } from "../types";
 import { Card, CardBody } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
@@ -26,17 +27,42 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   onNavigate,
   onOpenNewProjectModal,
 }) => {
-  const recentInspections = inspections.slice(0, 5);
+  const recentInspections = inspections.slice(0, 6);
+
+  const getReviewProgress = (status: ReviewStatus) => {
+    switch (status) {
+      case "approved":
+      case "rejected":
+        return 100;
+      case "in_review":
+        return 60;
+      case "draft_generated":
+      default:
+        return 25;
+    }
+  };
+
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "Recent Audit";
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "long",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
 
   return (
     <div className="space-y-6">
       {/* Top Banner / Heading */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
+            Portfolio Control
+          </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Inspection Workspace Overview
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Site visibility, observation drafts, and pending review queue.
           </p>
         </div>
@@ -46,7 +72,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
             size="md"
             icon={<Plus className="w-4 h-4" />}
             onClick={onOpenNewProjectModal}
-            className="rounded-full"
+            className="rounded-full text-xs"
           >
             New Project
           </Button>
@@ -55,7 +81,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
             size="md"
             icon={<ClipboardCheck className="w-4 h-4" />}
             onClick={() => onNavigate("inspections")}
-            className="rounded-full shadow-pill"
+            className="rounded-full shadow-pill text-xs"
           >
             View Inspections
           </Button>
@@ -65,7 +91,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <Card className="hover:border-brand-200 transition-all duration-300">
+        <Card className="hover:border-brand-200 transition-all duration-300 rounded-2xl">
           <CardBody className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
               <FolderKanban className="w-6 h-6" />
@@ -80,7 +106,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 2 */}
-        <Card className="hover:border-brand-200 transition-all duration-300">
+        <Card className="hover:border-brand-200 transition-all duration-300 rounded-2xl">
           <CardBody className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
               <ClipboardCheck className="w-6 h-6" />
@@ -95,7 +121,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 3 */}
-        <Card className="hover:border-amber-200 transition-all duration-300">
+        <Card className="hover:border-amber-200 transition-all duration-300 rounded-2xl">
           <CardBody className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
               <Clock className="w-6 h-6" />
@@ -110,7 +136,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 4 */}
-        <Card className="hover:border-emerald-200 transition-all duration-300">
+        <Card className="hover:border-emerald-200 transition-all duration-300 rounded-2xl">
           <CardBody className="p-5 flex items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
               <Sparkles className="w-6 h-6" />
@@ -127,51 +153,97 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
       </div>
 
-      {/* Recent Inspections List */}
+      {/* Recent Inspections Section (matching reference card grid) */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900">
-            Recent Observations and Inspections
-          </h2>
+          <div>
+            <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block">
+              Field Audits
+            </span>
+            <h2 className="text-lg font-bold text-slate-900">
+              Recent Observations and Inspections
+            </h2>
+          </div>
           <Button
             variant="ghost"
             size="sm"
             icon={<ArrowRight className="w-4 h-4" />}
             onClick={() => onNavigate("inspections")}
-            className="rounded-full"
+            className="rounded-full text-xs"
           >
             All Inspections
           </Button>
         </div>
 
-        <div className="space-y-3">
-          {recentInspections.map((insp) => (
-            <Card key={insp.id} hoverable onClick={() => onNavigate("inspections")}>
-              <CardBody className="p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-brand-600 uppercase">
-                        {insp.projectName}
-                      </span>
-                      <span className="text-slate-300">•</span>
-                      <Badge variant="category" category={insp.category} />
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-900">{insp.title}</h3>
-                    <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed">
-                      {insp.observation}
-                    </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {recentInspections.map((insp) => {
+            const progress = getReviewProgress(insp.reviewStatus);
+
+            return (
+              <div
+                key={insp.id}
+                onClick={() => onNavigate("inspections")}
+                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+              >
+                {/* Top Row: Date and Status Badge */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{formatDate(insp.createdAt)}</span>
                   </div>
-                  <div className="flex flex-col items-end gap-2 shrink-0">
-                    <Badge variant="status" status={insp.reviewStatus} />
+                  <Badge variant="status" status={insp.reviewStatus} />
+                </div>
+
+                {/* Body: Project Tag, Title, and Observation */}
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
+                    {insp.projectName}
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                    {insp.title}
+                  </h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                    {insp.observation || "Field audit findings captured on site."}
+                  </p>
+                </div>
+
+                {/* Progress Bar Section */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-500">Progress</span>
+                    <span className="font-bold text-slate-800">{progress} %</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand-600 transition-all duration-500"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Footer: Avatars and Tags */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  {/* Left: Avatar Stack */}
+                  <div className="flex items-center">
+                    <div className="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
+                      {insp.projectName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="w-7 h-7 -ml-2 rounded-full bg-slate-800 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
+                      FS
+                    </div>
+                  </div>
+
+                  {/* Right: Category and Source */}
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <Badge variant="category" category={insp.category} />
                     {insp.inferenceSource && (
                       <Badge variant="source" source={insp.inferenceSource} />
                     )}
                   </div>
                 </div>
-              </CardBody>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

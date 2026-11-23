@@ -27,6 +27,7 @@ import {
   AlertTriangle,
   Archive,
   ArchiveRestore,
+  Calendar,
 } from "lucide-react";
 import {
   Inspection,
@@ -37,7 +38,6 @@ import {
   InspectionSyncStatus,
   MutationRecord,
 } from "../types";
-import { Card, CardBody, CardFooter } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
@@ -458,11 +458,36 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
     await loadDrafts();
   };
 
+  const getReviewProgress = (status: ReviewStatus) => {
+    switch (status) {
+      case "approved":
+      case "rejected":
+        return 100;
+      case "in_review":
+        return 60;
+      case "draft_generated":
+      default:
+        return 25;
+    }
+  };
+
+  const formatDate = (timestamp?: number) => {
+    if (!timestamp) return "Recent Audit";
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "long",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
   return (
     <div className="space-y-6">
       {/* Screen Title & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
+          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
+            Field Operations
+          </span>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
               Site Inspections
@@ -473,14 +498,14 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
               </span>
             )}
           </div>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Capture field observations, attach local photograph evidence, and record human review sign offs.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           {selectedProjectId && onClearProjectFilter && (
-            <Button variant="outline" size="md" onClick={onClearProjectFilter} className="rounded-full">
+            <Button variant="outline" size="md" onClick={onClearProjectFilter} className="rounded-full text-xs">
               Show All Projects
             </Button>
           )}
@@ -489,7 +514,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             size="md"
             icon={<Plus className="w-4 h-4" />}
             onClick={handleOpenEditorForNew}
-            className="rounded-full shadow-pill"
+            className="rounded-full shadow-pill text-xs"
           >
             New Inspection
           </Button>
@@ -543,29 +568,26 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredInspections.map((insp) => (
-            <Card
-              key={insp.id}
-              hoverable
-              onClick={() => handleOpenDetail(insp)}
-              className="flex flex-col justify-between group"
-            >
-              <CardBody className="p-5 space-y-3">
+          {filteredInspections.map((insp) => {
+            const progress = getReviewProgress(insp.reviewStatus);
+
+            return (
+              <div
+                key={insp.id}
+                onClick={() => handleOpenDetail(insp)}
+                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+              >
                 {/* Meta Header */}
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-xs font-bold text-brand-600 uppercase tracking-wide truncate max-w-[150px]">
-                    {insp.projectName}
-                  </span>
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                <div className="flex items-center justify-between text-xs gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-500 font-medium shrink-0">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{formatDate(insp.createdAt)}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
                     {insp.isLocalDraft && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                         <Database className="w-3 h-3 text-amber-500" />
                         Local Draft
-                        {!insp.ownerUid
-                          ? " (Device Only)"
-                          : currentUser && insp.ownerUid !== currentUser.uid
-                          ? " (Other Account)"
-                          : ""}
                       </span>
                     )}
                     {renderSyncBadge(syncStatuses[insp.id], insp.id)}
@@ -591,54 +613,66 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 </div>
 
                 {/* Title & Observation */}
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                <div className="space-y-1.5">
+                  <span className="text-[11px] font-bold text-brand-600 uppercase tracking-wide block truncate">
+                    {insp.projectName}
+                  </span>
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
                     {insp.title}
                   </h3>
-                  <p className="text-xs text-slate-600 line-clamp-2 mt-1 leading-relaxed">
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed min-h-[32px]">
                     {insp.observation || "(No observation recorded yet)"}
                   </p>
                 </div>
 
-                {/* Tags */}
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <Badge variant="category" category={insp.category} />
-                  {insp.inferenceSource && (
-                    <Badge variant="source" source={insp.inferenceSource} />
-                  )}
+                {/* Progress Bar Section */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-500">Progress</span>
+                    <span className="font-bold text-slate-800">{progress} %</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand-600 transition-all duration-500"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
                 </div>
-              </CardBody>
 
-              {/* Footer */}
-              <CardFooter className="flex items-center justify-between text-xs text-slate-500">
-                <div className="flex items-center gap-1.5">
-                  <Camera className="w-3.5 h-3.5 text-slate-400" />
-                  <span>
-                    {insp.photoIds && insp.photoIds.length > 0
-                      ? `${insp.photoIds.length} photo(s) attached`
-                      : insp.photoMeta
-                      ? `${insp.photoMeta.fileName}`
-                      : "No photo attached"}
-                  </span>
+                {/* Footer */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 gap-2">
+                  <div className="flex items-center gap-1.5 text-slate-500">
+                    <Camera className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span className="text-[11px] truncate">
+                      {insp.photoIds && insp.photoIds.length > 0
+                        ? `${insp.photoIds.length} photo(s)`
+                        : insp.photoMeta
+                        ? `${insp.photoMeta.fileName}`
+                        : "No photo"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <Badge variant="category" category={insp.category} />
+                    {insp.isLocalDraft ? (
+                      <button
+                        type="button"
+                        onClick={(e) => handleOpenEditorForDraft(insp, e)}
+                        className="text-brand-600 font-semibold inline-flex items-center gap-1 hover:underline cursor-pointer"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                        Continue Draft
+                      </button>
+                    ) : (
+                      <span className="text-brand-600 font-medium inline-flex items-center gap-1">
+                        <Eye className="w-3.5 h-3.5" />
+                        Review
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {insp.isLocalDraft ? (
-                  <button
-                    type="button"
-                    onClick={(e) => handleOpenEditorForDraft(insp, e)}
-                    className="text-brand-600 font-semibold inline-flex items-center gap-1 hover:underline"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                    Continue Draft
-                  </button>
-                ) : (
-                  <span className="text-brand-600 font-medium inline-flex items-center gap-1">
-                    <Eye className="w-3.5 h-3.5" />
-                    Review
-                  </span>
-                )}
-              </CardFooter>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

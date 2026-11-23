@@ -14,21 +14,20 @@ import {
   FolderKanban,
   Plus,
   Search,
-  MapPin,
   Calendar,
-  ClipboardList,
   Edit2,
   Trash2,
   AlertTriangle,
+  SlidersHorizontal,
 } from "lucide-react";
-import { Project } from "../types";
-import { Card, CardBody, CardFooter } from "../components/ui/Card";
+import { Project, Inspection } from "../types";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
 import { EmptyState } from "../components/ui/EmptyState";
 
 export interface ProjectsScreenProps {
   projects: Project[];
+  inspections?: Inspection[];
   onCreateProject: (
     project: Omit<Project, "id" | "inspectionCount" | "createdAt" | "updatedAt">
   ) => void | Promise<void>;
@@ -44,6 +43,7 @@ export interface ProjectsScreenProps {
 
 export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
   projects,
+  inspections,
   onCreateProject,
   onUpdateProject,
   onDeleteProject,
@@ -52,6 +52,8 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
   setIsCreateModalOpen,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [newSiteLabel, setNewSiteLabel] = useState("");
   const [newLocation, setNewLocation] = useState("");
@@ -68,12 +70,58 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
   // Delete Project State
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
-  const filteredProjects = projects.filter(
-    (p) =>
+  const getProjectProgress = (projectId: string, inspectionCount: number) => {
+    const projInspections = inspections?.filter((i) => i.projectId === projectId) || [];
+    if (projInspections.length > 0) {
+      const approved = projInspections.filter((i) => i.reviewStatus === "approved").length;
+      return Math.round((approved / projInspections.length) * 100);
+    }
+    if (inspectionCount > 0) {
+      return 50;
+    }
+    return 0;
+  };
+
+  const getProjectStatus = (progress: number, inspectionCount: number) => {
+    if (progress === 100 && inspectionCount > 0) {
+      return { label: "Active", bg: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+    }
+    if (progress > 0 || inspectionCount > 0) {
+      return { label: "In Progress", bg: "bg-amber-50 text-amber-700 border-amber-200" };
+    }
+    return { label: "Planning Phase", bg: "bg-slate-100 text-slate-700 border-slate-200" };
+  };
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString("en-US", {
+      month: "long",
+      day: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const filteredProjects = projects.filter((p) => {
+    const matchesSearch =
       p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       p.siteLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+      (p.location && p.location.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    if (!matchesSearch) return false;
+
+    if (statusFilter === "all") return true;
+
+    const progress = getProjectProgress(p.id, p.inspectionCount);
+    if (statusFilter === "active") {
+      return progress === 100 && p.inspectionCount > 0;
+    }
+    if (statusFilter === "in_progress") {
+      return (progress > 0 && progress < 100) || (p.inspectionCount > 0 && progress < 100);
+    }
+    if (statusFilter === "planning") {
+      return p.inspectionCount === 0 && progress === 0;
+    }
+    return true;
+  });
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,39 +200,86 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
   return (
     <div className="space-y-6">
       {/* Header & Actions */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
+          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
+            Portfolio Control
+          </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Inspection Projects
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             Organize inspections by construction site, facility parcel, or work package.
           </p>
         </div>
-        <Button
-          variant="primary"
-          size="md"
-          icon={<Plus className="w-4 h-4" />}
-          onClick={() => setIsCreateModalOpen(true)}
-          className="rounded-full shadow-pill"
-        >
-          Create Project
-        </Button>
+
+        {/* Right Toolbar: Retained Search, Filters button, and Create Project button */}
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Retained Search Bar */}
+          <div className="relative min-w-[220px] sm:min-w-[260px]">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <Search className="w-4 h-4" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by project name, parcel label, or city..."
+              className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200/90 rounded-full text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-2xs"
+            />
+          </div>
+
+          {/* Filters Toggle Button */}
+          <Button
+            variant={showFilters || statusFilter !== "all" ? "primary" : "outline"}
+            size="md"
+            icon={<SlidersHorizontal className="w-3.5 h-3.5" />}
+            onClick={() => setShowFilters(!showFilters)}
+            className="rounded-full text-xs"
+          >
+            Filters
+          </Button>
+
+          {/* Add Project Primary Button */}
+          <Button
+            variant="primary"
+            size="md"
+            icon={<Plus className="w-4 h-4" />}
+            onClick={() => setIsCreateModalOpen(true)}
+            className="rounded-full shadow-pill text-xs sm:text-sm"
+          >
+            Create Project
+          </Button>
+        </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="relative max-w-md">
-        <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-          <Search className="w-4 h-4" />
+      {/* Filter Tabs when toggled or filter active */}
+      {showFilters && (
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs animate-in fade-in duration-200">
+          <span className="text-slate-400 font-semibold uppercase tracking-wider text-[11px] pl-1 pr-2">
+            Status:
+          </span>
+          {[
+            { id: "all", label: "All Projects" },
+            { id: "in_progress", label: "In Progress" },
+            { id: "active", label: "Active" },
+            { id: "planning", label: "Planning Phase" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
+                statusFilter === tab.id
+                  ? "bg-slate-900 text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by project name, parcel label, or city..."
-          className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/80 rounded-full text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-xs"
-        />
-      </div>
+      )}
 
       {/* Projects Grid */}
       {filteredProjects.length === 0 ? (
@@ -204,29 +299,77 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {filteredProjects.map((project) => (
-            <Card
-              key={project.id}
-              hoverable
-              onClick={() => onSelectProject(project.id)}
-              className="flex flex-col justify-between group"
-            >
-              <CardBody className="p-5 space-y-3">
-                <div className="flex items-start justify-between gap-2">
-                  <span className="px-2 py-0.5 text-xs font-bold rounded bg-slate-100 text-slate-700 tracking-wider">
-                    {project.siteLabel}
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <div className="flex items-center gap-1 text-xs text-slate-500 font-medium">
-                      <ClipboardList className="w-3.5 h-3.5 text-brand-600" />
-                      <span>{project.inspectionCount} inspections</span>
-                    </div>
+          {filteredProjects.map((project) => {
+            const progress = getProjectProgress(project.id, project.inspectionCount);
+            const status = getProjectStatus(progress, project.inspectionCount);
 
-                    {/* Quick Edit & Delete Action Icons */}
+            return (
+              <div
+                key={project.id}
+                onClick={() => onSelectProject(project.id)}
+                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+              >
+                {/* Card Top Meta: Calendar Date & Status Pill */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-slate-500 font-medium">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{formatDate(project.createdAt)}</span>
+                  </div>
+                  <span
+                    className={`px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${status.bg}`}
+                  >
+                    {status.label}
+                  </span>
+                </div>
+
+                {/* Card Body: Title & Description */}
+                <div className="space-y-1.5">
+                  <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
+                    {project.name}
+                  </h3>
+                  <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
+                    {project.description || project.location || "Active construction inspection project and parcel."}
+                  </p>
+                </div>
+
+                {/* Progress Bar Section */}
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-500">Progress</span>
+                    <span className="font-bold text-slate-800">{progress} %</span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-brand-600 transition-all duration-500"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                </div>
+
+                {/* Card Footer: Avatars, Tags, and Edit/Delete Icons */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                  {/* Left: Avatar Stack */}
+                  <div className="flex items-center">
+                    <div className="w-7 h-7 rounded-full bg-brand-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
+                      {project.siteLabel.slice(0, 2)}
+                    </div>
+                    <div className="w-7 h-7 -ml-2 rounded-full bg-slate-800 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white shadow-2xs">
+                      FS
+                    </div>
+                  </div>
+
+                  {/* Right: Site Tag, Audits Count, and Action Icons */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-slate-100 text-slate-700">
+                      {project.siteLabel}
+                    </span>
+                    <span className="px-2 py-0.5 text-[11px] font-medium rounded-md bg-slate-100 text-slate-600">
+                      {project.inspectionCount} audits
+                    </span>
                     <button
                       type="button"
                       onClick={(e) => openEditModal(project, e)}
-                      className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors"
+                      className="p-1 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded transition-colors cursor-pointer"
                       title="Edit Project"
                       aria-label={`Edit ${project.name}`}
                     >
@@ -235,7 +378,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     <button
                       type="button"
                       onClick={(e) => openDeleteModal(project, e)}
-                      className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+                      className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
                       title="Delete Project"
                       aria-label={`Delete ${project.name}`}
                     >
@@ -243,36 +386,9 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     </button>
                   </div>
                 </div>
-
-                <div>
-                  <h3 className="text-base font-semibold text-slate-900 group-hover:text-brand-600 transition-colors">
-                    {project.name}
-                  </h3>
-                  {project.location && (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{project.location}</span>
-                    </div>
-                  )}
-                  {project.description && (
-                    <p className="text-xs text-slate-500 mt-2 line-clamp-2">
-                      {project.description}
-                    </p>
-                  )}
-                </div>
-              </CardBody>
-
-              <CardFooter className="flex items-center justify-between text-xs text-slate-400">
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>Created {new Date(project.createdAt).toLocaleDateString()}</span>
-                </div>
-                <span className="text-brand-600 font-medium hover:underline">
-                  View Inspections &rarr;
-                </span>
-              </CardFooter>
-            </Card>
-          ))}
+              </div>
+            );
+          })}
         </div>
       )}
 

@@ -830,6 +830,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
               {currentView === "projects" && (
                 <ProjectsScreen
                   projects={projects}
+                  inspections={inspections}
                   onCreateProject={handleCreateProject}
                   onUpdateProject={handleUpdateProject}
                   onDeleteProject={handleDeleteProject}
