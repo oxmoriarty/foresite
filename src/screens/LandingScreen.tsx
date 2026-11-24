@@ -2,11 +2,6 @@ import React, { useState } from "react";
 import {
   ArrowRight,
   Flame,
-  Camera,
-  CheckCircle2,
-  Database,
-  Search,
-  Sparkles,
 } from "lucide-react";
 import { ViewMode } from "../types";
 import { useAuth } from "../context/AuthContext";
@@ -163,14 +158,9 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <ScrollReveal delay={50}>
-            {/* Subtle ForeSite Category Label */}
-            <p className="text-xs sm:text-sm font-semibold text-brand-600 mb-6 tracking-wide uppercase">
-              ForeSite Field Intelligence
-            </p>
-
             {/* Display Headline: ForeSite Construction Inspection Mission */}
             <div className="max-w-4xl">
-              <h1 className="text-4xl sm:text-6xl lg:text-[76px] font-extrabold tracking-[-0.035em] text-slate-950 leading-[1.06] mb-10">
+              <h1 className="font-display text-4xl sm:text-6xl lg:text-[72px] font-semibold tracking-[-0.03em] text-slate-950 leading-[1.08] mb-10">
                 Inspection intelligence for construction teams ready to build with speed.
               </h1>
 
@@ -206,18 +196,8 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <section className="py-20 sm:py-32 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            {/* Section Marker Badge: Circle with number + text */}
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
-                01
-              </div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Introducing ForeSite
-              </span>
-            </div>
-
             {/* Section Headline */}
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 max-w-4xl mb-16 leading-[1.12]">
+            <h2 className="font-display text-3xl sm:text-5xl font-semibold tracking-[-0.03em] text-slate-950 max-w-4xl mb-16 leading-[1.12]">
               Field ready inspection tools delivering clear verification on site and in the office.
             </h2>
           </ScrollReveal>
@@ -293,159 +273,56 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <section className="py-20 sm:py-32 bg-slate-50 border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <ScrollReveal>
-            {/* Section Marker */}
-            <div className="flex items-center gap-2.5 mb-5">
-              <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
-                02
-              </div>
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                Active site projects
-              </span>
-            </div>
-
             {/* Section Headline */}
-            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 mb-14">
+            <h2 className="font-display text-3xl sm:text-5xl font-semibold leading-[1.1] tracking-[-0.03em] text-slate-950 mb-10 sm:mb-14">
               Site inspection projects
             </h2>
           </ScrollReveal>
 
-          {/* Two Large Showcase Cards Side by Side (Exact 2-Col Layout) */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Card 1: Metro North Station with Heavy Civil 3D Structural Crane Visual */}
+          {/* Two Large Showcase Cards Side by Side (Exact Payroost Match) */}
+          <div className="grid gap-6 md:grid-cols-2 lg:gap-8">
+            {/* Card 1: Dark Card */}
             <ScrollReveal delay={100} className="h-full">
-              <div className="rounded-[32px] bg-slate-950 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
-                {/* Top Card Info */}
-                <div className="relative z-10 flex items-start justify-between">
-                  <div>
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-yellow-300 border border-white/10 mb-3">
-                      Heavy Civil Infrastructure
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                      Metro North Station
-                    </h3>
-                    <p className="text-sm text-slate-400 mt-1 max-w-sm">
-                      Structural pier falsework and footing excavation audit.
-                    </p>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("projects")}
-                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
-                    title="View Project"
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Center 3D Yellow Structural Crane / Heavy Equipment Object */}
-                <div className="relative my-6 flex items-center justify-center">
+              <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-white shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="relative overflow-hidden aspect-[4/3] w-full bg-slate-900">
                   <img
                     src="/images/yellow-rig-3d.jpg"
-                    alt="3D rendered stylized heavy civil foundation crane rig"
-                    className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-[0_25px_35px_rgba(234,179,8,0.25)] transition-transform duration-500 group-hover:scale-105 rounded-2xl"
-                    loading="lazy"
+                    alt="Structural civil foundation audit"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-
-                {/* Bottom Card Footer */}
-                <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
-                  <span>Verified Inspection Model</span>
-                  <span className="text-yellow-400 font-semibold">100% Signed Off</span>
+                <div className="flex flex-1 flex-col justify-between p-6 sm:p-8">
+                  <div>
+                    <h3 className="font-display text-2xl font-semibold tracking-[-0.02em] text-white sm:text-3xl">
+                      Audits everyone understands
+                    </h3>
+                    <p className="mt-3 text-sm leading-6 text-slate-300 sm:text-base">
+                      Break inspections into clear phases so project teams always know what is verified, reviewed, and scheduled next.
+                    </p>
+                  </div>
                 </div>
               </div>
             </ScrollReveal>
 
-            {/* Card 2: Floating Product UI Mockup for Site Inspection Workspace */}
+            {/* Card 2: Light Card */}
             <ScrollReveal delay={200} className="h-full">
-              <div className="rounded-[32px] bg-slate-900 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
-                {/* Top Card Info */}
-                <div className="relative z-10 flex items-start justify-between">
+              <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white text-slate-950 shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div className="relative overflow-hidden aspect-[4/3] w-full bg-slate-50">
+                  <img
+                    src="/images/ecosystem-orb-3d.jpg"
+                    alt="Field evidence records and observation timeline"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col justify-between p-6 sm:p-8">
                   <div>
-                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-3">
-                      Field Intelligence System
-                    </span>
-                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                      Site Ecosystem
+                    <h3 className="font-display text-2xl font-semibold tracking-[-0.02em] text-slate-950 sm:text-3xl">
+                      Verified records at every step
                     </h3>
-                    <p className="text-sm text-slate-400 mt-1 max-w-sm">
-                      Offline evidence capture with local observation intelligence.
+                    <p className="mt-3 text-sm leading-6 text-slate-600 sm:text-base">
+                      Keep photo evidence, structural findings, and sign off decisions documented cleanly in one timeline.
                     </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => onNavigate("inspections")}
-                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
-                    title="View Inspections"
-                  >
-                    <ArrowRight className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Center Floating Glassmorphic UI Card */}
-                <div className="relative my-6 flex items-center justify-center">
-                  <div className="w-full max-w-md bg-white/95 rounded-2xl p-6 sm:p-8 text-slate-900 shadow-2xl border border-white/20 backdrop-blur-xl">
-                    {/* Mockup Headline for ForeSite */}
-                    <div className="text-center mb-6">
-                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200 mb-2">
-                        Local Evidence Retention
-                      </span>
-                      <h4 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
-                        An inspection solution that works for your site ecosystem
-                      </h4>
-                    </div>
-
-                    {/* Central 3D Spatial Sensor & Intelligence Sphere Image */}
-                    <div className="relative my-4 flex items-center justify-center">
-                      <img
-                        src="/images/ecosystem-orb-3d.jpg"
-                        alt="3D rendered crystal spatial inspection intelligence sphere with holographic rings"
-                        className="w-36 h-36 sm:w-44 sm:h-44 object-contain rounded-2xl drop-shadow-[0_15px_25px_rgba(99,102,241,0.35)] transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    {/* Bottom Tool Dock with 5 Site Tool Icons */}
-                    <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-100">
-                      <div
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                        title="Camera Capture"
-                      >
-                        <Camera className="w-4 h-4" />
-                      </div>
-                      <div
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                        title="Local Storage"
-                      >
-                        <Database className="w-4 h-4" />
-                      </div>
-                      <div
-                        className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-pill scale-110 cursor-pointer"
-                        title="AI Observation Drafts"
-                      >
-                        <Sparkles className="w-5 h-5" />
-                      </div>
-                      <div
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                        title="Lead Inspector Verification"
-                      >
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div
-                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                        title="Project Search"
-                      >
-                        <Search className="w-4 h-4" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Bottom Card Footer */}
-                <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
-                  <span>Durable IndexedDB Architecture</span>
-                  <span className="text-emerald-400 font-semibold">Zero Cloud Lock In</span>
                 </div>
               </div>
             </ScrollReveal>
@@ -460,7 +337,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             FS
           </div>
 
-          <h2 className="text-3xl sm:text-6xl font-extrabold tracking-[-0.035em] text-slate-950 mb-6 leading-[1.08]">
+          <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-slate-950 mb-6 leading-[1.1]">
             Ready to inspect with speed and complete field reliability?
           </h2>
 
@@ -498,16 +375,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       </section>
 
       {/* Minimalist Studio Footer */}
-      <footer className="border-t border-slate-100 py-8 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-slate-950 text-white font-bold text-[10px] flex items-center justify-center">
-              FS
-            </div>
-            <span className="font-semibold text-slate-900">ForeSite</span>
-          </div>
-        </div>
-      </footer>
+      <footer className="border-t border-slate-100 py-6" />
 
       {/* Inspector Authentication Modal */}
       <AuthModal
