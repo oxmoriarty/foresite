@@ -286,9 +286,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-800 bg-slate-950 text-white shadow-xl hover:-translate-y-1 transition-all duration-300">
                 <div className="relative overflow-hidden aspect-[4/3] w-full bg-slate-900">
                   <img
-                    src="/images/yellow-rig-3d.jpg"
-                    alt="Structural civil foundation audit"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    src="/images/ConstructionAudit.jpg"
+                    alt="Inspector verifying construction audit on tablet with approved sign off"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="flex flex-1 flex-col justify-between p-6 sm:p-8">
@@ -307,11 +309,13 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             {/* Card 2: Light Card */}
             <ScrollReveal delay={200} className="h-full">
               <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white text-slate-950 shadow-xl hover:-translate-y-1 transition-all duration-300">
-                <div className="relative overflow-hidden aspect-[4/3] w-full bg-slate-50">
+                <div className="relative overflow-hidden aspect-[4/3] w-full bg-slate-100">
                   <img
-                    src="/images/ecosystem-orb-3d.jpg"
-                    alt="Field evidence records and observation timeline"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    src="/images/VerifiedRecords.jpg"
+                    alt="Field engineers verifying inspection findings on tablet and blueprints"
+                    className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="flex flex-1 flex-col justify-between p-6 sm:p-8">
