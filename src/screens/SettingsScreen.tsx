@@ -45,6 +45,7 @@ export const SettingsScreen: React.FC = () => {
   const [isClearing, setIsClearing] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
   const [refreshingQuota, setRefreshingQuota] = useState(false);
+  const [persistenceFeedback, setPersistenceFeedback] = useState<string | null>(null);
 
   // AI & Privacy: Persistent Automatic Cloud Fallback Preference
   const [cloudFallbackPref, setCloudFallbackPref] = useState<CloudFallbackPreference>(SAFE_DEFAULT_PREFERENCE);
@@ -85,8 +86,6 @@ export const SettingsScreen: React.FC = () => {
       setCloudFallbackPref(updated);
       if (updated.syncStatus === "synced") {
         setPrefStatusMessage("Setting saved and synchronized with your account.");
-      } else if (updated.syncStatus === "failed") {
-        setPrefStatusMessage("Saved locally on this device; cloud synchronization failed.");
       }
     } catch (err) {
       console.error("Failed to update cloud fallback setting:", err);
@@ -147,8 +146,14 @@ export const SettingsScreen: React.FC = () => {
   };
 
   const handleRequestPersistence = async () => {
+    setPersistenceFeedback(null);
     const persisted = await requestPersistentStorage();
     setStorageInfo((prev) => ({ ...prev, persisted }));
+    if (persisted) {
+      setPersistenceFeedback("Persistence granted by browser.");
+    } else {
+      setPersistenceFeedback("Browser retained standard storage.");
+    }
   };
 
   const handleClearAllEvidence = async () => {
@@ -176,19 +181,19 @@ export const SettingsScreen: React.FC = () => {
         </h1>
       </div>
 
-      {/* Section 0: Inspector Profile */}
+      {/* Section 0: Profile */}
       <Card>
-        <CardHeader className="flex items-center gap-3 bg-slate-50/60">
-          <div className="p-2 bg-brand-100 text-brand-700 rounded-lg">
+        <CardHeader className="flex items-center gap-3 bg-slate-50/70 border-b border-slate-100 px-5 py-4">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-brand-50 text-brand-600 border border-brand-100/60 shadow-2xs">
             <UserCheck className="w-5 h-5" />
           </div>
           <div>
             <h2 className="text-sm font-semibold text-slate-900">
-              Inspector Profile
+              Profile
             </h2>
           </div>
         </CardHeader>
-        <CardBody className="space-y-3 text-xs text-slate-700">
+        <CardBody className="space-y-3 text-xs text-slate-700 px-5 py-4">
           {currentUser ? (
             <div className="space-y-2">
               <div className="flex justify-between py-1.5 border-b border-slate-100">
@@ -201,7 +206,7 @@ export const SettingsScreen: React.FC = () => {
                 <span className="font-medium text-slate-600">Email</span>
                 <span className="font-mono text-slate-900">{currentUser.email}</span>
               </div>
-              <div className="flex justify-between py-1.5 border-b border-slate-100">
+              <div className="flex justify-between py-1.5">
                 <span className="font-medium text-slate-600">Verification</span>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-xs ${
@@ -214,15 +219,9 @@ export const SettingsScreen: React.FC = () => {
                   {currentUser.emailVerified ? "Verified" : "Pending Verification"}
                 </span>
               </div>
-              <div className="flex justify-between py-1.5">
-                <span className="font-medium text-slate-600">Role</span>
-                <span className="font-medium text-slate-800">
-                  {userProfile?.role || "Site Inspector"}
-                </span>
-              </div>
             </div>
           ) : (
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 space-y-1">
+            <div className="p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-xl text-slate-600 space-y-1">
               <span className="font-semibold text-slate-800 block">
                 Preview Session
               </span>
@@ -236,9 +235,9 @@ export const SettingsScreen: React.FC = () => {
 
       {/* Section 1: Local Storage & Capacity */}
       <Card>
-        <CardHeader className="flex items-center justify-between bg-slate-50/60">
+        <CardHeader className="flex items-center justify-between bg-slate-50/70 border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-brand-100 text-brand-700 rounded-lg">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-brand-50 text-brand-600 border border-brand-100/60 shadow-2xs">
               <Database className="w-5 h-5" />
             </div>
             <div>
@@ -251,58 +250,78 @@ export const SettingsScreen: React.FC = () => {
             type="button"
             onClick={handleRefreshClick}
             disabled={refreshingQuota}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="p-2 text-slate-400 hover:text-brand-600 hover:bg-white rounded-lg border border-transparent hover:border-slate-200 transition-all cursor-pointer shadow-2xs hover:shadow-xs"
             title="Refresh Storage Quota"
           >
             <RefreshCw className={`w-4 h-4 ${refreshingQuota ? "animate-spin" : ""}`} />
           </button>
         </CardHeader>
-        <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed">
+        <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed px-5 py-4">
           {/* Storage Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center justify-between text-slate-500 mb-1">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+              <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Photos Stored</span>
-                <Database className="w-3.5 h-3.5 text-brand-600" />
+                <div className="p-1 rounded-md bg-white border border-slate-200/60 text-brand-600 shadow-2xs">
+                  <Database className="w-3.5 h-3.5" />
+                </div>
               </div>
               <span className="text-lg font-bold text-slate-900">
                 {localPhotoCount} photos
               </span>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center justify-between text-slate-500 mb-1">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+              <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Unsynced Drafts</span>
-                <HardDrive className="w-3.5 h-3.5 text-brand-600" />
+                <div className="p-1 rounded-md bg-white border border-slate-200/60 text-brand-600 shadow-2xs">
+                  <HardDrive className="w-3.5 h-3.5" />
+                </div>
               </div>
               <span className="text-lg font-bold text-slate-900">
                 {localDraftCount} drafts
               </span>
             </div>
 
-            <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div className="flex items-center justify-between text-slate-500 mb-1">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+              <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Storage Persistence</span>
-                <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="p-1 rounded-md bg-white border border-slate-200/60 text-emerald-600 shadow-2xs">
+                  <Lock className="w-3.5 h-3.5" />
+                </div>
               </div>
-              <span className="text-xs font-bold text-slate-900 block truncate">
-                {storageInfo.persisted ? "Persisted (Protected)" : "Standard"}
-              </span>
-              {!storageInfo.persisted && (
-                <button
-                  type="button"
-                  onClick={handleRequestPersistence}
-                  className="text-[10px] text-brand-600 font-semibold hover:underline mt-0.5 cursor-pointer"
+              <div>
+                <span
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-xs ${
+                    storageInfo.persisted
+                      ? "bg-emerald-600 text-white"
+                      : "bg-slate-500 text-white"
+                  }`}
                 >
-                  Request Persistence &rarr;
-                </button>
-              )}
+                  <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                  {storageInfo.persisted ? "Persisted" : "Standard"}
+                </span>
+                {!storageInfo.persisted && (
+                  <button
+                    type="button"
+                    onClick={handleRequestPersistence}
+                    className="text-[10px] text-brand-600 font-semibold hover:underline mt-1.5 block cursor-pointer"
+                  >
+                    Request Persistence &rarr;
+                  </button>
+                )}
+                {persistenceFeedback && (
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    {persistenceFeedback}
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
           {/* Browser Storage Quota Progress */}
           {storageInfo.supported && storageInfo.quotaBytes > 0 && (
-            <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2">
+            <div className="p-3.5 bg-white border border-slate-200/80 rounded-xl space-y-2 shadow-2xs">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-semibold text-slate-800">Storage Usage</span>
                 <span className="font-mono text-slate-600">
@@ -321,17 +340,17 @@ export const SettingsScreen: React.FC = () => {
           )}
 
           {/* Reset Evidence Storage */}
-          <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+          <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
             <div>
               <span className="font-semibold text-slate-800 block">Clear Local Data</span>
               <span className="text-[11px] text-slate-500">
-                Delete stored evidence photos and drafts from this device.
+                Delete stored images and drafts from this device.
               </span>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="text-red-600 hover:bg-red-50 border-red-200"
+              className="text-red-600 hover:bg-red-50 border-red-200 rounded-lg shadow-2xs"
               icon={<Trash2 className="w-3.5 h-3.5" />}
               onClick={() => setIsClearModalOpen(true)}
             >
@@ -341,16 +360,16 @@ export const SettingsScreen: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Section 2: AI & Privacy — Automatic Cloud Fallback */}
+      {/* Section 2: AI & Privacy */}
       <Card>
-        <CardHeader className="flex items-center justify-between bg-slate-50/60">
+        <CardHeader className="flex items-center justify-between bg-slate-50/70 border-b border-slate-100 px-5 py-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-emerald-100 text-emerald-700 rounded-lg">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-50 text-emerald-600 border border-emerald-100/60 shadow-2xs">
               <Cpu className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-sm font-semibold text-slate-900">
-                AI & Privacy — Automatic Cloud Fallback
+                AI & Privacy
               </h2>
             </div>
           </div>
@@ -370,36 +389,32 @@ export const SettingsScreen: React.FC = () => {
                 <AlertCircle className="w-3 h-3 text-white shrink-0" />
                 Local Only
               </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                Offline Default
-              </span>
-            )}
+            ) : null}
           </div>
         </CardHeader>
-        <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed">
+        <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed px-5 py-4">
           {/* Main Setting Toggle Row */}
-          <div className="flex items-start justify-between p-3 bg-slate-50 border border-slate-200 rounded-lg gap-4">
+          <div className="flex items-start justify-between p-3.5 bg-slate-50/80 border border-slate-200/80 rounded-xl gap-4 shadow-2xs">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-semibold text-slate-900 text-sm">
                   Automatic cloud fallback
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-xs ${
                     cloudFallbackPref.enabled
-                      ? "bg-brand-100 text-brand-800"
-                      : "bg-slate-200 text-slate-600"
+                      ? "bg-brand-600 text-white"
+                      : "bg-slate-500 text-white"
                   }`}
                 >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                   {cloudFallbackPref.enabled ? "Enabled" : "Disabled (Default)"}
                 </span>
               </div>
               <p className="text-slate-600 text-xs">
                 {cloudFallbackPref.enabled
-                  ? "Uses cloud processing automatically when on device AI is unavailable."
-                  : "Processes data on device only. Asks for permission before connecting to the cloud."}
+                  ? "Use cloud processing automatically when on device AI is unavailable."
+                  : "Process data on device only. Asks for permission before connecting to the cloud."}
               </p>
               {prefStatusMessage && (
                 <p className="text-brand-600 font-medium text-[11px] pt-1">

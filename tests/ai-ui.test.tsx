@@ -108,7 +108,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
 
       // Verifies section heading
       await waitFor(() => {
-        expect(screen.getByText(/AI & Privacy — Automatic Cloud Fallback/i)).toBeInTheDocument();
+        expect(screen.getByText(/^AI & Privacy$/i)).toBeInTheDocument();
       });
 
       // Verifies Mode B (Default) is reflected
