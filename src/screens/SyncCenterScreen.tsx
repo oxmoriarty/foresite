@@ -311,9 +311,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             variant="outline"
             onClick={handleExportDiagnostics}
             disabled={loading || mutations.length === 0}
-            className="flex items-center gap-1.5 rounded-full"
+            className="rounded-full"
+            icon={<Download className="w-3.5 h-3.5 text-slate-500" />}
           >
-            <Download className="w-3.5 h-3.5 text-slate-500" />
             Export Diagnostics
           </Button>
 
@@ -322,9 +322,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             variant="primary"
             onClick={handleManualSync}
             disabled={loading || syncing}
-            className="flex items-center gap-1.5 rounded-full shadow-pill"
+            className="rounded-full shadow-pill"
+            icon={<RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
             {syncing ? "Uploading..." : "Upload Now"}
           </Button>
         </div>
@@ -500,9 +500,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
               size="sm"
               variant="secondary"
               onClick={onNavigateToInspections}
-              className="mt-2 inline-flex items-center gap-1.5"
+              className="mt-2"
+              icon={<ExternalLink className="w-3.5 h-3.5" />}
             >
-              <ExternalLink className="w-3.5 h-3.5" />
               View Inspections
             </Button>
           )}
@@ -606,9 +606,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                         size="sm"
                         variant="primary"
                         onClick={() => setConflictMutation(m)}
-                        className="flex items-center gap-1.5 text-xs bg-purple-600 hover:bg-purple-700 border-purple-600"
+                        className="text-xs bg-purple-600 hover:bg-purple-700 border-purple-600"
+                        icon={<AlertTriangle className="w-3.5 h-3.5" />}
                       >
-                        <AlertTriangle className="w-3.5 h-3.5" />
                         Resolve Conflict
                       </Button>
                     )}
@@ -620,9 +620,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                         variant="secondary"
                         onClick={() => handleRetryMutation(m)}
                         disabled={isRetrying}
-                        className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
+                        className="text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
+                        icon={<RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? "animate-spin" : ""}`} />}
                       >
-                        <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? "animate-spin" : ""}`} />
                         {isRetrying ? "Retrying..." : "Retry Upload"}
                       </Button>
                     )}

@@ -61,7 +61,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       >
         {loading && <Loader2 className="h-4 w-4 animate-spin text-current" />}
         {!loading && icon && <span className="shrink-0">{icon}</span>}
-        <span>{children}</span>
+        <span className="inline-flex items-center gap-1.5">{children}</span>
       </button>
     );
   }
