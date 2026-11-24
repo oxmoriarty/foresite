@@ -12,7 +12,7 @@ describe("ForeSite Application Shell Navigation", () => {
 
   it("defaults to Overview screen and displays metric statistics", () => {
     render(<App />);
-    expect(screen.getByText("Inspection Workspace Overview")).toBeInTheDocument();
+    expect(screen.getByText("Inspection Overview")).toBeInTheDocument();
     expect(screen.getByText("Active Projects")).toBeInTheDocument();
     expect(screen.getByText("Pending Reviews")).toBeInTheDocument();
   });
@@ -68,7 +68,7 @@ describe("ForeSite Application Shell Navigation", () => {
 
     // Navigate back to Dashboard
     fireEvent.click(within(nav).getByRole("button", { name: /dashboard/i }));
-    expect(screen.getByText("Inspection Workspace Overview")).toBeInTheDocument();
+    expect(screen.getByText("Inspection Overview")).toBeInTheDocument();
   });
 
   it("collapses and expands the sidebar using the collapse control", () => {

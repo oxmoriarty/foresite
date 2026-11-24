@@ -44,15 +44,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       {/* Top Banner / Heading */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
-            Portfolio Control
-          </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Inspection Workspace Overview
+            Inspection Overview
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Site visibility, observation drafts, and pending review queue.
-          </p>
         </div>
         <div className="flex items-center gap-2.5">
           <Button
@@ -145,11 +139,8 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block">
-              Field Audits
-            </span>
             <h2 className="text-lg font-bold text-slate-900">
-              Recent Observations and Inspections
+              Recent Inspections
             </h2>
           </div>
 
