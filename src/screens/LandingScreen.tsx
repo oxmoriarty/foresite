@@ -78,10 +78,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 <button
                   type="button"
                   onClick={() => onNavigate("overview")}
-                  className="group inline-flex items-center gap-2.5 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+                  className="group inline-flex items-center gap-2.5 pl-4 pr-1.5 py-1.5 rounded-full bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
                 >
                   <span>Workspace</span>
-                  <span className="w-6 h-6 rounded-full bg-white text-slate-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
+                  <span className="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
                     <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </button>
@@ -98,10 +98,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               <button
                 type="button"
                 onClick={() => onNavigate("signin")}
-                className="group inline-flex items-center gap-3 pl-4 pr-1.5 py-1.5 rounded-full bg-slate-950 text-white text-xs font-semibold hover:bg-slate-800 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
+                className="group inline-flex items-center gap-3 pl-4 pr-1.5 py-1.5 rounded-full bg-brand-600 text-white text-xs font-semibold hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-sm"
               >
                 <span>Sign in</span>
-                <span className="w-6 h-6 rounded-full bg-white text-slate-950 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
+                <span className="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200">
                   <ArrowRight className="w-3.5 h-3.5" />
                 </span>
               </button>

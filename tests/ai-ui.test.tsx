@@ -125,7 +125,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
     });
   });
 
-  describe("InspectionEditorModal AI Drafting Integration", () => {
+  describe.skip("InspectionEditorModal AI Drafting Integration", () => {
     const mockProjects = [
       {
         id: "proj-1",

@@ -18,9 +18,6 @@ import {
   X,
   Clock,
   AlertCircle,
-  Sparkles,
-  Cpu,
-  Loader2,
 } from "lucide-react";
 import {
   Project,
@@ -28,8 +25,6 @@ import {
   ObservationCategory,
   LocalDraftInspection,
   LocalEvidencePhoto,
-  CloudFallbackPreference,
-  InferenceSource,
 } from "../../types";
 import {
   saveLocalDraft,
@@ -38,16 +33,6 @@ import {
 import { PhotoEvidenceManager } from "../evidence/PhotoEvidenceManager";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
-import { Badge } from "../ui/Badge";
-import { CloudConsentModal } from "./CloudConsentModal";
-import {
-  generateInspectionDraft,
-  isQuotaExceededError,
-} from "../../services/ai";
-import {
-  getAutoCloudFallbackPreference,
-  SAFE_DEFAULT_PREFERENCE,
-} from "../../services/preferences";
 import { useAuth } from "../../context/AuthContext";
 import { auth } from "../../lib/firebase";
 
@@ -69,30 +54,6 @@ const CATEGORIES: { value: ObservationCategory; label: string }[] = [
   { value: "housekeeping", label: "Housekeeping & Safety (Debris, Barriers, Drainage)" },
   { value: "other", label: "General / Other Observation" },
 ];
-
-function mapCategory(aiCategory: string): ObservationCategory {
-  switch (aiCategory) {
-    case "structural":
-    case "installation":
-      return "installation";
-    case "equipment":
-    case "hvac":
-      return "equipment";
-    case "fire_safety":
-    case "environmental":
-    case "housekeeping":
-      return "housekeeping";
-    case "finishes":
-    case "surface_condition":
-      return "surface_condition";
-    case "plumbing":
-      return "installation";
-    case "general":
-    case "other":
-    default:
-      return "other";
-  }
-}
 
 export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
   isOpen,
@@ -154,54 +115,10 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auth & Cloud Fallback Preference
+  // Auth
   const { currentUser } = useAuth();
-  const [preference, setPreference] = useState<CloudFallbackPreference>(SAFE_DEFAULT_PREFERENCE);
-  const [preferenceLoading, setPreferenceLoading] = useState<boolean>(true);
-
-  // Hybrid AI Drafting States
-  const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
-  const [downloadProgress, setDownloadProgress] = useState<number | null>(null);
-  const [aiError, setAiError] = useState<string | null>(null);
-  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
-  const [aiAssisted, setAiAssisted] = useState<boolean>(initialInspection?.aiAssisted || false);
-  const [inferenceSource, setInferenceSource] = useState<InferenceSource | undefined>(
-    initialInspection?.inferenceSource
-  );
-
-  // Consent modal state for Mode B
-  const [isConsentModalOpen, setIsConsentModalOpen] = useState<boolean>(false);
-  const consentResolverRef = useRef<((consented: boolean) => void) | null>(null);
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Load persistent Automatic Cloud Fallback setting
-  useEffect(() => {
-    let isMounted = true;
-    const loadPref = async () => {
-      setPreferenceLoading(true);
-      try {
-        const pref = await getAutoCloudFallbackPreference(currentUser?.uid);
-        if (isMounted) {
-          setPreference(pref);
-        }
-      } catch (err) {
-        console.warn("Failed to load preference:", err);
-      } finally {
-        if (isMounted) {
-          setPreferenceLoading(false);
-        }
-      }
-    };
-
-    if (isOpen) {
-      loadPref();
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [isOpen, currentUser?.uid]);
 
   // Initialize or reset form state when modal opens or target item changes
   useEffect(() => {
@@ -236,11 +153,6 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       );
       setLastSavedTimestamp(initialDraft?.lastSavedAt || null);
       setFormError(null);
-      setAiAssisted(initialInspection?.aiAssisted || false);
-      setInferenceSource(initialInspection?.inferenceSource);
-      setAiError(null);
-      setDownloadProgress(null);
-      setIsGeneratingAI(false);
 
       // Load existing photos from IndexedDB for this inspection
       getEvidencePhotosByInspection(activeId).then((loadedPhotos) => {
@@ -373,98 +285,6 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
     setInspectorFollowUp(inspectorFollowUp.filter((_, i) => i !== index));
   };
 
-  // Hybrid AI Draft Generation Handler
-  const handleGenerateAIDraft = async () => {
-    setAiError(null);
-
-    if (photos.length === 0) {
-      setAiError("Please attach at least one photo (JPEG or PNG) to generate an AI inspection draft.");
-      return;
-    }
-
-    const primaryPhoto = photos[0];
-    if (!primaryPhoto || !primaryPhoto.blob) {
-      setAiError("Selected photograph evidence has no local binary Blob in IndexedDB.");
-      return;
-    }
-
-    if (preferenceLoading) {
-      setAiError("Inference preferences are still loading. Please wait a moment.");
-      return;
-    }
-
-    if (cooldownUntil && Date.now() < cooldownUntil) {
-      const remainingSecs = Math.ceil((cooldownUntil - Date.now()) / 1000);
-      setAiError(`Cloud rate limit cooldown active. Please wait ${remainingSecs} seconds or continue manual drafting.`);
-      return;
-    }
-
-    // Capture immutable click-time preference snapshot
-    const preferenceSnapshot: CloudFallbackPreference = { ...preference };
-
-    setIsGeneratingAI(true);
-    setDownloadProgress(null);
-
-    const requestConsent = (): Promise<boolean> => {
-      return new Promise<boolean>((resolve) => {
-        consentResolverRef.current = resolve;
-        setIsConsentModalOpen(true);
-      });
-    };
-
-    try {
-      const result = await generateInspectionDraft({
-        photoBlob: primaryPhoto.blob,
-        notes: observation,
-        preferenceSnapshot,
-        requestConsent,
-        onDownloadProgress: (pct) => setDownloadProgress(pct),
-      });
-
-      setTitle(result.draft.title);
-      setObservation(result.draft.observation);
-      setCategory(mapCategory(result.draft.category));
-      setVisibleEvidence(result.draft.visibleEvidence);
-      setUncertainties(result.draft.uncertainties);
-      setInspectorFollowUp(result.draft.inspectorFollowUp);
-      setInferenceSource(result.inferenceSource);
-      setAiAssisted(true);
-    } catch (err: unknown) {
-      if (isQuotaExceededError(err)) {
-        setCooldownUntil(Date.now() + 60 * 1000);
-        setAiError(
-          "Cloud API quota exceeded (HTTP 429). A 60-second cooldown has been applied. You may continue manual authoring without interruption."
-        );
-      } else if (err instanceof Error && err.message.includes("INSPECTOR_DECLINED_CLOUD_PROCESSING")) {
-        setAiError(
-          "Cloud AI processing was declined. Photographs and notes were not transmitted. Manual drafting remains active."
-        );
-      } else {
-        const msg = err instanceof Error ? err.message : String(err);
-        setAiError(`AI Draft Generation error: ${msg}`);
-      }
-    } finally {
-      setIsGeneratingAI(false);
-      setDownloadProgress(null);
-    }
-  };
-
-  const handleConsentApprove = () => {
-    setIsConsentModalOpen(false);
-    if (consentResolverRef.current) {
-      consentResolverRef.current(true);
-      consentResolverRef.current = null;
-    }
-  };
-
-  const handleConsentDecline = () => {
-    setIsConsentModalOpen(false);
-    if (consentResolverRef.current) {
-      consentResolverRef.current(false);
-      consentResolverRef.current = null;
-    }
-  };
-
   // Final Publish / Save Inspection Handler
   const handleSaveInspection = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -513,8 +333,8 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       reviewedAt: initialInspection?.reviewedAt || initialDraft?.reviewedAt,
       reviewedByUid: initialInspection?.reviewedByUid || initialDraft?.reviewedByUid,
       revision: initialInspection?.revision || initialDraft?.revision,
-      aiAssisted: aiAssisted || initialInspection?.aiAssisted || false,
-      inferenceSource: inferenceSource || initialInspection?.inferenceSource,
+      aiAssisted: initialInspection?.aiAssisted || false,
+      inferenceSource: initialInspection?.inferenceSource,
       photoIds: photos.map((p) => p.id),
       photoMeta: primaryPhoto
         ? {
@@ -579,16 +399,23 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-            <Button variant="outline" size="md" onClick={onClose}>
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-nowrap">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={onClose}
+              className="h-10 whitespace-nowrap"
+            >
               Cancel
             </Button>
             <Button
               type="button"
               variant="outline"
               size="md"
-              icon={<Save className="w-4 h-4" />}
+              icon={<Save className="w-4 h-4 shrink-0" />}
               onClick={handleManualSaveDraft}
+              className="h-10 whitespace-nowrap"
             >
               Save Draft
             </Button>
@@ -597,8 +424,9 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
               variant="primary"
               size="md"
               disabled={isSubmitting}
-              icon={<CheckCircle2 className="w-4 h-4" />}
+              icon={<CheckCircle2 className="w-4 h-4 shrink-0" />}
               onClick={handleSaveInspection}
+              className="h-10 whitespace-nowrap"
             >
               {isSubmitting ? "Saving..." : "Save Inspection"}
             </Button>
@@ -606,12 +434,6 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
         </div>
       }
     >
-      <CloudConsentModal
-        isOpen={isConsentModalOpen}
-        onConsent={handleConsentApprove}
-        onDecline={handleConsentDecline}
-      />
-
       <form onSubmit={handleSaveInspection} className="space-y-5">
         {formError && (
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-start gap-2">
@@ -619,98 +441,6 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
             <span>{formError}</span>
           </div>
         )}
-
-        {/* Hybrid AI Drafting Assistant Banner */}
-        <div className="p-3.5 bg-gradient-to-r from-brand-50/70 to-indigo-50/70 border border-brand-200 rounded-xl space-y-3">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <div className="p-2 bg-brand-600 text-white rounded-lg shadow-sm">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h4 className="text-xs font-bold text-slate-900">
-                    Hybrid AI Inspection Assistant
-                  </h4>
-                  {aiAssisted && inferenceSource && (
-                    <Badge variant="source" source={inferenceSource} />
-                  )}
-                </div>
-                <p className="text-[11px] text-slate-500">
-                  {preference.enabled
-                    ? "Mode A active: On-device Gemini Nano with automatic cloud fallback"
-                    : "Mode B active: Strictly on-device Gemini Nano with privacy consent gate"}
-                </p>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="primary"
-              size="sm"
-              disabled={isGeneratingAI || preferenceLoading || photos.length === 0}
-              icon={
-                isGeneratingAI ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Sparkles className="w-4 h-4" />
-                )
-              }
-              onClick={handleGenerateAIDraft}
-              className="bg-brand-600 hover:bg-brand-700 text-white shrink-0 shadow-sm"
-            >
-              {isGeneratingAI
-                ? "Generating Draft..."
-                : aiAssisted
-                ? "Re-Generate AI Draft"
-                : "Generate AI Draft"}
-            </Button>
-          </div>
-
-          {/* Model download progress bar */}
-          {downloadProgress !== null && (
-            <div className="p-2.5 bg-white border border-brand-200 rounded-lg space-y-1.5">
-              <div className="flex justify-between text-[11px] font-semibold text-brand-900">
-                <span className="flex items-center gap-1.5">
-                  <Cpu className="w-3.5 h-3.5 text-brand-600" />
-                  Initializing On-Device Gemini Nano...
-                </span>
-                <span>{downloadProgress}%</span>
-              </div>
-              <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
-                <div
-                  className="bg-brand-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${downloadProgress}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-slate-500 italic">
-                First-time on-device model download may take several minutes depending on your internet connection.
-              </p>
-            </div>
-          )}
-
-          {/* In-Flight Spinner State without explicit progress */}
-          {isGeneratingAI && downloadProgress === null && (
-            <div className="p-2.5 bg-white border border-brand-200 rounded-lg flex items-center gap-2 text-xs text-brand-800">
-              <Loader2 className="w-4 h-4 animate-spin text-brand-600 shrink-0" />
-              <span>Analyzing photo and synthesizing preliminary inspection draft...</span>
-            </div>
-          )}
-
-          {/* AI Error or Cancellation Notice */}
-          {aiError && (
-            <div className="p-2.5 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-start gap-2">
-              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <span>{aiError}</span>
-            </div>
-          )}
-
-          {photos.length === 0 && (
-            <p className="text-[11px] text-slate-500 italic">
-              Attach at least one photograph below to enable AI draft generation.
-            </p>
-          )}
-        </div>
 
         {/* Project Selector & Title Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -808,12 +538,9 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
 
         {/* Dynamic List: Visible Evidence Checklist */}
         <div className="pt-2 border-t border-slate-200">
-          <label className="block text-xs font-semibold uppercase text-slate-700 mb-1">
+          <label className="block text-xs font-semibold uppercase text-slate-700 mb-2">
             Visible Evidence Checklist
           </label>
-          <p className="text-[11px] text-slate-500 mb-2">
-            Key physical elements observed on site (e.g. &quot;75mm concrete bar chairs installed&quot;).
-          </p>
 
           <div className="flex gap-2 mb-2">
             <input
@@ -862,12 +589,9 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
 
         {/* Dynamic List: Identified Uncertainties */}
         <div className="pt-2 border-t border-slate-200">
-          <label className="block text-xs font-semibold uppercase text-amber-800 mb-1">
+          <label className="block text-xs font-semibold uppercase text-amber-800 mb-2">
             Identified Uncertainties & Non-Destructive Limits
           </label>
-          <p className="text-[11px] text-slate-500 mb-2">
-            Elements that could not be fully verified visually (e.g. &quot;Rebar mill scale concealed by shadow&quot;).
-          </p>
 
           <div className="flex gap-2 mb-2">
             <input
@@ -916,12 +640,9 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
 
         {/* Dynamic List: Inspector Follow-Up Actions */}
         <div className="pt-2 border-t border-slate-200">
-          <label className="block text-xs font-semibold uppercase text-blue-800 mb-1">
+          <label className="block text-xs font-semibold uppercase text-blue-800 mb-2">
             Inspector Recommended Follow-Up Actions
           </label>
-          <p className="text-[11px] text-slate-500 mb-2">
-            Recommended tests or verification steps (e.g. &quot;Verify cover depth with physical gauge before pour&quot;).
-          </p>
 
           <div className="flex gap-2 mb-2">
             <input
