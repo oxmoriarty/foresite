@@ -200,15 +200,9 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
       {/* Header & Actions */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div>
-          <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
-            Portfolio Control
-          </span>
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Inspection Projects
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Organize inspections by construction site, facility parcel, or work package.
-          </p>
         </div>
 
         {/* Right Toolbar: Retained Search, Filters button, and Create Project button */}

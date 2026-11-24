@@ -493,9 +493,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
     <div className="space-y-6">
       {/* Screen Title */}
       <div>
-        <span className="text-xs font-bold tracking-wider text-slate-400 uppercase block mb-1">
-          Field Operations
-        </span>
         <div className="flex items-center gap-2">
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
             Site Inspections
@@ -506,9 +503,6 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             </span>
           )}
         </div>
-        <p className="text-xs sm:text-sm text-slate-500 mt-1">
-          Capture field observations, attach local image evidence, and record human review sign offs.
-        </p>
       </div>
 
       {/* Level 1: Search Bar and New Inspection Button */}

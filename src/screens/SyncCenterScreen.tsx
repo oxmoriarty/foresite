@@ -16,7 +16,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
-  ArrowLeftRight,
   RefreshCw,
   Download,
   AlertTriangle,
@@ -301,17 +300,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       {/* Screen Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-brand-50 text-brand-600 rounded-xl flex items-center justify-center border border-brand-200/60 shadow-xs">
-              <ArrowLeftRight className="w-5 h-5" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Sync Center</h1>
-              <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                Monitor offline synchronization, resolve data conflicts, and manage pending changes.
-              </p>
-            </div>
-          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Sync Center</h1>
         </div>
 
         {/* Global Actions */}

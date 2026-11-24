@@ -54,9 +54,7 @@ describe("ForeSite Application Shell Navigation", () => {
     fireEvent.click(syncTab);
 
     expect(screen.getByRole("heading", { name: "Sync Center" })).toBeInTheDocument();
-    expect(
-      screen.getByText("Monitor offline synchronization, resolve data conflicts, and manage pending changes.")
-    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /export diagnostics/i })).toBeInTheDocument();
   });
 
   it("navigates back to Dashboard when Dashboard is clicked in sidebar", () => {
