@@ -498,7 +498,8 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             Site Inspections
           </h1>
           {selectedProjectId && (
-            <span className="px-2.5 py-0.5 text-xs font-semibold bg-brand-100 text-brand-800 rounded-full">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold tracking-wide bg-brand-600 text-white rounded-full shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
               Filtered by Project
             </span>
           )}
@@ -1051,11 +1052,12 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 <Badge variant="status" status={activeInspection.reviewStatus} />
               </div>
               <div>
-                <span className="text-xs text-slate-400 block">Sync Status</span>
+                <span className="text-xs text-slate-400 block mb-1">Sync Status</span>
                 {renderSyncBadge(syncStatuses[activeInspection.id], activeInspection.id) || (
-                  <span className="text-xs text-slate-500 font-medium">
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                     {activeInspection.isLocalDraft && !activeInspection.ownerUid
-                      ? "Device Only (Unassigned)"
+                      ? "Device Only"
                       : activeInspection.isLocalDraft &&
                         activeInspection.ownerUid &&
                         currentUser &&

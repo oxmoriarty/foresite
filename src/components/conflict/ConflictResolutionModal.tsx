@@ -491,7 +491,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <span className="font-semibold text-sm text-slate-800 capitalize">
                             {c.field.replace(/([A-Z])/g, " $1")}
                           </span>
-                          <span className="text-xs text-purple-700 font-medium bg-purple-50 px-2 py-0.5 rounded border border-purple-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-purple-600 text-white shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                             Divergent Changes
                           </span>
                         </div>
@@ -585,7 +586,8 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <span className="font-semibold text-sm text-slate-800">
                             Checklist Item: <span className="font-mono text-xs">{itemId}</span>
                           </span>
-                          <span className="text-xs text-amber-700 font-medium bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
+                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
                             {c.category === "CHECKLIST_EDIT_DELETE" ? "Edit vs Deletion" : "Field Divergence"}
                           </span>
                         </div>

@@ -347,7 +347,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                 {/* Card Footer: Site Label, Optional Location, and Edit/Delete Actions */}
                 <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="px-2 py-0.5 text-[11px] font-bold rounded-md bg-slate-100 text-slate-700 shrink-0">
+                    <span className="px-2.5 py-0.5 text-[10px] font-mono font-bold rounded-md bg-slate-900/90 text-white shadow-xs shrink-0 tracking-wider">
                       {project.siteLabel}
                     </span>
                     {project.location && (

@@ -27,6 +27,7 @@ import {
   ExternalLink,
   ShieldCheck,
   PauseCircle,
+  Filter,
 } from "lucide-react";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
@@ -234,55 +235,55 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       case "queued":
         return {
           label: "Waiting to sync",
-          classes: "bg-amber-50 text-amber-700 border-amber-200",
+          classes: "bg-amber-500 text-white shadow-xs font-bold tracking-wide",
           icon: Clock,
         };
       case "in_flight":
         return {
           label: "Syncing...",
-          classes: "bg-blue-50 text-blue-700 border-blue-200 animate-pulse",
+          classes: "bg-blue-600 text-white shadow-xs font-bold tracking-wide animate-pulse",
           icon: RefreshCw,
         };
       case "succeeded":
         return {
           label: "Synced",
-          classes: "bg-emerald-50 text-emerald-700 border-emerald-200",
+          classes: "bg-emerald-600 text-white shadow-xs font-bold tracking-wide",
           icon: CheckCircle2,
         };
       case "failed":
         return {
           label: "Sync failed - retrying",
-          classes: "bg-orange-50 text-orange-700 border-orange-200",
+          classes: "bg-rose-600 text-white shadow-xs font-bold tracking-wide",
           icon: AlertTriangle,
         };
       case "failed_exhausted":
         return {
           label: "Sync failed - retries exhausted",
-          classes: "bg-red-50 text-red-700 border-red-200 font-semibold",
+          classes: "bg-rose-700 text-white shadow-xs font-bold tracking-wide",
           icon: XCircle,
         };
       case "conflict":
         return {
           label: "Needs conflict resolution",
-          classes: "bg-purple-50 text-purple-700 border-purple-200 font-semibold",
+          classes: "bg-purple-600 text-white shadow-xs font-bold tracking-wide",
           icon: AlertTriangle,
         };
       case "paused_on_conflict":
         return {
           label: "Waiting for earlier conflict",
-          classes: "bg-slate-100 text-slate-600 border-slate-300",
+          classes: "bg-slate-500 text-white shadow-xs font-bold tracking-wide",
           icon: PauseCircle,
         };
       case "cancelled_by_user":
         return {
           label: "Cancelled by user",
-          classes: "bg-slate-100 text-slate-500 border-slate-200",
+          classes: "bg-slate-500 text-white shadow-xs font-bold tracking-wide",
           icon: XCircle,
         };
       default:
         return {
           label: status,
-          classes: "bg-slate-100 text-slate-600 border-slate-200",
+          classes: "bg-slate-500 text-white shadow-xs font-bold tracking-wide",
           icon: HelpCircleIcon,
         };
     }
@@ -426,71 +427,49 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       </div>
 
       {/* Filter Tabs Navigation */}
-      <div className="flex border-b border-slate-200 space-x-1 sm:space-x-4 overflow-x-auto">
-        <button
-          type="button"
-          onClick={() => setActiveTab("all")}
-          className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "all"
-              ? "border-brand-600 text-brand-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          All Activity ({mutations.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("attention")}
-          className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap flex items-center gap-1.5 ${
-            activeTab === "attention"
-              ? "border-purple-600 text-purple-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Needs Attention
-          {((summary?.conflict ?? 0) + (summary?.failedExhausted ?? 0) + (summary?.failed ?? 0)) > 0 && (
-            <span className="px-1.5 py-0.2 rounded-full bg-purple-100 text-purple-800 font-bold text-[10px]">
-              {(summary?.conflict ?? 0) + (summary?.failedExhausted ?? 0) + (summary?.failed ?? 0)}
-            </span>
-          )}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("pending")}
-          className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "pending"
-              ? "border-amber-600 text-amber-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Waiting to Sync ({(summary?.queued ?? 0) + (summary?.inFlight ?? 0) + (summary?.pausedOnConflict ?? 0)})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("synced")}
-          className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "synced"
-              ? "border-emerald-600 text-emerald-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Synced ({summary?.succeeded ?? 0})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("cancelled")}
-          className={`px-3 py-2 text-xs font-semibold border-b-2 transition-colors whitespace-nowrap ${
-            activeTab === "cancelled"
-              ? "border-slate-600 text-slate-700"
-              : "border-transparent text-slate-500 hover:text-slate-700"
-          }`}
-        >
-          Cancelled ({summary?.cancelled ?? 0})
-        </button>
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <span className="text-slate-400 font-semibold flex items-center gap-1 pl-1 pr-2 uppercase tracking-wider text-[11px] shrink-0">
+          <Filter className="w-3.5 h-3.5" />
+          Filter:
+        </span>
+        {[
+          { id: "all", label: `All Activity (${mutations.length})` },
+          {
+            id: "attention",
+            label: "Needs Attention",
+            badgeCount: (summary?.conflict ?? 0) + (summary?.failedExhausted ?? 0) + (summary?.failed ?? 0),
+          },
+          {
+            id: "pending",
+            label: `Waiting to Sync (${(summary?.queued ?? 0) + (summary?.inFlight ?? 0) + (summary?.pausedOnConflict ?? 0)})`,
+          },
+          { id: "synced", label: `Synced (${summary?.succeeded ?? 0})` },
+          { id: "cancelled", label: `Cancelled (${summary?.cancelled ?? 0})` },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id as FilterTab)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
+              activeTab === tab.id
+                ? "bg-slate-900 text-white shadow-xs"
+                : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
+            }`}
+          >
+            <span>{tab.label}</span>
+            {tab.badgeCount !== undefined && tab.badgeCount > 0 && (
+              <span
+                className={`px-1.5 py-0.2 rounded-full font-bold text-[10px] ${
+                  activeTab === tab.id
+                    ? "bg-purple-500 text-white"
+                    : "bg-purple-100 text-purple-800"
+                }`}
+              >
+                {tab.badgeCount}
+              </span>
+            )}
+          </button>
+        ))}
       </div>
 
       {/* Mutation Records List */}
@@ -549,13 +528,13 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                 {/* Card Top Row: Target & Status */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-bold text-sm text-slate-800">
+                    <span className="font-bold text-sm text-slate-800 flex items-center gap-1.5">
                       Inspection:{" "}
-                      <span className="font-mono text-xs font-semibold text-brand-700">
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider shadow-xs bg-slate-900/90 text-white">
                         {m.targetInspectionId}
                       </span>
                     </span>
-                    <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold tracking-wider shadow-xs bg-slate-900/90 text-white">
                       {formatMutationType(m.type)}
                     </span>
                     <span className="text-[11px] text-slate-400 font-mono">
@@ -565,9 +544,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
                   {/* Status Badge */}
                   <span
-                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${statusInfo.classes}`}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-xs ${statusInfo.classes}`}
                   >
-                    <StatusIcon className={`w-3.5 h-3.5 ${m.status === "in_flight" ? "animate-spin" : ""}`} />
+                    <StatusIcon className={`w-3 h-3 text-white shrink-0 ${m.status === "in_flight" ? "animate-spin" : ""}`} />
                     <span>{statusInfo.label}</span>
                   </span>
                 </div>
