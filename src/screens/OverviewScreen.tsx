@@ -73,9 +73,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
       {/* Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Metric 1 */}
-        <Card className="hover:border-brand-200 transition-all duration-300 rounded-2xl">
+        <Card className="hover:border-brand-300 hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 rounded-2xl group cursor-default">
           <CardBody className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-brand-100/80 transition-all duration-300">
               <FolderKanban className="w-6 h-6" />
             </div>
             <div>
@@ -88,9 +88,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 2 */}
-        <Card className="hover:border-brand-200 transition-all duration-300 rounded-2xl">
+        <Card className="hover:border-brand-300 hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 rounded-2xl group cursor-default">
           <CardBody className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-brand-100/80 transition-all duration-300">
               <ClipboardCheck className="w-6 h-6" />
             </div>
             <div>
@@ -103,9 +103,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 3 */}
-        <Card className="hover:border-amber-200 transition-all duration-300 rounded-2xl">
+        <Card className="hover:border-amber-300 hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 rounded-2xl group cursor-default">
           <CardBody className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-amber-100/80 transition-all duration-300">
               <Clock className="w-6 h-6" />
             </div>
             <div>
@@ -118,9 +118,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
         </Card>
 
         {/* Metric 4 */}
-        <Card className="hover:border-emerald-200 transition-all duration-300 rounded-2xl">
+        <Card className="hover:border-emerald-300 hover:shadow-card-hover hover:-translate-y-1 transition-all duration-300 rounded-2xl group cursor-default">
           <CardBody className="p-5 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:bg-emerald-100/80 transition-all duration-300">
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
@@ -206,7 +206,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                 <div
                   key={insp.id}
                   onClick={() => onNavigate("inspections")}
-                  className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
+                  className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
                 >
                   {/* Top: Image or No Image Placeholder */}
                   <div className={`relative aspect-[16/10] w-full overflow-hidden ${photoUrl ? "bg-slate-900" : "bg-slate-100/90 border-b border-slate-200/70"}`}>
@@ -250,7 +250,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                         <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
                           {insp.title}
                         </h3>
-                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0 mt-0.5" />
+                        <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0 mt-0.5" />
                       </div>
 
                       {/* Project / Location */}
@@ -303,7 +303,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                   <div
                     key={insp.id}
                     onClick={() => onNavigate("inspections")}
-                    className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50/80 transition-colors cursor-pointer items-center group"
+                    className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50 transition-all duration-150 cursor-pointer items-center group active:bg-slate-100/80"
                   >
                     {/* Column 1: Thumbnail + Title + ID */}
                     <div className="col-span-6 sm:col-span-5 flex items-center gap-3 min-w-0">
@@ -346,7 +346,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                       <span className="text-xs text-slate-400 whitespace-nowrap">
                         {formatRelativeTime(insp.createdAt)}
                       </span>
-                      <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0" />
+                      <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0" />
                     </div>
                   </div>
                 );

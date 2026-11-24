@@ -299,7 +299,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
               <div
                 key={project.id}
                 onClick={() => onSelectProject(project.id)}
-                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer space-y-4"
+                className="group relative rounded-2xl border border-slate-200/90 bg-white p-5 hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.99] transition-all duration-200 flex flex-col justify-between cursor-pointer space-y-4"
               >
                 {/* Card Top Meta: Calendar Date and Status Pill */}
                 <div className="flex items-center justify-between text-xs">
@@ -361,7 +361,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     <button
                       type="button"
                       onClick={(e) => openEditModal(project, e)}
-                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-90 rounded-lg transition-all cursor-pointer"
                       title="Edit Project"
                       aria-label={`Edit ${project.name}`}
                     >
@@ -370,7 +370,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     <button
                       type="button"
                       onClick={(e) => openDeleteModal(project, e)}
-                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                      className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 active:scale-90 rounded-lg transition-all cursor-pointer"
                       title="Delete Project"
                       aria-label={`Delete ${project.name}`}
                     >

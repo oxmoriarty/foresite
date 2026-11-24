@@ -90,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <Icon
           className={`shrink-0 transition-transform duration-200 ${
             isCollapsed ? "w-5 h-5" : "w-4 h-4"
-          } ${isActive ? "text-white scale-105" : "text-brand-300/80 group-hover:text-white"}`}
+          } ${isActive ? "text-white scale-105" : "text-brand-300/80 group-hover:text-white group-hover:scale-110"}`}
         />
 
         {!isCollapsed && (

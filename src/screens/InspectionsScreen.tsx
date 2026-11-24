@@ -566,7 +566,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
               key={tab.id}
               type="button"
               onClick={() => setStatusFilter(tab.id)}
-              className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
+              className={`px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-95 ${
                 statusFilter === tab.id
                   ? "bg-slate-900 text-white shadow-xs"
                   : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
@@ -582,7 +582,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
               viewMode === "grid"
                 ? "bg-white text-slate-900 shadow-2xs"
                 : "text-slate-500 hover:text-slate-900"
@@ -596,7 +596,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
               viewMode === "list"
                 ? "bg-white text-slate-900 shadow-2xs"
                 : "text-slate-500 hover:text-slate-900"
@@ -640,7 +640,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
               <div
                 key={insp.id}
                 onClick={() => handleOpenDetail(insp)}
-                className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
+                className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
               >
                 {/* Top: Image or No Image Placeholder */}
                 <div className={`relative aspect-[16/10] w-full overflow-hidden ${photoUrl ? "bg-slate-900" : "bg-slate-100/90 border-b border-slate-200/70"}`}>
@@ -691,7 +691,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                       <h3 className="text-base font-bold text-slate-900 group-hover:text-brand-600 transition-colors line-clamp-1">
                         {insp.title}
                       </h3>
-                      <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0 mt-0.5" />
+                      <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0 mt-0.5" />
                     </div>
 
                     {/* Project / Location */}
@@ -777,7 +777,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 <div
                   key={insp.id}
                   onClick={() => handleOpenDetail(insp)}
-                  className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50/80 transition-colors cursor-pointer items-center group"
+                  className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50 active:bg-slate-100/80 transition-all duration-150 cursor-pointer items-center group"
                 >
                   {/* Column 1: Thumbnail + Title + ID */}
                   <div className="col-span-6 sm:col-span-5 flex items-center gap-3 min-w-0">
@@ -847,7 +847,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     >
                       {formatRelativeTime(insp.createdAt)}
                     </span>
-                    <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 transition-colors shrink-0" />
+                    <ArrowUpRight className="w-4 h-4 text-slate-400 group-hover:text-brand-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all duration-200 shrink-0" />
                   </div>
                 </div>
               );

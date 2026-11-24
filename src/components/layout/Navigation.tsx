@@ -46,13 +46,13 @@ export const Navigation: React.FC<NavigationProps> = ({
                 type="button"
                 onClick={() => onSelectView(item.id)}
                 aria-current={isActive ? "page" : undefined}
-                className={`inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
+                className={`group inline-flex items-center gap-2 px-3.5 py-2 text-sm font-medium rounded-full whitespace-nowrap transition-all duration-200 cursor-pointer active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 ${
                   isActive
                     ? "bg-brand-50 text-brand-700 font-semibold shadow-xs ring-1 ring-brand-200/60"
                     : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 active:scale-[0.98]"
                 }`}
               >
-                <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive ? "text-brand-600 scale-105" : "text-slate-400 group-hover:text-slate-600"}`} />
+                <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive ? "text-brand-600 scale-105" : "text-slate-400 group-hover:text-slate-600 group-hover:scale-110"}`} />
                 <span>{item.label}</span>
                 {item.badge !== undefined && (
                   <span

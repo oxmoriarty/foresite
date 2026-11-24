@@ -259,7 +259,7 @@ export const SettingsScreen: React.FC = () => {
         <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed px-5 py-4">
           {/* Storage Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 shadow-2xs cursor-default">
               <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Photos Stored</span>
                 <div className="p-1 rounded-md bg-white border border-slate-200/60 text-brand-600 shadow-2xs">
@@ -271,7 +271,7 @@ export const SettingsScreen: React.FC = () => {
               </span>
             </div>
 
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 shadow-2xs cursor-default">
               <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Pending Uploads</span>
                 <div className="p-1 rounded-md bg-white border border-slate-200/60 text-brand-600 shadow-2xs">
@@ -283,7 +283,7 @@ export const SettingsScreen: React.FC = () => {
               </span>
             </div>
 
-            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
+            <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 shadow-2xs cursor-default">
               <div className="flex items-center justify-between text-slate-500 mb-1.5">
                 <span className="font-medium">Storage Persistence</span>
                 <div className="p-1 rounded-md bg-white border border-slate-200/60 text-emerald-600 shadow-2xs">
@@ -431,7 +431,7 @@ export const SettingsScreen: React.FC = () => {
                 aria-checked={cloudFallbackPref.enabled}
                 disabled={prefSaving || prefLoading}
                 onClick={() => handleToggleFallback(!cloudFallbackPref.enabled)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
                   cloudFallbackPref.enabled ? "bg-brand-600" : "bg-slate-300"
                 } ${prefSaving || prefLoading ? "opacity-50 cursor-not-allowed" : ""}`}
               >

@@ -11,6 +11,7 @@ import {
 import { ViewMode } from "../types";
 import { useAuth } from "../context/AuthContext";
 import { AuthModal } from "../components/auth/AuthModal";
+import { ScrollReveal } from "../components/ui/ScrollReveal";
 
 export interface LandingScreenProps {
   onNavigate: (view: ViewMode) => void;
@@ -70,7 +71,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                 onClick={() => onNavigate("sync")}
                 className="hover:text-slate-950 transition-colors cursor-pointer"
               >
-                Sync Center
+                Uploads
               </button>
             </div>
           </div>
@@ -161,66 +162,70 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          {/* Subtle ForeSite Category Label */}
-          <p className="text-xs sm:text-sm font-semibold text-brand-600 mb-6 tracking-wide uppercase">
-            ForeSite Field Intelligence
-          </p>
+          <ScrollReveal delay={50}>
+            {/* Subtle ForeSite Category Label */}
+            <p className="text-xs sm:text-sm font-semibold text-brand-600 mb-6 tracking-wide uppercase">
+              ForeSite Field Intelligence
+            </p>
 
-          {/* Display Headline: ForeSite Construction Inspection Mission */}
-          <div className="max-w-4xl">
-            <h1 className="text-4xl sm:text-6xl lg:text-[76px] font-extrabold tracking-[-0.035em] text-slate-950 leading-[1.06] mb-10">
-              Inspection intelligence for construction teams ready to build with speed.
-            </h1>
+            {/* Display Headline: ForeSite Construction Inspection Mission */}
+            <div className="max-w-4xl">
+              <h1 className="text-4xl sm:text-6xl lg:text-[76px] font-extrabold tracking-[-0.035em] text-slate-950 leading-[1.06] mb-10">
+                Inspection intelligence for construction teams ready to build with speed.
+              </h1>
 
-            {/* Action Row: Blue Pill Button + View Demo Button */}
-            <div className="flex flex-wrap items-center gap-4">
-              {/* Primary Electric Blue Pill Button */}
-              <button
-                type="button"
-                onClick={() => onNavigate("inspections")}
-                className="group inline-flex items-center gap-3 pl-6 pr-2 py-2.5 rounded-full bg-brand-600 text-white font-semibold text-sm sm:text-base hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-pill"
-              >
-                <span>Start an inspection</span>
-                <span className="w-7 h-7 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
-                  <ArrowRight className="w-4 h-4" />
-                </span>
-              </button>
+              {/* Action Row: Blue Pill Button + View Demo Button */}
+              <div className="flex flex-wrap items-center gap-4">
+                {/* Primary Electric Blue Pill Button */}
+                <button
+                  type="button"
+                  onClick={() => onNavigate("inspections")}
+                  className="group inline-flex items-center gap-3 pl-6 pr-2 py-2.5 rounded-full bg-brand-600 text-white font-semibold text-sm sm:text-base hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-pill"
+                >
+                  <span>Start an inspection</span>
+                  <span className="w-7 h-7 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-xs">
+                    <ArrowRight className="w-4 h-4" />
+                  </span>
+                </button>
 
-              {/* View Demo Button */}
-              <button
-                type="button"
-                onClick={() => onNavigate("demo")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
-              >
-                <span>View Demo</span>
-              </button>
+                {/* View Demo Button */}
+                <button
+                  type="button"
+                  onClick={() => onNavigate("demo")}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-xs sm:text-sm hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
+                >
+                  <span>View Demo</span>
+                </button>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </section>
 
       {/* Section 1: Introducing ForeSite (Asymmetrical Editorial Layout) */}
       <section className="py-20 sm:py-32 bg-white border-t border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Marker Badge: Circle with number + text */}
-          <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
-              01
+          <ScrollReveal>
+            {/* Section Marker Badge: Circle with number + text */}
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
+                01
+              </div>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Introducing ForeSite
+              </span>
             </div>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Introducing ForeSite
-            </span>
-          </div>
 
-          {/* Section Headline */}
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 max-w-4xl mb-16 leading-[1.12]">
-            Field ready inspection tools delivering clear verification on site and in the office.
-          </h2>
+            {/* Section Headline */}
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 max-w-4xl mb-16 leading-[1.12]">
+              Field ready inspection tools delivering clear verification on site and in the office.
+            </h2>
+          </ScrollReveal>
 
           {/* Two Column Layout with Asymmetrical Visual Storytelling */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             {/* Left Column: ForeSite Narrative + Action Pill Button + Small Visual Card */}
-            <div className="lg:col-span-5 space-y-8">
+            <ScrollReveal delay={100} className="lg:col-span-5 space-y-8">
               <div className="space-y-4">
                 <p className="text-base sm:text-lg text-slate-600 leading-relaxed font-normal">
                   Inspectors capture photographic evidence on site without network delay.
@@ -258,10 +263,10 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
 
             {/* Right Column: Large Wide Collaboration Card (Field engineering team at site board) */}
-            <div className="lg:col-span-7">
+            <ScrollReveal delay={200} className="lg:col-span-7">
               <div className="rounded-2xl sm:rounded-3xl overflow-hidden shadow-xl border border-slate-200/80 bg-slate-50 group hover:-translate-y-1 transition-all duration-300">
                 <div className="relative aspect-[16/11] w-full overflow-hidden bg-slate-100">
                   <img
@@ -279,7 +284,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
@@ -287,164 +292,170 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       {/* Section 2: Our Inspection Projects (Two Large Rounded-3xl Cards) */}
       <section className="py-20 sm:py-32 bg-slate-50 border-t border-slate-200/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Section Marker */}
-          <div className="flex items-center gap-2.5 mb-5">
-            <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
-              02
+          <ScrollReveal>
+            {/* Section Marker */}
+            <div className="flex items-center gap-2.5 mb-5">
+              <div className="w-6 h-6 rounded-full bg-slate-950 text-white text-xs font-bold flex items-center justify-center">
+                02
+              </div>
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Active site projects
+              </span>
             </div>
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              Active site projects
-            </span>
-          </div>
 
-          {/* Section Headline */}
-          <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 mb-14">
-            Site inspection projects
-          </h2>
+            {/* Section Headline */}
+            <h2 className="text-3xl sm:text-5xl font-extrabold tracking-[-0.03em] text-slate-950 mb-14">
+              Site inspection projects
+            </h2>
+          </ScrollReveal>
 
           {/* Two Large Showcase Cards Side by Side (Exact 2-Col Layout) */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Card 1: Metro North Station with Heavy Civil 3D Structural Crane Visual */}
-            <div className="rounded-[32px] bg-slate-950 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
-              {/* Top Card Info */}
-              <div className="relative z-10 flex items-start justify-between">
-                <div>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-yellow-300 border border-white/10 mb-3">
-                    Heavy Civil Infrastructure
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    Metro North Station
-                  </h3>
-                  <p className="text-sm text-slate-400 mt-1 max-w-sm">
-                    Structural pier falsework and footing excavation audit.
-                  </p>
+            <ScrollReveal delay={100} className="h-full">
+              <div className="rounded-[32px] bg-slate-950 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
+                {/* Top Card Info */}
+                <div className="relative z-10 flex items-start justify-between">
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-white/10 text-yellow-300 border border-white/10 mb-3">
+                      Heavy Civil Infrastructure
+                    </span>
+                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                      Metro North Station
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1 max-w-sm">
+                      Structural pier falsework and footing excavation audit.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("projects")}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
+                    title="View Project"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => onNavigate("projects")}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
-                  title="View Project"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
+                {/* Center 3D Yellow Structural Crane / Heavy Equipment Object */}
+                <div className="relative my-6 flex items-center justify-center">
+                  <img
+                    src="/images/yellow-rig-3d.jpg"
+                    alt="3D rendered stylized heavy civil foundation crane rig"
+                    className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-[0_25px_35px_rgba(234,179,8,0.25)] transition-transform duration-500 group-hover:scale-105 rounded-2xl"
+                    loading="lazy"
+                  />
+                </div>
 
-              {/* Center 3D Yellow Structural Crane / Heavy Equipment Object */}
-              <div className="relative my-6 flex items-center justify-center">
-                <img
-                  src="/images/yellow-rig-3d.jpg"
-                  alt="3D rendered stylized heavy civil foundation crane rig"
-                  className="w-64 h-64 sm:w-80 sm:h-80 object-contain drop-shadow-[0_25px_35px_rgba(234,179,8,0.25)] transition-transform duration-500 group-hover:scale-105 rounded-2xl"
-                  loading="lazy"
-                />
+                {/* Bottom Card Footer */}
+                <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
+                  <span>Verified Inspection Model</span>
+                  <span className="text-yellow-400 font-semibold">100% Signed Off</span>
+                </div>
               </div>
-
-              {/* Bottom Card Footer */}
-              <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
-                <span>Verified Inspection Model</span>
-                <span className="text-yellow-400 font-semibold">100% Signed Off</span>
-              </div>
-            </div>
+            </ScrollReveal>
 
             {/* Card 2: Floating Product UI Mockup for Site Inspection Workspace */}
-            <div className="rounded-[32px] bg-slate-900 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
-              {/* Top Card Info */}
-              <div className="relative z-10 flex items-start justify-between">
-                <div>
-                  <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-3">
-                    Field Intelligence System
-                  </span>
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
-                    Site Ecosystem
-                  </h3>
-                  <p className="text-sm text-slate-400 mt-1 max-w-sm">
-                    Offline evidence capture with local observation intelligence.
-                  </p>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => onNavigate("inspections")}
-                  className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
-                  title="View Inspections"
-                >
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Center Floating Glassmorphic UI Card */}
-              <div className="relative my-6 flex items-center justify-center">
-                <div className="w-full max-w-md bg-white/95 rounded-2xl p-6 sm:p-8 text-slate-900 shadow-2xl border border-white/20 backdrop-blur-xl">
-                  {/* Mockup Headline for ForeSite */}
-                  <div className="text-center mb-6">
-                    <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200 mb-2">
-                      Local Evidence Retention
+            <ScrollReveal delay={200} className="h-full">
+              <div className="rounded-[32px] bg-slate-900 text-white p-8 sm:p-12 shadow-2xl relative overflow-hidden group hover:-translate-y-1.5 transition-all duration-300 min-h-[540px] flex flex-col justify-between">
+                {/* Top Card Info */}
+                <div className="relative z-10 flex items-start justify-between">
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-500/20 text-blue-300 border border-blue-500/30 mb-3">
+                      Field Intelligence System
                     </span>
-                    <h4 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
-                      An inspection solution that works for your site ecosystem
-                    </h4>
+                    <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-white">
+                      Site Ecosystem
+                    </h3>
+                    <p className="text-sm text-slate-400 mt-1 max-w-sm">
+                      Offline evidence capture with local observation intelligence.
+                    </p>
                   </div>
 
-                  {/* Central 3D Spatial Sensor & Intelligence Sphere Image */}
-                  <div className="relative my-4 flex items-center justify-center">
-                    <img
-                      src="/images/ecosystem-orb-3d.jpg"
-                      alt="3D rendered crystal spatial inspection intelligence sphere with holographic rings"
-                      className="w-36 h-36 sm:w-44 sm:h-44 object-contain rounded-2xl drop-shadow-[0_15px_25px_rgba(99,102,241,0.35)] transition-transform duration-500 group-hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => onNavigate("inspections")}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 flex items-center justify-center transition-colors cursor-pointer"
+                    title="View Inspections"
+                  >
+                    <ArrowRight className="w-5 h-5" />
+                  </button>
+                </div>
 
-                  {/* Bottom Tool Dock with 5 Site Tool Icons */}
-                  <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-100">
-                    <div
-                      className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                      title="Camera Capture"
-                    >
-                      <Camera className="w-4 h-4" />
+                {/* Center Floating Glassmorphic UI Card */}
+                <div className="relative my-6 flex items-center justify-center">
+                  <div className="w-full max-w-md bg-white/95 rounded-2xl p-6 sm:p-8 text-slate-900 shadow-2xl border border-white/20 backdrop-blur-xl">
+                    {/* Mockup Headline for ForeSite */}
+                    <div className="text-center mb-6">
+                      <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-brand-50 text-brand-700 border border-brand-200 mb-2">
+                        Local Evidence Retention
+                      </span>
+                      <h4 className="text-lg sm:text-xl font-extrabold tracking-tight text-slate-900">
+                        An inspection solution that works for your site ecosystem
+                      </h4>
                     </div>
-                    <div
-                      className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                      title="Local Storage"
-                    >
-                      <Database className="w-4 h-4" />
+
+                    {/* Central 3D Spatial Sensor & Intelligence Sphere Image */}
+                    <div className="relative my-4 flex items-center justify-center">
+                      <img
+                        src="/images/ecosystem-orb-3d.jpg"
+                        alt="3D rendered crystal spatial inspection intelligence sphere with holographic rings"
+                        className="w-36 h-36 sm:w-44 sm:h-44 object-contain rounded-2xl drop-shadow-[0_15px_25px_rgba(99,102,241,0.35)] transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     </div>
-                    <div
-                      className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-pill scale-110 cursor-pointer"
-                      title="AI Observation Drafts"
-                    >
-                      <Sparkles className="w-5 h-5" />
-                    </div>
-                    <div
-                      className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                      title="Lead Inspector Verification"
-                    >
-                      <CheckCircle2 className="w-4 h-4" />
-                    </div>
-                    <div
-                      className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                      title="Project Search"
-                    >
-                      <Search className="w-4 h-4" />
+
+                    {/* Bottom Tool Dock with 5 Site Tool Icons */}
+                    <div className="flex items-center justify-center gap-3 pt-4 border-t border-slate-100">
+                      <div
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                        title="Camera Capture"
+                      >
+                        <Camera className="w-4 h-4" />
+                      </div>
+                      <div
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                        title="Local Storage"
+                      >
+                        <Database className="w-4 h-4" />
+                      </div>
+                      <div
+                        className="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center shadow-pill scale-110 cursor-pointer"
+                        title="AI Observation Drafts"
+                      >
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <div
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                        title="Lead Inspector Verification"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </div>
+                      <div
+                        className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                        title="Project Search"
+                      >
+                        <Search className="w-4 h-4" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Bottom Card Footer */}
-              <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
-                <span>Durable IndexedDB Architecture</span>
-                <span className="text-emerald-400 font-semibold">Zero Cloud Lock In</span>
+                {/* Bottom Card Footer */}
+                <div className="relative z-10 flex items-center justify-between text-xs text-slate-400 pt-4 border-t border-slate-800">
+                  <span>Durable IndexedDB Architecture</span>
+                  <span className="text-emerald-400 font-semibold">Zero Cloud Lock In</span>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           </div>
         </div>
       </section>
 
       {/* Conversion Banner: Clean, Spacious, Startup Level */}
       <section className="py-24 sm:py-32 bg-white text-slate-900 border-t border-slate-100">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <ScrollReveal className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="w-10 h-10 rounded-full bg-slate-950 text-white font-bold text-sm flex items-center justify-center mx-auto mb-8 shadow-sm">
             FS
           </div>
@@ -478,12 +489,12 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
             <button
               type="button"
               onClick={() => onNavigate("signin")}
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-sm sm:text-base hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-white border border-slate-200 text-slate-800 font-semibold text-sm sm:text-base hover:bg-slate-50 hover:border-slate-300 active:scale-95 transition-all duration-200 cursor-pointer shadow-xs"
             >
               <span>Sign in</span>
             </button>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
 
       {/* Minimalist Studio Footer */}

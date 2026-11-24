@@ -109,7 +109,7 @@ export const Badge: React.FC<BadgeProps> = ({
     <span
       className={twMerge(
         clsx(
-          "inline-flex items-center px-2.5 py-0.5 text-xs font-semibold tracking-wide",
+          "inline-flex items-center px-2.5 py-0.5 text-xs font-semibold tracking-wide transition-all duration-200 select-none",
           shapeClass,
           colorStyles,
           className

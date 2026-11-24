@@ -65,7 +65,7 @@ export const Modal: React.FC<ModalProps> = ({
     >
       <div
         ref={modalRef}
-        className={`w-full ${maxWidthStyles[maxWidth]} bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden transform transition-all`}
+        className={`w-full ${maxWidthStyles[maxWidth]} bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden transform transition-all animate-in fade-in zoom-in-95 duration-200`}
       >
         {/* Modal Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">

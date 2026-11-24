@@ -365,7 +365,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
       {/* KPI Stats Summary Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
             Waiting
           </span>
@@ -374,7 +374,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           </span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default">
           <span className="text-[11px] font-semibold text-blue-600 uppercase tracking-wider block">
             In Flight
           </span>
@@ -383,7 +383,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           </span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default">
           <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">
             Uploaded
           </span>
@@ -392,7 +392,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           </span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default">
           <span className="text-[11px] font-semibold text-orange-600 uppercase tracking-wider block">
             Failed
           </span>
@@ -402,7 +402,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
         </div>
 
         <div
-          className={`p-3.5 rounded-lg border shadow-2xs transition-all ${
+          className={`p-3.5 rounded-lg border shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default ${
             (summary?.conflict ?? 0) > 0
               ? "bg-purple-50/70 border-purple-300 ring-1 ring-purple-400"
               : "bg-white border-slate-200"
@@ -416,7 +416,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           </span>
         </div>
 
-        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
+        <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs hover:-translate-y-0.5 hover:shadow-card-hover transition-all duration-200 cursor-default">
           <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block">
             Cancelled
           </span>
@@ -450,7 +450,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id as FilterTab)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 font-semibold rounded-full transition-all duration-200 whitespace-nowrap cursor-pointer active:scale-95 ${
               activeTab === tab.id
                 ? "bg-slate-900 text-white shadow-xs"
                 : "bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-100/80"
@@ -517,12 +517,12 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             return (
               <div
                 key={m.id}
-                className={`p-4 bg-white border rounded-lg shadow-2xs transition-all space-y-3 ${
+                className={`p-4 bg-white border rounded-lg shadow-2xs hover:shadow-card-hover transition-all duration-200 space-y-3 ${
                   m.status === "conflict"
                     ? "border-purple-300 ring-1 ring-purple-100"
                     : m.status === "failed_exhausted"
                     ? "border-red-300"
-                    : "border-slate-200"
+                    : "border-slate-200 hover:border-slate-300"
                 }`}
               >
                 {/* Card Top Row: Target & Status */}
