@@ -113,7 +113,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
 
       // Verifies Mode B (Default) is reflected
       expect(screen.getByText(/Disabled \(Default\)/i)).toBeInTheDocument();
-      expect(screen.getByText(/Synced with Cloud/i)).toBeInTheDocument();
+      expect(screen.getByText(/Uploaded to Cloud/i)).toBeInTheDocument();
 
       // Toggles the switch
       const toggleBtn = screen.getByRole("switch");

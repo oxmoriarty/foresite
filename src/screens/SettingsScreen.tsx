@@ -273,7 +273,7 @@ export const SettingsScreen: React.FC = () => {
 
             <div className="p-3.5 bg-slate-50/80 rounded-xl border border-slate-200/80 hover:border-slate-300/80 transition-all shadow-2xs">
               <div className="flex items-center justify-between text-slate-500 mb-1.5">
-                <span className="font-medium">Unsynced Drafts</span>
+                <span className="font-medium">Pending Uploads</span>
                 <div className="p-1 rounded-md bg-white border border-slate-200/60 text-brand-600 shadow-2xs">
                   <HardDrive className="w-3.5 h-3.5" />
                 </div>
@@ -382,7 +382,7 @@ export const SettingsScreen: React.FC = () => {
             ) : cloudFallbackPref.syncStatus === "synced" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-emerald-600 text-white shadow-xs">
                 <CheckCircle2 className="w-3 h-3 text-white shrink-0" />
-                Synced with Cloud
+                Uploaded to Cloud
               </span>
             ) : cloudFallbackPref.syncStatus === "failed" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">

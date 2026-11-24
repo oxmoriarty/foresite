@@ -1,5 +1,5 @@
 import React from "react";
-import { LayoutDashboard, FolderKanban, ClipboardCheck, Settings, ArrowLeftRight } from "lucide-react";
+import { LayoutDashboard, FolderKanban, ClipboardCheck, Settings, UploadCloud } from "lucide-react";
 import { ViewMode } from "../../types";
 
 export interface NavigationProps {
@@ -26,8 +26,8 @@ export const Navigation: React.FC<NavigationProps> = ({
     },
     {
       id: "sync",
-      label: "Sync Center",
-      icon: ArrowLeftRight,
+      label: "Uploads",
+      icon: UploadCloud,
       badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,
     },
     { id: "settings", label: "Settings", icon: Settings },

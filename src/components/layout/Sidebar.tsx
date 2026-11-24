@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   FolderKanban,
   ClipboardCheck,
-  ArrowLeftRight,
+  UploadCloud,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -53,8 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: "sync",
-      label: "Sync Center",
-      icon: ArrowLeftRight,
+      label: "Uploads",
+      icon: UploadCloud,
       badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,
     },
   ];

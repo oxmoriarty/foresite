@@ -205,12 +205,12 @@ describe("SyncCenterScreen Component", () => {
     closeDatabase();
   });
 
-  it("renders Sync Center heading, KPI counters, and mutation cards", async () => {
+  it("renders Uploads heading, KPI counters, and mutation cards", async () => {
     render(<SyncCenterScreen />);
 
     // Heading and items loaded
     await waitFor(() => {
-      expect(screen.getByText("Sync Center")).toBeInTheDocument();
+      expect(screen.getByText("Uploads")).toBeInTheDocument();
       expect(screen.getByText("insp-queued-1")).toBeInTheDocument();
     });
 
@@ -220,9 +220,9 @@ describe("SyncCenterScreen Component", () => {
     expect(screen.getByText("Failed")).toBeInTheDocument();
 
     // Plain-language badges in list
-    expect(screen.getByText("Waiting to sync")).toBeInTheDocument();
+    expect(screen.getByText("Waiting to upload")).toBeInTheDocument();
     expect(screen.getByText("Needs conflict resolution")).toBeInTheDocument();
-    expect(screen.getByText("Sync failed - retries exhausted")).toBeInTheDocument();
+    expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
   });
 
   it("filters mutations when clicking filter tabs", async () => {
@@ -239,10 +239,10 @@ describe("SyncCenterScreen Component", () => {
     // Only conflict and failed should be visible, queued should not
     expect(screen.queryByText("insp-queued-1")).not.toBeInTheDocument();
     expect(screen.getByText("Needs conflict resolution")).toBeInTheDocument();
-    expect(screen.getByText("Sync failed - retries exhausted")).toBeInTheDocument();
+    expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
 
-    // Click "Waiting to Sync" tab
-    const waitingTab = screen.getByRole("button", { name: /Waiting to Sync/i });
+    // Click "Waiting to Upload" tab
+    const waitingTab = screen.getByRole("button", { name: /Waiting to Upload/i });
     fireEvent.click(waitingTab);
 
     // Now queued item is visible
@@ -262,7 +262,7 @@ describe("SyncCenterScreen Component", () => {
 
     // Modal title from ConflictResolutionModal
     await waitFor(() => {
-      expect(screen.getByText("Resolve Synchronization Conflict")).toBeInTheDocument();
+      expect(screen.getByText("Resolve Upload Conflict")).toBeInTheDocument();
     });
   });
 
@@ -270,10 +270,10 @@ describe("SyncCenterScreen Component", () => {
     render(<SyncCenterScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Sync failed - retries exhausted")).toBeInTheDocument();
+      expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
     });
 
-    const retryBtn = screen.getByRole("button", { name: /Retry Sync/i });
+    const retryBtn = screen.getByRole("button", { name: /Retry Upload/i });
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
@@ -314,11 +314,11 @@ describe("SyncCenterScreen Component", () => {
     render(<SyncCenterScreen />);
 
     await waitFor(() => {
-      expect(screen.getAllByRole("button", { name: /Retry Sync/i }).length).toBeGreaterThan(0);
+      expect(screen.getAllByRole("button", { name: /Retry Upload/i }).length).toBeGreaterThan(0);
     });
 
     // Click retry on the downstream mutation (newest mutation with sequence number higher than conflict)
-    const retryBtns = screen.getAllByRole("button", { name: /Retry Sync/i });
+    const retryBtns = screen.getAllByRole("button", { name: /Retry Upload/i });
     expect(retryBtns[0]).toBeDefined();
     fireEvent.click(retryBtns[0]!);
 
@@ -346,7 +346,7 @@ describe("SyncCenterScreen Component", () => {
     render(<SyncCenterScreen />);
 
     await waitFor(() => {
-      expect(screen.getByText("Sync failed - retries exhausted")).toBeInTheDocument();
+      expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
     });
 
     // Click discard on the failed mutation
@@ -374,19 +374,19 @@ describe("SyncCenterScreen Component", () => {
     expect(photos[0]!.id).toBe("photo-sc-keep");
   });
 
-  it("triggers manual sync replay on '[Sync Now]' button click", async () => {
+  it("triggers manual sync replay on '[Upload Now]' button click", async () => {
     render(<SyncCenterScreen />);
 
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Sync Now/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /Upload Now/i })).toBeInTheDocument();
     });
 
-    const syncNowBtn = screen.getByRole("button", { name: /Sync Now/i });
+    const syncNowBtn = screen.getByRole("button", { name: /Upload Now/i });
     fireEvent.click(syncNowBtn);
 
     await waitFor(() => {
       expect(mutationReplay.replayQueuedMutations).toHaveBeenCalled();
-      expect(screen.getByText(/Synchronization complete: 1 change\(s\) uploaded/i)).toBeInTheDocument();
+      expect(screen.getByText(/Upload complete: 1 change\(s\) uploaded/i)).toBeInTheDocument();
     });
   });
 

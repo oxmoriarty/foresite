@@ -112,21 +112,21 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       const result = await replayQueuedMutations();
       if (result.status === "SUCCESS") {
         if (result.processedCount === 0) {
-          setActionSuccess("Queue is clear. No offline changes to synchronize.");
+          setActionSuccess("Queue is clear. No offline changes to upload.");
         } else {
-          setActionSuccess(`Synchronization complete: ${result.succeededCount} change(s) uploaded.`);
+          setActionSuccess(`Upload complete: ${result.succeededCount} change(s) uploaded.`);
         }
       } else if (result.status === "PARTIAL_SUCCESS") {
-        setActionSuccess(`Partial synchronization: ${result.succeededCount} succeeded, ${result.conflictCount} conflict(s).`);
+        setActionSuccess(`Partial upload: ${result.succeededCount} succeeded, ${result.conflictCount} conflict(s).`);
       } else if (result.status === "UNAUTHENTICATED") {
-        setActionError("Please sign in to synchronize offline changes.");
+        setActionError("Please sign in to upload offline changes.");
       } else if (result.status === "LOCKED_BY_ANOTHER_TAB") {
-        setActionError("Synchronization is already active in another browser tab.");
+        setActionError("Upload is already active in another browser tab.");
       } else {
-        setActionError(`Sync finished with issues: ${result.message || result.status}`);
+        setActionError(`Upload finished with issues: ${result.message || result.status}`);
       }
     } catch (err) {
-      setActionError(`Sync failed: ${err instanceof Error ? err.message : String(err)}`);
+      setActionError(`Upload failed: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setSyncing(false);
       loadQueueData();
@@ -147,7 +147,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
     try {
       await retryFailedMutation(currentUser.uid, mutation.id);
-      setActionSuccess(`Mutation queued for retry. Initiating synchronization...`);
+      setActionSuccess(`Mutation queued for retry. Initiating upload...`);
       // Trigger replay in background
       replayQueuedMutations().catch(() => {});
       await loadQueueData();
@@ -172,7 +172,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
     setActionSuccess(null);
 
     try {
-      await discardMutation(currentUser.uid, discardTarget.id, "Discarded via Sync Center");
+      await discardMutation(currentUser.uid, discardTarget.id, "Discarded via Uploads");
       setActionSuccess(`Mutation ${discardTarget.id} cancelled. Local photos preserved.`);
       setDiscardTarget(null);
       await loadQueueData();
@@ -234,31 +234,31 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
     switch (status) {
       case "queued":
         return {
-          label: "Waiting to sync",
+          label: "Waiting to upload",
           classes: "bg-amber-500 text-white shadow-xs font-bold tracking-wide",
           icon: Clock,
         };
       case "in_flight":
         return {
-          label: "Syncing...",
+          label: "Uploading...",
           classes: "bg-blue-600 text-white shadow-xs font-bold tracking-wide animate-pulse",
           icon: RefreshCw,
         };
       case "succeeded":
         return {
-          label: "Synced",
+          label: "Uploaded",
           classes: "bg-emerald-600 text-white shadow-xs font-bold tracking-wide",
           icon: CheckCircle2,
         };
       case "failed":
         return {
-          label: "Sync failed - retrying",
+          label: "Upload failed, retrying",
           classes: "bg-rose-600 text-white shadow-xs font-bold tracking-wide",
           icon: AlertTriangle,
         };
       case "failed_exhausted":
         return {
-          label: "Sync failed - retries exhausted",
+          label: "Upload failed, retries exhausted",
           classes: "bg-rose-700 text-white shadow-xs font-bold tracking-wide",
           icon: XCircle,
         };
@@ -301,7 +301,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       {/* Screen Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200/80 pb-5">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Sync Center</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Uploads</h1>
         </div>
 
         {/* Global Actions */}
@@ -325,7 +325,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
             className="flex items-center gap-1.5 rounded-full shadow-pill"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${syncing ? "animate-spin" : ""}`} />
-            {syncing ? "Syncing..." : "Sync Now"}
+            {syncing ? "Uploading..." : "Upload Now"}
           </Button>
         </div>
       </div>
@@ -385,7 +385,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
         <div className="p-3.5 bg-white border border-slate-200 rounded-lg shadow-2xs">
           <span className="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">
-            Synced
+            Uploaded
           </span>
           <span className="text-xl font-bold text-emerald-700 mt-1 block">
             {summary?.succeeded ?? 0}
@@ -441,9 +441,9 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           },
           {
             id: "pending",
-            label: `Waiting to Sync (${(summary?.queued ?? 0) + (summary?.inFlight ?? 0) + (summary?.pausedOnConflict ?? 0)})`,
+            label: `Waiting to Upload (${(summary?.queued ?? 0) + (summary?.inFlight ?? 0) + (summary?.pausedOnConflict ?? 0)})`,
           },
-          { id: "synced", label: `Synced (${summary?.succeeded ?? 0})` },
+          { id: "synced", label: `Uploaded (${summary?.succeeded ?? 0})` },
           { id: "cancelled", label: `Cancelled (${summary?.cancelled ?? 0})` },
         ].map((tab) => (
           <button
@@ -476,7 +476,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
       {loading ? (
         <div className="py-16 text-center text-slate-500 space-y-2">
           <Clock className="w-6 h-6 animate-spin mx-auto text-brand-600" />
-          <p className="text-xs">Loading synchronization records...</p>
+          <p className="text-xs">Loading upload records...</p>
         </div>
       ) : filteredMutations.length === 0 ? (
         <div className="py-16 bg-white border border-slate-200 rounded-lg text-center p-8 space-y-3">
@@ -492,8 +492,8 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           </h3>
           <p className="text-xs text-slate-500 max-w-sm mx-auto">
             {activeTab === "attention"
-              ? "All your local offline operations have synchronized smoothly without conflicting with remote changes."
-              : "All local modifications have been synchronized."}
+              ? "All your local offline operations have uploaded smoothly without conflicting with remote changes."
+              : "All local modifications have been uploaded."}
           </p>
           {onNavigateToInspections && (
             <Button
@@ -623,7 +623,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                         className="flex items-center gap-1.5 text-xs text-brand-700 border-brand-300 hover:bg-brand-50"
                       >
                         <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? "animate-spin" : ""}`} />
-                        {isRetrying ? "Retrying..." : "Retry Sync"}
+                        {isRetrying ? "Retrying..." : "Retry Upload"}
                       </Button>
                     )}
 
@@ -666,7 +666,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                 <p>
                   Mutation <span className="font-mono font-medium">{discardTarget.id}</span> ({formatMutationType(discardTarget.type)})
                   for inspection <span className="font-mono font-medium">{discardTarget.targetInspectionId}</span> will be marked as
-                  cancelled and will never be synchronized.
+                  cancelled and will never be uploaded.
                 </p>
                 <p className="font-semibold text-red-950">
                   Photographic evidence Blobs saved on this device will NOT be deleted.
@@ -702,7 +702,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
           mutation={conflictMutation}
           onResolved={() => {
             loadQueueData();
-            setActionSuccess("Conflict resolved successfully. Synchronizing updated inspection...");
+            setActionSuccess("Conflict resolved successfully. Uploading updated inspection...");
           }}
         />
       )}

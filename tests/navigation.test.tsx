@@ -47,13 +47,13 @@ describe("ForeSite Application Shell Navigation", () => {
     expect(screen.getByText("Local Storage & Capacity")).toBeInTheDocument();
   });
 
-  it("navigates to Sync Center screen when Sync Center is clicked in sidebar", () => {
+  it("navigates to Uploads screen when Uploads is clicked in navigation", () => {
     render(<App />);
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
-    const syncTab = within(nav).getByRole("button", { name: /sync center/i });
+    const syncTab = within(nav).getByRole("button", { name: /uploads/i });
     fireEvent.click(syncTab);
 
-    expect(screen.getByRole("heading", { name: "Sync Center" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Uploads" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /export diagnostics/i })).toBeInTheDocument();
   });
 

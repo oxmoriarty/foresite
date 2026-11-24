@@ -3,7 +3,7 @@ import {
   LayoutDashboard,
   FolderKanban,
   ClipboardCheck,
-  ArrowLeftRight,
+  UploadCloud,
   Settings,
   X,
   LogOut,
@@ -81,8 +81,8 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
     },
     {
       id: "sync",
-      label: "Sync Center",
-      icon: ArrowLeftRight,
+      label: "Uploads",
+      icon: UploadCloud,
       badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,
     },
   ];

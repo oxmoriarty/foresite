@@ -399,7 +399,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Resolve Synchronization Conflict"
+      title="Resolve Upload Conflict"
       maxWidth="xl"
     >
       <div className="space-y-6">
@@ -444,10 +444,10 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                     <p>{reviewConflictMessage}</p>
                     <p className="text-amber-800">
                       ForeSite strictly protects human review decisions: you cannot automatically approve or reject this
-                      inspection through the conflict resolver. Applying this resolution will synchronize observation
+                      inspection through the conflict resolver. Applying this resolution will upload observation
                       fields while preserving the authoritative remote review status (
                       <span className="font-bold">{remoteSnapshot?.reviewStatus}</span>). An authorized inspector can
-                      subsequently review the synchronized inspection through the standard review process.
+                      subsequently review the uploaded inspection through the standard review process.
                     </p>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
               {scalarConflicts.length === 0 && checklistConflicts.length === 0 ? (
                 <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 text-center">
-                  No direct content field conflicts detected. Review state or metadata requires synchronization.
+                  No direct content field conflicts detected. Review state or metadata requires upload.
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -769,10 +769,10 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
               {submitting ? (
                 <span className="flex items-center gap-1.5">
                   <RotateCcw className="w-3.5 h-3.5 animate-spin" />
-                  Applying & Syncing...
+                  Applying & Uploading...
                 </span>
               ) : (
-                "Apply Resolution & Sync"
+                "Apply Resolution & Upload"
               )}
             </Button>
           </div>

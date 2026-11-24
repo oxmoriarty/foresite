@@ -454,7 +454,7 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
               type="button"
               onClick={() => onNavigate("signin")}
               className="px-4 py-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-xs transition-all cursor-pointer"
-              title="Sign in when you want multi device cloud synchronization"
+              title="Sign in to save and upload your inspections to the cloud"
             >
               Sign In
             </button>

@@ -252,7 +252,7 @@ describe("ConflictResolutionModal Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("disables 'Apply Resolution & Sync' until all conflicting fields have an explicit choice", async () => {
+  it("disables 'Apply Resolution & Upload' until all conflicting fields have an explicit choice", async () => {
     render(
       <ConflictResolutionModal
         isOpen={true}
@@ -266,7 +266,7 @@ describe("ConflictResolutionModal Component", () => {
       expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
     });
 
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Sync/i });
+    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
     expect(resolveBtn).toBeDisabled();
     expect(
       screen.getByText(/Selection required for all fields/i)
@@ -309,7 +309,7 @@ describe("ConflictResolutionModal Component", () => {
     fireEvent.click(remoteChangeCards[1]!);
 
     // Now Resolve button must be enabled
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Sync/i });
+    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
     expect(resolveBtn).toBeEnabled();
 
     // Click Resolve
@@ -362,7 +362,7 @@ describe("ConflictResolutionModal Component", () => {
     expect(remoteChangeCards[1]).toBeDefined();
     fireEvent.click(remoteChangeCards[1]!);
 
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Sync/i });
+    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
     fireEvent.click(resolveBtn);
 
     // Should detect concurrency and show error

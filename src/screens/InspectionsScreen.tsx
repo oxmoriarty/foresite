@@ -143,31 +143,31 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
             <Clock className="w-3 h-3 text-blue-500 animate-spin" />
-            Syncing...
+            Uploading...
           </span>
         );
       case "waiting_to_sync":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
             <Clock className="w-3 h-3 text-white shrink-0" />
-            Waiting to Sync
+            Waiting to Upload
           </span>
         );
       case "synced":
         return (
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-emerald-600 text-white shadow-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-            Synced
+            Uploaded
           </span>
         );
       case "sync_failed":
         return (
           <span
             className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-rose-600 text-white shadow-xs"
-            title={status.failureReason || "Sync failed"}
+            title={status.failureReason || "Upload failed"}
           >
             <XCircle className="w-3 h-3 text-white shrink-0" />
-            Sync Failed
+            Upload Failed
           </span>
         );
       case "conflict":
@@ -176,7 +176,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
             type="button"
             onClick={(e) => inspectionId && handleOpenConflictModal(inspectionId, e)}
             className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-purple-600 text-white shadow-xs hover:bg-purple-700 cursor-pointer transition-colors"
-            title={status.conflictReason || "Conflict detected - click to resolve"}
+            title={status.conflictReason || "Conflict detected, click to resolve"}
           >
             <AlertTriangle className="w-3 h-3 text-white shrink-0" />
             Conflict
@@ -186,10 +186,10 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         return (
           <span
             className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs"
-            title="Synchronization cancelled by user"
+            title="Upload cancelled by user"
           >
             <XCircle className="w-3 h-3 text-white shrink-0" />
-            Sync Cancelled
+            Upload Cancelled
           </span>
         );
       case "local_only":
@@ -1052,7 +1052,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 <Badge variant="status" status={activeInspection.reviewStatus} />
               </div>
               <div>
-                <span className="text-xs text-slate-400 block mb-1">Sync Status</span>
+                <span className="text-xs text-slate-400 block mb-1">Upload Status</span>
                 {renderSyncBadge(syncStatuses[activeInspection.id], activeInspection.id) || (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
@@ -1256,7 +1256,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                 <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-1.5">
                   <span className="font-semibold block">Inspection Deletion:</span>
                   <p>
-                    • Deletion will be queued and synchronized across your workspace.
+                    • Deletion will be queued and uploaded across your workspace.
                   </p>
                   <p>
                     • Associated evidence files will be removed.
