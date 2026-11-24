@@ -1,22 +1,18 @@
 import React, { useState, useEffect } from "react";
 import {
   Database,
-  ShieldCheck,
   Cpu,
-  HardHat,
   UserCheck,
   AlertCircle,
   HardDrive,
   RefreshCw,
   Trash2,
   Lock,
-  Sparkles,
   CheckCircle2,
 } from "lucide-react";
 import { Card, CardBody, CardHeader } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
 import { Modal } from "../components/ui/Modal";
-import { config } from "../config/env";
 import { useAuth } from "../context/AuthContext";
 import {
   getStorageQuotaEstimate,
@@ -178,12 +174,9 @@ export const SettingsScreen: React.FC = () => {
         <h1 className="text-2xl font-bold tracking-tight text-slate-900">
           Settings & Preferences
         </h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Review inspector profile, storage management, and AI processing configuration.
-        </p>
       </div>
 
-      {/* Section 0: Inspector Authentication & Profile */}
+      {/* Section 0: Inspector Profile */}
       <Card>
         <CardHeader className="flex items-center gap-3 bg-slate-50/60">
           <div className="p-2 bg-brand-100 text-brand-700 rounded-lg">
@@ -193,26 +186,23 @@ export const SettingsScreen: React.FC = () => {
             <h2 className="text-sm font-semibold text-slate-900">
               Inspector Profile
             </h2>
-            <p className="text-xs text-slate-500">
-              Account identity and verification status
-            </p>
           </div>
         </CardHeader>
         <CardBody className="space-y-3 text-xs text-slate-700">
           {currentUser ? (
             <div className="space-y-2">
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="font-medium text-slate-600">Inspector Name:</span>
+                <span className="font-medium text-slate-600">Name</span>
                 <span className="font-semibold text-slate-900">
                   {userProfile?.displayName || currentUser.displayName || "Site Inspector"}
                 </span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="font-medium text-slate-600">Email Address:</span>
+                <span className="font-medium text-slate-600">Email</span>
                 <span className="font-mono text-slate-900">{currentUser.email}</span>
               </div>
               <div className="flex justify-between py-1.5 border-b border-slate-100">
-                <span className="font-medium text-slate-600">Email Verification:</span>
+                <span className="font-medium text-slate-600">Verification</span>
                 <span
                   className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide shadow-xs ${
                     currentUser.emailVerified
@@ -225,7 +215,7 @@ export const SettingsScreen: React.FC = () => {
                 </span>
               </div>
               <div className="flex justify-between py-1.5">
-                <span className="font-medium text-slate-600">Assigned Role:</span>
+                <span className="font-medium text-slate-600">Role</span>
                 <span className="font-medium text-slate-800">
                   {userProfile?.role || "Site Inspector"}
                 </span>
@@ -244,7 +234,7 @@ export const SettingsScreen: React.FC = () => {
         </CardBody>
       </Card>
 
-      {/* Section 1: Storage Management */}
+      {/* Section 1: Local Storage & Capacity */}
       <Card>
         <CardHeader className="flex items-center justify-between bg-slate-50/60">
           <div className="flex items-center gap-3">
@@ -255,9 +245,6 @@ export const SettingsScreen: React.FC = () => {
               <h2 className="text-sm font-semibold text-slate-900">
                 Local Storage & Capacity
               </h2>
-              <p className="text-xs text-slate-500">
-                Local photo binary storage and browser disk capacity
-              </p>
             </div>
           </div>
           <button
@@ -271,7 +258,7 @@ export const SettingsScreen: React.FC = () => {
           </button>
         </CardHeader>
         <CardBody className="space-y-4 text-xs text-slate-700 leading-relaxed">
-          {/* Real-Time Storage Metrics Grid */}
+          {/* Storage Metrics Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
               <div className="flex items-center justify-between text-slate-500 mb-1">
@@ -281,21 +268,15 @@ export const SettingsScreen: React.FC = () => {
               <span className="text-lg font-bold text-slate-900">
                 {localPhotoCount} photos
               </span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">
-                Local evidence files
-              </span>
             </div>
 
             <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
               <div className="flex items-center justify-between text-slate-500 mb-1">
-                <span className="font-medium">Unsynced Local Drafts</span>
+                <span className="font-medium">Unsynced Drafts</span>
                 <HardDrive className="w-3.5 h-3.5 text-brand-600" />
               </div>
               <span className="text-lg font-bold text-slate-900">
                 {localDraftCount} drafts
-              </span>
-              <span className="text-[10px] text-slate-400 block mt-0.5">
-                Recoverable across reloads
               </span>
             </div>
 
@@ -305,7 +286,7 @@ export const SettingsScreen: React.FC = () => {
                 <Lock className="w-3.5 h-3.5 text-emerald-600" />
               </div>
               <span className="text-xs font-bold text-slate-900 block truncate">
-                {storageInfo.persisted ? "Persisted (Protected)" : "Standard (Best-effort)"}
+                {storageInfo.persisted ? "Persisted (Protected)" : "Standard"}
               </span>
               {!storageInfo.persisted && (
                 <button
@@ -323,7 +304,7 @@ export const SettingsScreen: React.FC = () => {
           {storageInfo.supported && storageInfo.quotaBytes > 0 && (
             <div className="p-3 bg-white border border-slate-200 rounded-lg space-y-2">
               <div className="flex justify-between items-center text-xs">
-                <span className="font-semibold text-slate-800">Browser Disk Quota Usage</span>
+                <span className="font-semibold text-slate-800">Storage Usage</span>
                 <span className="font-mono text-slate-600">
                   {formatBytes(storageInfo.usageBytes)} / {formatBytes(storageInfo.quotaBytes)} ({storageInfo.usagePercentage}%)
                 </span>
@@ -342,9 +323,9 @@ export const SettingsScreen: React.FC = () => {
           {/* Reset Evidence Storage */}
           <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
             <div>
-              <span className="font-semibold text-slate-800 block">Reset Local Evidence Database</span>
+              <span className="font-semibold text-slate-800 block">Clear Local Data</span>
               <span className="text-[11px] text-slate-500">
-                Purge all photographic evidence and local drafts stored on this device.
+                Delete stored evidence photos and drafts from this device.
               </span>
             </div>
             <Button
@@ -354,7 +335,7 @@ export const SettingsScreen: React.FC = () => {
               icon={<Trash2 className="w-3.5 h-3.5" />}
               onClick={() => setIsClearModalOpen(true)}
             >
-              Clear Local Data
+              Clear Data
             </Button>
           </div>
         </CardBody>
@@ -371,9 +352,6 @@ export const SettingsScreen: React.FC = () => {
               <h2 className="text-sm font-semibold text-slate-900">
                 AI & Privacy — Automatic Cloud Fallback
               </h2>
-              <p className="text-xs text-slate-500">
-                Hybrid AI inference routing policy and cloud transmission control
-              </p>
             </div>
           </div>
           {/* Sync Status Badge */}
@@ -390,12 +368,12 @@ export const SettingsScreen: React.FC = () => {
             ) : cloudFallbackPref.syncStatus === "failed" ? (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
                 <AlertCircle className="w-3 h-3 text-white shrink-0" />
-                ON (Local Only - Unsynced)
+                Local Only
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
                 <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                Offline Default (OFF)
+                Offline Default
               </span>
             )}
           </div>
@@ -420,8 +398,8 @@ export const SettingsScreen: React.FC = () => {
               </div>
               <p className="text-slate-600 text-xs">
                 {cloudFallbackPref.enabled
-                  ? "Mode A active: On-device inference is attempted first; automatically falls back to cloud AI if the local model is unavailable or unready. Per-request consent modal is bypassed."
-                  : "Mode B active (Default): Strictly on-device inference. Awaits on-device model download. If on-device inference is unavailable, execution halts locally before network transmission, requiring explicit consent per request."}
+                  ? "Uses cloud processing automatically when on device AI is unavailable."
+                  : "Processes data on device only. Asks for permission before connecting to the cloud."}
               </p>
               {prefStatusMessage && (
                 <p className="text-brand-600 font-medium text-[11px] pt-1">
@@ -452,76 +430,6 @@ export const SettingsScreen: React.FC = () => {
               </button>
             </div>
           </div>
-
-          {/* Operational Policy Comparison */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-            <div
-              className={`p-3 rounded-lg border ${
-                cloudFallbackPref.enabled
-                  ? "bg-brand-50/50 border-brand-200 ring-1 ring-brand-200"
-                  : "bg-slate-50 border-slate-200"
-              }`}
-            >
-              <div className="flex items-center gap-1.5 font-semibold text-slate-900 mb-1">
-                <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-                <span>Setting ON — Automatic Cloud Fallback</span>
-              </div>
-              <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
-                <li>Attempts on-device processing first.</li>
-                <li>Seamless cloud fallback during background model download.</li>
-                <li>Bypasses per-request consent modal for streamlined workflow.</li>
-              </ul>
-            </div>
-
-            <div
-              className={`p-3 rounded-lg border ${
-                !cloudFallbackPref.enabled
-                  ? "bg-brand-50/50 border-brand-200 ring-1 ring-brand-200"
-                  : "bg-slate-50 border-slate-200"
-              }`}
-            >
-              <div className="flex items-center gap-1.5 font-semibold text-slate-900 mb-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Setting OFF — Consent-Controlled (Default)</span>
-              </div>
-              <ul className="list-disc pl-4 space-y-1 text-slate-600 text-[11px]">
-                <li>Strictly on-device processing.</li>
-                <li>Halts before cloud transmission if local model is unavailable.</li>
-                <li>Requires explicit inspector confirmation per request.</li>
-              </ul>
-            </div>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Section 3: Application Information */}
-      <Card>
-        <CardHeader className="flex items-center gap-3 bg-slate-50/60">
-          <div className="p-2 bg-slate-100 text-slate-700 rounded-lg">
-            <HardHat className="w-5 h-5" />
-          </div>
-          <div>
-            <h2 className="text-sm font-semibold text-slate-900">
-              Application Information
-            </h2>
-            <p className="text-xs text-slate-500">
-              Version and workspace details
-            </p>
-          </div>
-        </CardHeader>
-        <CardBody className="space-y-2 text-xs text-slate-600">
-          <div className="flex justify-between py-1 border-b border-slate-100">
-            <span>Application Name:</span>
-            <span className="font-semibold text-slate-900">{config.appName}</span>
-          </div>
-          <div className="flex justify-between py-1 border-b border-slate-100">
-            <span>Version:</span>
-            <span className="font-semibold text-slate-900">{config.appVersion}</span>
-          </div>
-          <div className="flex justify-between py-1">
-            <span>License:</span>
-            <span className="font-semibold text-slate-900">MIT Open Source License</span>
-          </div>
         </CardBody>
       </Card>
 
@@ -532,7 +440,7 @@ export const SettingsScreen: React.FC = () => {
         title={
           <div className="flex items-center gap-2 text-red-700">
             <AlertCircle className="w-5 h-5 text-red-600" />
-            <span>Confirm Reset of Local Evidence</span>
+            <span>Clear Local Data</span>
           </div>
         }
         footer={
@@ -546,18 +454,18 @@ export const SettingsScreen: React.FC = () => {
               disabled={isClearing}
               onClick={handleClearAllEvidence}
             >
-              {isClearing ? "Resetting..." : "Permanently Clear Local Storage"}
+              {isClearing ? "Clearing..." : "Clear Local Data"}
             </Button>
           </>
         }
       >
         <div className="space-y-3 text-xs text-slate-700">
           <p>
-            Are you sure you want to completely erase all local photographic evidence files and unfinished inspection drafts stored on this device?
+            Are you sure you want to delete stored evidence photos and drafts from this device?
           </p>
           <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800">
             <span className="font-bold block">Destructive Action:</span>
-            This will purge {localPhotoCount} photograph(s) and {localDraftCount} local draft(s).
+            This will delete {localPhotoCount} photo(s) and {localDraftCount} draft(s).
           </div>
         </div>
       </Modal>
