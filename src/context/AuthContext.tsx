@@ -36,6 +36,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   sendVerificationEmail: () => Promise<void>;
+  reloadUser: () => Promise<boolean>;
   refreshUserProfile: () => Promise<void>;
   loginAsDemo: () => Promise<void>;
   clearError: () => void;
@@ -277,6 +278,40 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
     }
   }, [currentUser]);
 
+  const reloadUser = useCallback(async (): Promise<boolean> => {
+    setError(null);
+    if (!hasValidConfig) {
+      return true;
+    }
+    if (!auth.currentUser) return false;
+    try {
+      await auth.currentUser.reload();
+      const updated = auth.currentUser;
+      if (updated) {
+        const clonedUser = Object.assign(
+          Object.create(Object.getPrototypeOf(updated)),
+          updated
+        ) as User;
+        setCurrentUser(clonedUser);
+        if (clonedUser.emailVerified) {
+          try {
+            const profile = await syncUserProfile(clonedUser);
+            setUserProfile(profile);
+          } catch (profileErr) {
+            console.warn("Profile sync error after email verification:", profileErr);
+          }
+          return true;
+        }
+      }
+      return false;
+    } catch (err: unknown) {
+      const e = err as { code?: string; message?: string };
+      const friendly = getFriendlyAuthError(e.code || "", e.message || "");
+      setError(friendly);
+      return false;
+    }
+  }, []);
+
   const contextValue = useMemo<AuthContextType>(
     () => ({
       currentUser,
@@ -289,11 +324,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
       logout,
       resetPassword,
       sendVerificationEmail,
+      reloadUser,
       refreshUserProfile,
       loginAsDemo,
       clearError,
     }),
-    [currentUser, userProfile, loading, error, refreshUserProfile, sendVerificationEmail]
+    [currentUser, userProfile, loading, error, refreshUserProfile, sendVerificationEmail, reloadUser]
   );
 
   return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>;

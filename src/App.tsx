@@ -12,6 +12,7 @@ import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
 import { SyncCenterScreen } from "./screens/SyncCenterScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
+import { VerifyEmailScreen } from "./screens/VerifyEmailScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import {
   getUserProjects,
@@ -154,7 +155,7 @@ export interface AppProps {
 }
 
 const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
-  const { currentUser, isConfigured } = useAuth();
+  const { currentUser, isConfigured, logout } = useAuth();
   const defaultInitialView: ViewMode =
     !currentUser && initialView && initialView !== "landing" && initialView !== "demo"
       ? "signin"
@@ -223,10 +224,12 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
 
   useEffect(() => {
     if (currentUser?.uid && isConfigured) {
-      loadUserData(currentUser.uid);
-      void recoverPhotoCleanups(currentUser.uid).catch((err) => {
-        console.warn("Startup photo cleanup recovery error:", err);
-      });
+      if (currentUser.emailVerified) {
+        loadUserData(currentUser.uid);
+        void recoverPhotoCleanups(currentUser.uid).catch((err) => {
+          console.warn("Startup photo cleanup recovery error:", err);
+        });
+      }
     } else {
       setProjects(INITIAL_PROJECTS);
       setInspections(INITIAL_INSPECTIONS);
@@ -687,6 +690,10 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
         return;
       }
 
+      if (!currentUser.emailVerified) {
+        return;
+      }
+
       // User is authenticated: proceed to destination
       setCurrentView(targetView);
       if (options?.projectId) {
@@ -702,6 +709,9 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   // Reactive redirect: When user signs in, immediately take them to their intended destination
   useEffect(() => {
     if (currentUser) {
+      if (!currentUser.emailVerified) {
+        return;
+      }
       if (pendingDestination) {
         const dest = pendingDestination;
         setPendingDestination(null);
@@ -749,7 +759,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           onSaveInspection={handleSaveInspection}
           onUpdateInspectionStatus={handleUpdateInspectionStatus}
         />
-      ) : currentView === "signin" || !currentUser ? (
+      ) : !currentUser ? (
         <SignInScreen
           onSuccess={() => {
             // Handled reactively by currentUser useEffect
@@ -764,6 +774,17 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
               ? currentView.charAt(0).toUpperCase() + currentView.slice(1)
               : undefined
           }
+        />
+      ) : !currentUser.emailVerified ? (
+        <VerifyEmailScreen
+          email={currentUser.email || ""}
+          onSignOut={async () => {
+            await logout();
+            setCurrentView("landing");
+          }}
+          onVerificationSuccess={() => {
+            setCurrentView("overview");
+          }}
         />
       ) : (
         <div className="min-h-screen bg-slate-50 text-slate-900 flex">
