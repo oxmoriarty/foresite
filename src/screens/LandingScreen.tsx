@@ -236,11 +236,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent pointer-events-none" />
-                  <div className="absolute bottom-3 left-4 right-4 flex items-center justify-between text-white text-[11px] z-10">
-                    <span className="font-semibold">Pier Footing Rebar Audit</span>
-                    <span className="text-slate-300">Sector 4 Field Hub</span>
-                  </div>
                 </div>
               </div>
             </ScrollReveal>
@@ -260,7 +255,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     <span className="font-semibold text-slate-900">
                       Structural inspection sign off review
                     </span>
-                    <span className="text-slate-500">Field office planning board</span>
                   </div>
                 </div>
               </div>
