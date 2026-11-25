@@ -125,10 +125,21 @@ export function isDocumentedLocalModelUnavailability(err: unknown): boolean {
     return false;
   }
 
-  // 3. Documented Firebase AI Logic SDK errors: AIError with AIErrorCode.UNSUPPORTED
-  // Thrown by SDK when ONLY_ON_DEVICE is requested but model/browser is unsupported
+  // 3. Documented Firebase AI Logic SDK errors: AIError with AIErrorCode.UNSUPPORTED, NO_MODEL, or API_NOT_ENABLED
+  // Thrown by SDK when ONLY_ON_DEVICE is requested but model/browser is unsupported or prompt API is disabled
   if (err instanceof AIError) {
-    return err.code === AIErrorCode.UNSUPPORTED;
+    const code = (err.code || "").toLowerCase();
+    return (
+      code === AIErrorCode.UNSUPPORTED.toLowerCase() ||
+      code === "ai/unsupported" ||
+      code === "unsupported" ||
+      code === AIErrorCode.NO_MODEL.toLowerCase() ||
+      code === "ai/no-model" ||
+      code === "no-model" ||
+      code === AIErrorCode.API_NOT_ENABLED.toLowerCase() ||
+      code === "ai/api-not-enabled" ||
+      code === "api-not-enabled"
+    );
   }
 
   // 4. Documented browser DOMException when Chrome Prompt API is not supported on this platform/hardware
@@ -143,8 +154,32 @@ export function isDocumentedLocalModelUnavailability(err: unknown): boolean {
     "code" in err &&
     typeof (err as { code: unknown }).code === "string"
   ) {
-    const code = (err as { code: string }).code;
-    if (code === AIErrorCode.UNSUPPORTED || code === "ai/unsupported") {
+    const code = (err as { code: string }).code.toLowerCase();
+    if (
+      code === AIErrorCode.UNSUPPORTED.toLowerCase() ||
+      code === "ai/unsupported" ||
+      code === "unsupported" ||
+      code === AIErrorCode.NO_MODEL.toLowerCase() ||
+      code === "ai/no-model" ||
+      code === "no-model" ||
+      code === AIErrorCode.API_NOT_ENABLED.toLowerCase() ||
+      code === "ai/api-not-enabled" ||
+      code === "api-not-enabled"
+    ) {
+      return true;
+    }
+  }
+
+  // 6. Generic Error with message indicating local model API is not available or enabled in current environment
+  if (err instanceof Error) {
+    const msg = err.message.toLowerCase();
+    if (
+      msg.includes("local languagemodel api not available") ||
+      msg.includes("api-not-enabled") ||
+      msg.includes("ai/api-not-enabled") ||
+      msg.includes("not available in this environment") ||
+      msg.includes("model not available")
+    ) {
       return true;
     }
   }
