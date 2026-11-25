@@ -18,6 +18,8 @@ import {
   X,
   Clock,
   AlertCircle,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import {
   Project,
@@ -25,6 +27,8 @@ import {
   ObservationCategory,
   LocalDraftInspection,
   LocalEvidencePhoto,
+  CloudFallbackPreference,
+  InferenceSource,
 } from "../../types";
 import {
   saveLocalDraft,
@@ -33,6 +37,16 @@ import {
 import { PhotoEvidenceManager } from "../evidence/PhotoEvidenceManager";
 import { Button } from "../ui/Button";
 import { Modal } from "../ui/Modal";
+import { Badge } from "../ui/Badge";
+import { CloudConsentModal } from "./CloudConsentModal";
+import {
+  generateInspectionDraft,
+  isQuotaExceededError,
+} from "../../services/ai";
+import {
+  getAutoCloudFallbackPreference,
+  SAFE_DEFAULT_PREFERENCE,
+} from "../../services/preferences";
 import { useAuth } from "../../context/AuthContext";
 import { auth } from "../../lib/firebase";
 
@@ -54,6 +68,30 @@ const CATEGORIES: { value: ObservationCategory; label: string }[] = [
   { value: "housekeeping", label: "Housekeeping & Safety (Debris, Barriers, Drainage)" },
   { value: "other", label: "General / Other Observation" },
 ];
+
+function mapCategory(aiCategory: string): ObservationCategory {
+  switch (aiCategory) {
+    case "structural":
+    case "installation":
+      return "installation";
+    case "equipment":
+    case "hvac":
+      return "equipment";
+    case "fire_safety":
+    case "environmental":
+    case "housekeeping":
+      return "housekeeping";
+    case "finishes":
+    case "surface_condition":
+      return "surface_condition";
+    case "plumbing":
+      return "installation";
+    case "general":
+    case "other":
+    default:
+      return "other";
+  }
+}
 
 export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
   isOpen,
@@ -115,10 +153,46 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Auth
+  // Auth & Cloud Fallback Preference
   const { currentUser } = useAuth();
+  const [preference, setPreference] = useState<CloudFallbackPreference>(SAFE_DEFAULT_PREFERENCE);
+
+  // Hybrid AI Drafting States
+  const [isGeneratingAI, setIsGeneratingAI] = useState<boolean>(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const [aiAssisted, setAiAssisted] = useState<boolean>(initialInspection?.aiAssisted || false);
+  const [inferenceSource, setInferenceSource] = useState<InferenceSource | undefined>(
+    initialInspection?.inferenceSource
+  );
+
+  // Consent modal state for Mode B
+  const [isConsentModalOpen, setIsConsentModalOpen] = useState<boolean>(false);
+  const consentResolverRef = useRef<((consented: boolean) => void) | null>(null);
 
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load persistent Automatic Cloud Fallback setting
+  useEffect(() => {
+    let isMounted = true;
+    const loadPref = async () => {
+      try {
+        const pref = await getAutoCloudFallbackPreference(currentUser?.uid);
+        if (isMounted) {
+          setPreference(pref);
+        }
+      } catch (err) {
+        console.warn("Failed to load preference:", err);
+      }
+    };
+
+    if (isOpen) {
+      loadPref();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen, currentUser?.uid]);
 
   // Initialize or reset form state when modal opens or target item changes
   useEffect(() => {
@@ -153,6 +227,10 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       );
       setLastSavedTimestamp(initialDraft?.lastSavedAt || null);
       setFormError(null);
+      setAiAssisted(initialInspection?.aiAssisted || false);
+      setInferenceSource(initialInspection?.inferenceSource);
+      setAiError(null);
+      setIsGeneratingAI(false);
 
       // Load existing photos from IndexedDB for this inspection
       getEvidencePhotosByInspection(activeId).then((loadedPhotos) => {
@@ -211,8 +289,80 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       initialInspection,
       initialDraft,
       currentUser?.uid,
+      aiAssisted,
+      inferenceSource,
     ]
   );
+
+  // Hybrid AI Draft Generation Handler
+  const handleGenerateAIDraft = async () => {
+    setFormError(null);
+    setAiError(null);
+
+    if (photos.length === 0) {
+      setFormError("Please upload or capture at least one site photograph before generating an AI draft.");
+      return;
+    }
+
+    setIsGeneratingAI(true);
+
+    const primaryPhoto = photos[0];
+    if (!primaryPhoto) {
+      setFormError("Please upload or capture at least one site photograph before generating an AI draft.");
+      return;
+    }
+
+    setIsGeneratingAI(true);
+
+    try {
+      const result = await generateInspectionDraft({
+        photoBlob: primaryPhoto.blob,
+        notes: observation,
+        preferenceSnapshot: preference,
+        requestConsent: () => {
+          return new Promise<boolean>((resolve) => {
+            consentResolverRef.current = resolve;
+            setIsConsentModalOpen(true);
+          });
+        },
+      });
+
+      const draft = result.draft;
+
+      if (draft.title) {
+        setTitle(draft.title);
+      }
+      if (draft.observation) {
+        setObservation(draft.observation);
+      }
+      if (draft.category) {
+        setCategory(mapCategory(draft.category));
+      }
+      if (draft.visibleEvidence && draft.visibleEvidence.length > 0) {
+        setVisibleEvidence(draft.visibleEvidence);
+      }
+      if (draft.uncertainties && draft.uncertainties.length > 0) {
+        setUncertainties(draft.uncertainties);
+      }
+      if (draft.inspectorFollowUp && draft.inspectorFollowUp.length > 0) {
+        setInspectorFollowUp(draft.inspectorFollowUp);
+      }
+
+      setAiAssisted(true);
+      setInferenceSource(result.inferenceSource);
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message.includes("INSPECTOR_DECLINED_CLOUD_PROCESSING")) {
+        setAiError("Cloud processing was declined. You can continue drafting manually.");
+      } else if (isQuotaExceededError(err)) {
+        setAiError("AI rate limit reached. Please wait a moment before trying again.");
+      } else {
+        const message = err instanceof Error ? err.message : String(err);
+        setAiError(`AI draft generation could not be completed: ${message}`);
+      }
+    } finally {
+      setIsGeneratingAI(false);
+    }
+  };
 
   // Debounced auto-save to IndexedDB as user types
   useEffect(() => {
@@ -333,8 +483,8 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
       reviewedAt: initialInspection?.reviewedAt || initialDraft?.reviewedAt,
       reviewedByUid: initialInspection?.reviewedByUid || initialDraft?.reviewedByUid,
       revision: initialInspection?.revision || initialDraft?.revision,
-      aiAssisted: initialInspection?.aiAssisted || false,
-      inferenceSource: initialInspection?.inferenceSource,
+      aiAssisted: aiAssisted || initialInspection?.aiAssisted || false,
+      inferenceSource: inferenceSource || initialInspection?.inferenceSource,
       photoIds: photos.map((p) => p.id),
       photoMeta: primaryPhoto
         ? {
@@ -384,6 +534,9 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
               ? "Continue Inspection Draft"
               : "New Site Inspection"}
           </span>
+          {aiAssisted && (
+            <Badge variant="source" source={inferenceSource || "ON_DEVICE"} />
+          )}
         </div>
       }
       maxWidth="xl"
@@ -400,6 +553,23 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-nowrap">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              disabled={isGeneratingAI}
+              icon={
+                isGeneratingAI ? (
+                  <Loader2 className="w-4 h-4 shrink-0 animate-spin text-brand-600" />
+                ) : (
+                  <Sparkles className="w-4 h-4 shrink-0 text-brand-600" />
+                )
+              }
+              onClick={handleGenerateAIDraft}
+              className="h-10 whitespace-nowrap border-brand-300 text-brand-800 hover:bg-brand-50"
+            >
+              {isGeneratingAI ? "Drafting..." : "AI Draft"}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -439,6 +609,22 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
           <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-start gap-2">
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
             <span>{formError}</span>
+          </div>
+        )}
+
+        {aiError && (
+          <div className="p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <span>{aiError}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAiError(null)}
+              className="text-amber-600 hover:text-amber-800 cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
           </div>
         )}
 
@@ -689,6 +875,25 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
           </div>
         </div>
       </form>
+
+      {/* Cloud Consent Modal for Mode B Privacy Gate */}
+      <CloudConsentModal
+        isOpen={isConsentModalOpen}
+        onConsent={() => {
+          setIsConsentModalOpen(false);
+          if (consentResolverRef.current) {
+            consentResolverRef.current(true);
+            consentResolverRef.current = null;
+          }
+        }}
+        onDecline={() => {
+          setIsConsentModalOpen(false);
+          if (consentResolverRef.current) {
+            consentResolverRef.current(false);
+            consentResolverRef.current = null;
+          }
+        }}
+      />
     </Modal>
   );
 };

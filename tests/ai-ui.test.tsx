@@ -125,7 +125,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
     });
   });
 
-  describe.skip("InspectionEditorModal AI Drafting Integration", () => {
+  describe("InspectionEditorModal AI Drafting Integration", () => {
     const mockProjects = [
       {
         id: "proj-1",
@@ -137,7 +137,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
       },
     ];
 
-    it("disables AI draft button when no photograph is attached", async () => {
+    it("shows error when AI draft button is clicked without a photograph", async () => {
       vi.spyOn(preferences, "getAutoCloudFallbackPreference").mockResolvedValue({
         enabled: false,
         source: "default",
@@ -156,14 +156,17 @@ describe("ForeSite Phase 4 AI UI Components", () => {
       );
 
       await waitFor(() => {
-        expect(screen.getByText(/Hybrid AI Inspection Assistant/i)).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /^AI Draft$/i })).toBeInTheDocument();
       });
 
-      const aiDraftButton = screen.getByRole("button", { name: /Generate AI Draft/i });
-      expect(aiDraftButton).toBeDisabled();
-      expect(
-        screen.getByText(/Attach at least one photograph below to enable AI draft generation/i)
-      ).toBeInTheDocument();
+      const aiDraftButton = screen.getByRole("button", { name: /^AI Draft$/i });
+      fireEvent.click(aiDraftButton);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText(/Please upload or capture at least one site photograph before generating an AI draft/i)
+        ).toBeInTheDocument();
+      });
     });
 
     it("generates an AI draft and populates fields when photo is attached", async () => {
@@ -213,12 +216,12 @@ describe("ForeSite Phase 4 AI UI Components", () => {
 
       // Wait for photo and preference to load
       await waitFor(() => {
-        const aiDraftButton = screen.getByRole("button", { name: /Generate AI Draft/i });
-        expect(aiDraftButton).not.toBeDisabled();
+        const aiDraftButton = screen.getByRole("button", { name: /^AI Draft$/i });
+        expect(aiDraftButton).toBeInTheDocument();
       });
 
-      // Click Generate AI Draft
-      const aiDraftButton = screen.getByRole("button", { name: /Generate AI Draft/i });
+      // Click AI Draft
+      const aiDraftButton = screen.getByRole("button", { name: /^AI Draft$/i });
       fireEvent.click(aiDraftButton);
 
       // Verify draft populated into form inputs
