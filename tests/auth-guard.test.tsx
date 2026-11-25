@@ -1,6 +1,26 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { App } from "../src/App";
+import * as aiService from "../src/services/ai";
+
+vi.mock("../src/services/ai", async (importOriginal) => {
+  const actual = await importOriginal<typeof aiService>();
+  return {
+    ...actual,
+    generateInspectionDraft: vi.fn().mockResolvedValue({
+      draft: {
+        title: "Rebar Spacing and Cover Depth Verification",
+        category: "installation",
+        visibleEvidence: ["Reinforcement rebar mat placed in trench"],
+        uncertainties: ["Cover depth needs gauge check"],
+        inspectorFollowUp: ["Verify depth gauge before pour"],
+        observation: "Visual inspection confirms rebar mat placement.",
+        aiDisclaimer: "AI_DRAFT_REQUIRES_HUMAN_REVIEW",
+      },
+      inferenceSource: "ON_DEVICE",
+    }),
+  };
+});
 
 describe("ForeSite Authentication Navigation Guard", () => {
   it("renders the public landing page when unauthenticated", () => {
@@ -75,9 +95,9 @@ describe("ForeSite Authentication Navigation Guard", () => {
     fireEvent.click(viewDemoBtn);
 
     // It MUST NOT require authentication; opens Demo Studio directly
-    expect(screen.getByText("ForeSite Interactive Studio")).toBeInTheDocument();
-    expect(screen.getByText(/live testing sandbox/i)).toBeInTheDocument();
-    expect(screen.getByText("Choose a Preloaded Site Scenario")).toBeInTheDocument();
+    expect(screen.getByText(/ForeSite Demo Studio/i)).toBeInTheDocument();
+    expect(screen.getByText(/live sandbox/i)).toBeInTheDocument();
+    expect(screen.getByText(/Choose a Site Scenario/i)).toBeInTheDocument();
   });
 
   it("allows testing live AI analysis and review verification in demo mode without signing in", async () => {
@@ -87,12 +107,13 @@ describe("ForeSite Authentication Navigation Guard", () => {
     expect(screen.getByText("Pier Footing Rebar Audit")).toBeInTheDocument();
 
     // Trigger AI analysis
-    const runAiBtn = screen.getByRole("button", { name: /run ai observation analysis/i });
-    fireEvent.click(runAiBtn);
+    const runAiButtons = screen.getAllByRole("button", { name: /run ai analysis/i });
+    expect(runAiButtons.length).toBeGreaterThan(0);
+    fireEvent.click(runAiButtons[0]!);
 
     // Verify AI analysis output is generated
     await waitFor(() => {
-      expect(screen.getByText("Review Synthesized AI Draft Findings")).toBeInTheDocument();
+      expect(screen.getByText("AI Draft Findings")).toBeInTheDocument();
     });
 
     // Test Human review verification: Approve and Sign Off
