@@ -352,9 +352,19 @@ export async function generateInspectionDraft(
     // =========================================================================
     const autoFallbackModel = getGenerativeModel(ai, {
       mode: InferenceMode.PREFER_ON_DEVICE,
-      systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
+      onDeviceParams: {
+        createOptions: {
+          initialPrompts: [
+            {
+              role: "system",
+              content: [{ type: "text", value: FORESITE_AI_SYSTEM_INSTRUCTION }],
+            },
+          ],
+        },
+      },
       inCloudParams: {
         model: getRemoteCloudFallbackModel(),
+        systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
         generationConfig: {
           temperature: getRemoteAiTemperature(),
           responseMimeType: "application/json",
@@ -384,7 +394,16 @@ export async function generateInspectionDraft(
     // =========================================================================
     const onDeviceOnlyModel = getGenerativeModel(ai, {
       mode: InferenceMode.ONLY_ON_DEVICE,
-      systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
+      onDeviceParams: {
+        createOptions: {
+          initialPrompts: [
+            {
+              role: "system",
+              content: [{ type: "text", value: FORESITE_AI_SYSTEM_INSTRUCTION }],
+            },
+          ],
+        },
+      },
     });
 
     let onDeviceSuccess = false;
@@ -440,9 +459,9 @@ export async function generateInspectionDraft(
     // Explicit consent granted for this single request: dispatch ONLY_IN_CLOUD
     const cloudOnlyModel = getGenerativeModel(ai, {
       mode: InferenceMode.ONLY_IN_CLOUD,
-      systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
       inCloudParams: {
         model: getRemoteCloudFallbackModel(),
+        systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
         generationConfig: {
           temperature: getRemoteAiTemperature(),
           responseMimeType: "application/json",
