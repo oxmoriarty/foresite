@@ -31,6 +31,10 @@ import {
 } from "../types";
 import { parseAndValidateAIOutput } from "./aiValidation";
 import { formatBytes } from "./photoValidation";
+import {
+  getRemoteCloudFallbackModel,
+  getRemoteAiTemperature,
+} from "./remoteConfig";
 
 export const CLOUD_FALLBACK_MODEL = "gemini-3.5-flash-lite";
 export const MAX_AI_PAYLOAD_BYTES = 4 * 1024 * 1024; // Strict 4 MB ceiling
@@ -350,9 +354,9 @@ export async function generateInspectionDraft(
       mode: InferenceMode.PREFER_ON_DEVICE,
       systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
       inCloudParams: {
-        model: CLOUD_FALLBACK_MODEL,
+        model: getRemoteCloudFallbackModel(),
         generationConfig: {
-          temperature: 0.2,
+          temperature: getRemoteAiTemperature(),
           responseMimeType: "application/json",
         },
       },
@@ -438,9 +442,9 @@ export async function generateInspectionDraft(
       mode: InferenceMode.ONLY_IN_CLOUD,
       systemInstruction: FORESITE_AI_SYSTEM_INSTRUCTION,
       inCloudParams: {
-        model: CLOUD_FALLBACK_MODEL,
+        model: getRemoteCloudFallbackModel(),
         generationConfig: {
-          temperature: 0.2,
+          temperature: getRemoteAiTemperature(),
           responseMimeType: "application/json",
         },
       },

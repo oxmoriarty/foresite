@@ -39,6 +39,7 @@ import {
   recoverPhotoCleanups,
   isInspectionEligibleForPermanentDeletion,
 } from "./services/photoCleanup";
+import { initRemoteConfig } from "./services/remoteConfig";
 
 // Initial realistic seed dataset for Scaffolding & Demo preview
 const INITIAL_PROJECTS: Project[] = [
@@ -232,6 +233,13 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
     }
     refreshLocalStorageCounts();
   }, [currentUser, isConfigured, loadUserData, refreshLocalStorageCounts]);
+
+  // Safe startup initialization for Firebase Remote Config
+  useEffect(() => {
+    void initRemoteConfig().catch((err) => {
+      console.warn("Remote Config initialization error:", err);
+    });
+  }, []);
 
   // Compute live statistics
   const stats: AppStats = {

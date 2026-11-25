@@ -1,0 +1,39 @@
+{
+  "parameters": {
+    "cloud_fallback_model": {
+      "defaultValue": {
+        "value": "gemini-3.5-flash-lite"
+      },
+      "description": "Target Gemini model for cloud fallback multimodal inspection drafting",
+      "valueType": "STRING"
+    },
+    "max_ai_payload_bytes": {
+      "defaultValue": {
+        "value": "4194304"
+      },
+      "description": "Maximum client side payload ceiling in bytes for AI derivative photographs",
+      "valueType": "NUMBER"
+    },
+    "enable_experimental_categories": {
+      "defaultValue": {
+        "value": "false"
+      },
+      "description": "Toggle experimental inspection observation categories",
+      "valueType": "BOOLEAN"
+    },
+    "site_announcement": {
+      "defaultValue": {
+        "value": ""
+      },
+      "description": "Optional broadcast announcement displayed to inspectors",
+      "valueType": "STRING"
+    },
+    "ai_temperature": {
+      "defaultValue": {
+        "value": "0.2"
+      },
+      "description": "Temperature parameter for Gemini generation precision",
+      "valueType": "NUMBER"
+    }
+  }
+}
