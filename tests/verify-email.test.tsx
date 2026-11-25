@@ -1,7 +1,11 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { App } from "../src/App";
 import { User } from "firebase/auth";
+
+vi.mock("../src/services/remoteConfig", () => ({
+  initRemoteConfig: vi.fn().mockResolvedValue(null),
+}));
 
 const UNVERIFIED_USER: User = {
   uid: "unverified-user-123",
@@ -23,8 +27,7 @@ describe("ForeSite Email Verification Mandatory Security Gate", () => {
 
     // Must show security gate header and title
     expect(screen.getByText("Verify Your Email Address")).toBeInTheDocument();
-    expect(screen.getByText("Security Gate")).toBeInTheDocument();
-    expect(screen.getByText("Awaiting Email Verification")).toBeInTheDocument();
+    expect(screen.getByText(/We sent a verification link to/i)).toBeInTheDocument();
     expect(screen.getByText(/inspector\.unverified@citygov\.org/i)).toBeInTheDocument();
 
     // Must NOT render protected dashboard landmarks or inspection components

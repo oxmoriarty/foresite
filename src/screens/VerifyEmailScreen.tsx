@@ -6,7 +6,6 @@ import {
   RefreshCw,
   LogOut,
   Send,
-  ShieldCheck,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 
@@ -64,7 +63,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({
 
     try {
       await sendVerificationEmail();
-      setFeedbackMessage(`Verification link resent to ${email}. Please check your inbox and spam folder.`);
+      setFeedbackMessage(`Verification link resent to ${email}.`);
       setCooldownSeconds(60);
     } catch (err: unknown) {
       const e = err as { message?: string };
@@ -113,113 +112,85 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({
   }, [handleCheckVerification]);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        {/* Brand Header */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <div className="w-9 h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white font-bold text-lg shadow-sm">
-            F
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans selection:bg-brand-500 selection:text-white">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
+        {/* Brand Monogram */}
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-full bg-slate-950 text-white font-bold text-base flex items-center justify-center mx-auto shadow-md">
+            FS
           </div>
-          <span className="font-bold text-xl tracking-tight text-slate-900">
-            ForeSite
-          </span>
-          <span className="text-[11px] font-semibold uppercase tracking-wider bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full border border-amber-200 ml-1">
-            Security Gate
-          </span>
         </div>
 
-        {/* Card Container */}
-        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl border border-slate-200/80 rounded-2xl relative overflow-hidden">
-          {/* Top colored accent line */}
-          <div className="absolute top-0 inset-x-0 h-1 bg-amber-500" />
-
-          {/* Central Email Icon Badge */}
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200/80 flex items-center justify-center text-amber-600 shadow-sm mx-auto mb-5">
-            <Mail className="w-8 h-8 animate-pulse" />
+        {/* Main Card */}
+        <div className="bg-white py-8 px-6 sm:px-10 shadow-xl rounded-3xl border border-slate-200/80">
+          <div className="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center mx-auto mb-4 border border-brand-100">
+            <Mail className="w-6 h-6" />
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-bold text-slate-900 text-center tracking-tight">
+          <h2 className="text-xl font-bold text-slate-900 text-center tracking-tight mb-2">
             Verify Your Email Address
           </h2>
 
-          <p className="text-sm text-slate-600 text-center mt-2.5 leading-relaxed">
+          <p className="text-xs sm:text-sm text-slate-600 text-center mb-6 leading-relaxed">
             We sent a verification link to{" "}
             <span className="font-semibold text-slate-900 break-all">{email}</span>.
-            ForeSite requires verified credentials before site inspection records, safety audits, and regulatory certifications can be accessed.
           </p>
-
-          {/* Verification Status Pill */}
-          <div className="mt-5 flex items-center justify-center">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200/70">
-              <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
-              Awaiting Email Verification
-            </span>
-          </div>
 
           {/* Feedback or Error Alerts */}
           {feedbackMessage && (
-            <div className="mt-5 p-3.5 bg-emerald-50 border border-emerald-200 rounded-xl flex items-start gap-2.5 text-xs sm:text-sm text-emerald-800 animate-in fade-in">
+            <div className="mb-6 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-start gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-              <p className="leading-snug">{feedbackMessage}</p>
+              <span>{feedbackMessage}</span>
             </div>
           )}
 
           {errorMessage && (
-            <div className="mt-5 p-3.5 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2.5 text-xs sm:text-sm text-rose-800 animate-in fade-in">
+            <div className="mb-6 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-800 flex items-start gap-2">
               <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <p className="leading-snug">{errorMessage}</p>
+              <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* Helpful Tips Box */}
-          <div className="mt-5 bg-slate-50 border border-slate-200/70 rounded-xl p-3.5 text-xs text-slate-600 space-y-1.5">
-            <div className="flex items-center gap-1.5 font-semibold text-slate-700">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-600" />
-              <span>Inspection Security Requirement</span>
-            </div>
-            <p className="leading-relaxed">
-              Click the verification link sent by Google Firebase. If you do not see the message in your primary inbox, please check your spam or junk folder.
-            </p>
-          </div>
-
-          {/* Primary & Secondary Action Buttons */}
-          <div className="mt-6 space-y-3">
+          {/* Actions */}
+          <div className="space-y-3 pt-2">
             <button
               type="button"
               onClick={() => void handleCheckVerification()}
               disabled={isChecking}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-white bg-slate-900 hover:bg-slate-800 active:bg-slate-950 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 shadow-sm transition-all duration-150 disabled:opacity-60 cursor-pointer"
+              className="w-full group inline-flex items-center justify-center gap-3 py-3 px-4 rounded-full bg-brand-600 text-white font-semibold text-sm hover:bg-brand-700 active:scale-95 transition-all duration-200 cursor-pointer shadow-pill disabled:opacity-50"
             >
-              <RefreshCw
-                className={`w-4 h-4 ${isChecking ? "animate-spin" : ""}`}
-              />
-              {isChecking ? "Checking Status..." : "I Have Verified My Email"}
+              <span>{isChecking ? "Checking status..." : "I have verified my email"}</span>
+              <span className="w-6 h-6 rounded-full bg-white text-brand-600 flex items-center justify-center group-hover:translate-x-0.5 transition-transform duration-200 shadow-2xs">
+                <RefreshCw className={`w-3.5 h-3.5 ${isChecking ? "animate-spin" : ""}`} />
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => void handleResend()}
               disabled={cooldownSeconds > 0 || isResending}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-semibold text-slate-700 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 shadow-xs transition-all duration-150 disabled:opacity-50 cursor-pointer"
+              className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-full border border-slate-300 text-slate-700 font-semibold text-xs hover:bg-slate-50 hover:border-slate-400 active:scale-95 transition-all duration-200 cursor-pointer disabled:opacity-50"
             >
-              <Send className="w-4 h-4 text-slate-500" />
-              {isResending
-                ? "Sending Email..."
-                : cooldownSeconds > 0
-                ? `Resend available in ${cooldownSeconds}s`
-                : "Resend Verification Email"}
+              <Send className="w-3.5 h-3.5 text-slate-500" />
+              <span>
+                {isResending
+                  ? "Sending email..."
+                  : cooldownSeconds > 0
+                  ? `Resend available in ${cooldownSeconds}s`
+                  : "Resend verification email"}
+              </span>
             </button>
           </div>
 
-          {/* Sign Out Link */}
-          <div className="mt-6 pt-5 border-t border-slate-100 text-center">
+          {/* Sign Out Option */}
+          <div className="mt-8 pt-6 border-t border-slate-100 text-center">
             <button
               type="button"
               onClick={() => void onSignOut()}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              Sign Out and Use Another Account
+              <span>Sign out</span>
             </button>
           </div>
         </div>
