@@ -404,25 +404,30 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
     >
       <div className="space-y-6">
         {/* Header Notice */}
-        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
+        <div className="bg-slate-950 text-white rounded-2xl p-4 sm:p-5 shadow-xs">
+          <div className="flex items-start gap-3.5">
+            <div className="w-9 h-9 rounded-xl bg-white/10 border border-white/15 flex items-center justify-center text-amber-400 shrink-0">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
             <div>
-              <h3 className="text-sm font-semibold text-purple-900">
+              <h3 className="text-sm font-bold text-white tracking-tight">
                 Concurrent Modifications Detected
               </h3>
-              <p className="text-xs text-purple-700 mt-1">
-                Inspection <span className="font-mono font-medium">{mutation.targetInspectionId}</span> was updated
-                remotely while you were drafting offline changes. Choose whether to keep your local edits or accept the
-                remote changes for each conflicting field.
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                Inspection{" "}
+                <span className="inline-block px-1.5 py-0.5 rounded-md bg-white/10 text-slate-100 font-mono text-[11px]">
+                  {mutation.targetInspectionId}
+                </span>{" "}
+                was updated remotely while you were drafting offline changes. Choose whether to keep your local edits or
+                accept the remote changes for each conflicting field.
               </p>
             </div>
           </div>
         </div>
 
         {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 text-xs rounded-lg flex items-center gap-2">
-            <XCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3.5 bg-rose-50 border border-rose-200 text-rose-800 text-xs rounded-xl flex items-center gap-2.5">
+            <XCircle className="w-4 h-4 text-rose-600 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
@@ -430,17 +435,19 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         {loading ? (
           <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
             <Clock className="w-6 h-6 animate-spin text-brand-600" />
-            <p className="text-xs">Loading inspection snapshots and comparing differences...</p>
+            <p className="text-xs font-medium">Loading inspection snapshots and comparing differences...</p>
           </div>
         ) : (
           <>
             {/* Human Review Conflict Banner */}
             {hasReviewConflict && (
-              <div className="bg-amber-50 border border-amber-300 rounded-lg p-4">
-                <div className="flex items-start gap-3">
-                  <ShieldAlert className="w-5 h-5 text-amber-700 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-amber-900 space-y-1.5">
-                    <h4 className="font-semibold text-amber-900">Human Review Decision Invariant</h4>
+              <div className="bg-amber-50/90 border border-amber-200 rounded-2xl p-4 sm:p-5 shadow-2xs">
+                <div className="flex items-start gap-3.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <ShieldAlert className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs text-amber-900 space-y-1.5 leading-relaxed">
+                    <h4 className="font-bold text-amber-950 tracking-tight">Human Review Decision Invariant</h4>
                     <p>{reviewConflictMessage}</p>
                     <p className="text-amber-800">
                       ForeSite strictly protects human review decisions: you cannot automatically approve or reject this
@@ -456,17 +463,17 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
             {/* Field Conflicts Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
                   Conflicting Fields ({scalarConflicts.length + checklistConflicts.length})
                 </h4>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs">
                   {isResolutionComplete ? (
-                    <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold text-[11px]">
                       <CheckCircle2 className="w-3.5 h-3.5" /> All conflicts resolved
                     </span>
                   ) : (
-                    <span className="text-amber-600 font-semibold flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-semibold text-[11px]">
                       <HelpCircle className="w-3.5 h-3.5" /> Selection required for all fields
                     </span>
                   )}
@@ -474,7 +481,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
               </div>
 
               {scalarConflicts.length === 0 && checklistConflicts.length === 0 ? (
-                <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 text-center">
+                <div className="p-5 bg-slate-50 border border-slate-200/80 rounded-2xl text-xs text-slate-600 text-center">
                   No direct content field conflicts detected. Review state or metadata requires upload.
                 </div>
               ) : (
@@ -485,14 +492,14 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                     return (
                       <div
                         key={c.field}
-                        className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 shadow-xs"
+                        className="border border-slate-200/90 rounded-2xl p-5 bg-white space-y-4 shadow-2xs"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm text-slate-800 capitalize">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="font-bold text-sm text-slate-900 capitalize tracking-tight">
                             {c.field.replace(/([A-Z])/g, " $1")}
                           </span>
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-purple-600 text-white shadow-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                             Divergent Changes
                           </span>
                         </div>
@@ -500,12 +507,14 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                         {/* 3-Column Comparison: Base, Local, Remote */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {/* Base (Original) */}
-                          <div className="p-3 bg-slate-50 border border-slate-200 rounded-md">
-                            <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider mb-1">
-                              Original Base (Rev {baseSnapshot?.revision ?? 1})
-                            </span>
-                            <div className="text-xs text-slate-600 whitespace-pre-wrap break-words">
-                              {String(c.baseValue || "(empty)")}
+                          <div className="p-3.5 bg-slate-50/90 border border-slate-200/70 rounded-xl flex flex-col justify-between">
+                            <div>
+                              <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider mb-1.5">
+                                Original Base (Rev {baseSnapshot?.revision ?? 1})
+                              </span>
+                              <div className="text-xs text-slate-600 whitespace-pre-wrap break-words leading-relaxed">
+                                {String(c.baseValue || "(empty)")}
+                              </div>
                             </div>
                           </div>
 
@@ -513,28 +522,34 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <button
                             type="button"
                             onClick={() => handleSelectFieldChoice(c.field, "local")}
-                            className={`p-3 text-left rounded-md border-2 transition-all cursor-pointer ${
+                            className={`p-3.5 text-left rounded-xl border transition-all duration-150 cursor-pointer flex flex-col justify-between ${
                               choice === "local"
-                                ? "border-brand-600 bg-brand-50/50 ring-1 ring-brand-500"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/15 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40"
                             }`}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-bold text-brand-700 uppercase tracking-wider">
-                                Your Local Change
-                              </span>
-                              <input
-                                type="radio"
-                                name={`choice-${c.field}`}
-                                checked={choice === "local"}
-                                onChange={() => handleSelectFieldChoice(c.field, "local")}
-                                className="text-brand-600 focus:ring-brand-500"
-                              />
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[10px] font-bold text-brand-700 uppercase tracking-wider">
+                                  Your Local Change
+                                </span>
+                                <input
+                                  type="radio"
+                                  name={`choice-${c.field}`}
+                                  checked={choice === "local"}
+                                  onChange={() => handleSelectFieldChoice(c.field, "local")}
+                                  className="text-brand-600 focus:ring-brand-500"
+                                />
+                              </div>
+                              <div className="text-xs text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                                {String(c.localValue || "(empty)")}
+                              </div>
                             </div>
-                            <div className="text-xs text-slate-800 whitespace-pre-wrap break-words">
-                              {String(c.localValue || "(empty)")}
-                            </div>
-                            <span className="mt-2 inline-block text-[10px] font-semibold text-brand-700">
+                            <span
+                              className={`mt-3 inline-block text-[11px] font-semibold ${
+                                choice === "local" ? "text-brand-700" : "text-slate-400"
+                              }`}
+                            >
                               {choice === "local" ? "✓ Selected (Keep Mine)" : "Click to select"}
                             </span>
                           </button>
@@ -543,28 +558,34 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <button
                             type="button"
                             onClick={() => handleSelectFieldChoice(c.field, "remote")}
-                            className={`p-3 text-left rounded-md border-2 transition-all cursor-pointer ${
+                            className={`p-3.5 text-left rounded-xl border transition-all duration-150 cursor-pointer flex flex-col justify-between ${
                               choice === "remote"
-                                ? "border-purple-600 bg-purple-50/50 ring-1 ring-purple-500"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                ? "border-slate-900 bg-slate-50 ring-2 ring-slate-900/10 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40"
                             }`}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">
-                                Server Remote (Rev {remoteSnapshot?.revision})
-                              </span>
-                              <input
-                                type="radio"
-                                name={`choice-${c.field}`}
-                                checked={choice === "remote"}
-                                onChange={() => handleSelectFieldChoice(c.field, "remote")}
-                                className="text-purple-600 focus:ring-purple-500"
-                              />
+                            <div>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                  Server Remote (Rev {remoteSnapshot?.revision})
+                                </span>
+                                <input
+                                  type="radio"
+                                  name={`choice-${c.field}`}
+                                  checked={choice === "remote"}
+                                  onChange={() => handleSelectFieldChoice(c.field, "remote")}
+                                  className="text-slate-900 focus:ring-slate-900"
+                                />
+                              </div>
+                              <div className="text-xs text-slate-800 whitespace-pre-wrap break-words leading-relaxed">
+                                {String(c.remoteValue || "(empty)")}
+                              </div>
                             </div>
-                            <div className="text-xs text-slate-800 whitespace-pre-wrap break-words">
-                              {String(c.remoteValue || "(empty)")}
-                            </div>
-                            <span className="mt-2 inline-block text-[10px] font-semibold text-purple-700">
+                            <span
+                              className={`mt-3 inline-block text-[11px] font-semibold ${
+                                choice === "remote" ? "text-slate-900" : "text-slate-400"
+                              }`}
+                            >
                               {choice === "remote" ? "✓ Selected (Accept Server)" : "Click to select"}
                             </span>
                           </button>
@@ -580,14 +601,14 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                     return (
                       <div
                         key={itemId}
-                        className="border border-slate-200 rounded-lg p-4 bg-white space-y-3 shadow-xs"
+                        className="border border-slate-200/90 rounded-2xl p-5 bg-white space-y-4 shadow-2xs"
                       >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-sm text-slate-800">
-                            Checklist Item: <span className="font-mono text-xs">{itemId}</span>
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                          <span className="font-bold text-sm text-slate-900">
+                            Checklist Item: <span className="font-mono text-xs text-slate-600">{itemId}</span>
                           </span>
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
-                            <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
                             {c.category === "CHECKLIST_EDIT_DELETE" ? "Edit vs Deletion" : "Field Divergence"}
                           </span>
                         </div>
@@ -597,28 +618,34 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <button
                             type="button"
                             onClick={() => handleSelectItemChoice(itemId, "local")}
-                            className={`p-3 text-left rounded-md border-2 transition-all cursor-pointer ${
+                            className={`p-3.5 text-left rounded-xl border transition-all duration-150 cursor-pointer flex flex-col justify-between ${
                               choice === "local"
-                                ? "border-brand-600 bg-brand-50/50 ring-1 ring-brand-500"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                ? "border-brand-600 bg-brand-50/40 ring-2 ring-brand-600/15 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40"
                             }`}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-bold text-brand-700 uppercase tracking-wider">
-                                Your Version
-                              </span>
-                              <input
-                                type="radio"
-                                name={`item-choice-${itemId}`}
-                                checked={choice === "local"}
-                                onChange={() => handleSelectItemChoice(itemId, "local")}
-                                className="text-brand-600 focus:ring-brand-500"
-                              />
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-bold text-brand-700 uppercase tracking-wider">
+                                  Your Version
+                                </span>
+                                <input
+                                  type="radio"
+                                  name={`item-choice-${itemId}`}
+                                  checked={choice === "local"}
+                                  onChange={() => handleSelectItemChoice(itemId, "local")}
+                                  className="text-brand-600 focus:ring-brand-500"
+                                />
+                              </div>
+                              <pre className="text-xs font-mono text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 overflow-x-auto whitespace-pre-wrap">
+                                {JSON.stringify(c.localValue, null, 2) || "(Deleted locally)"}
+                              </pre>
                             </div>
-                            <pre className="text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap">
-                              {JSON.stringify(c.localValue, null, 2) || "(Deleted locally)"}
-                            </pre>
-                            <span className="mt-2 inline-block text-[10px] font-semibold text-brand-700">
+                            <span
+                              className={`mt-3 inline-block text-[11px] font-semibold ${
+                                choice === "local" ? "text-brand-700" : "text-slate-400"
+                              }`}
+                            >
                               {choice === "local" ? "✓ Selected (Keep Mine)" : "Click to select"}
                             </span>
                           </button>
@@ -627,28 +654,34 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                           <button
                             type="button"
                             onClick={() => handleSelectItemChoice(itemId, "remote")}
-                            className={`p-3 text-left rounded-md border-2 transition-all cursor-pointer ${
+                            className={`p-3.5 text-left rounded-xl border transition-all duration-150 cursor-pointer flex flex-col justify-between ${
                               choice === "remote"
-                                ? "border-purple-600 bg-purple-50/50 ring-1 ring-purple-500"
-                                : "border-slate-200 bg-white hover:border-slate-300"
+                                ? "border-slate-900 bg-slate-50 ring-2 ring-slate-900/10 shadow-xs"
+                                : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/40"
                             }`}
                           >
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-[11px] font-bold text-purple-700 uppercase tracking-wider">
-                                Server Version
-                              </span>
-                              <input
-                                type="radio"
-                                name={`item-choice-${itemId}`}
-                                checked={choice === "remote"}
-                                onChange={() => handleSelectItemChoice(itemId, "remote")}
-                                className="text-purple-600 focus:ring-purple-500"
-                              />
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-bold text-slate-700 uppercase tracking-wider">
+                                  Server Version
+                                </span>
+                                <input
+                                  type="radio"
+                                  name={`item-choice-${itemId}`}
+                                  checked={choice === "remote"}
+                                  onChange={() => handleSelectItemChoice(itemId, "remote")}
+                                  className="text-slate-900 focus:ring-slate-900"
+                                />
+                              </div>
+                              <pre className="text-xs font-mono text-slate-700 bg-slate-50 p-2.5 rounded-lg border border-slate-200/60 overflow-x-auto whitespace-pre-wrap">
+                                {JSON.stringify(c.remoteValue, null, 2) || "(Deleted on server)"}
+                              </pre>
                             </div>
-                            <pre className="text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap">
-                              {JSON.stringify(c.remoteValue, null, 2) || "(Deleted on server)"}
-                            </pre>
-                            <span className="mt-2 inline-block text-[10px] font-semibold text-purple-700">
+                            <span
+                              className={`mt-3 inline-block text-[11px] font-semibold ${
+                                choice === "remote" ? "text-slate-900" : "text-slate-400"
+                              }`}
+                            >
                               {choice === "remote" ? "✓ Selected (Accept Server)" : "Click to select"}
                             </span>
                           </button>
@@ -661,14 +694,16 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
             </div>
 
             {/* Automatically Merged Non-Conflicting Fields Accordion */}
-            <div className="border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+            <div className="border border-slate-200/90 rounded-2xl overflow-hidden bg-white shadow-2xs">
               <button
                 type="button"
                 onClick={() => setShowAutoMerged((prev) => !prev)}
-                className="w-full flex items-center justify-between px-4 py-3 text-left text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors"
+                className="w-full flex items-center justify-between px-4 py-3.5 text-left text-xs font-semibold text-slate-800 hover:bg-slate-50/80 transition-colors cursor-pointer"
               >
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-500" />
+                <div className="flex items-center gap-2.5">
+                  <div className="w-6 h-6 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600">
+                    <FileText className="w-3.5 h-3.5" />
+                  </div>
                   <span>Automatically Merged Non-Conflicting Data</span>
                 </div>
                 {showAutoMerged ? (
@@ -679,11 +714,11 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
               </button>
 
               {showAutoMerged && (
-                <div className="p-4 bg-white border-t border-slate-200 text-xs text-slate-600 space-y-2">
+                <div className="p-4 bg-slate-50/60 border-t border-slate-100 text-xs text-slate-600 space-y-2">
                   <p className="text-[11px] text-slate-500">
                     The following fields had non-conflicting updates and merged automatically according to 3-way merge rules:
                   </p>
-                  <ul className="list-disc list-inside space-y-1 font-mono text-[11px]">
+                  <ul className="list-disc list-inside space-y-1 font-mono text-[11px] text-slate-700">
                     <li>
                       Evidence items: {mergedSnapshot?.visibleEvidence?.length ?? 0} items merged via string set-difference
                     </li>
@@ -703,27 +738,30 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
 
             {/* Discard Confirmation Modal Safeguard */}
             {showDiscardConfirm && (
-              <div className="p-4 bg-red-50 border border-red-300 rounded-lg space-y-3">
-                <div className="flex items-start gap-2.5">
-                  <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <div className="text-xs text-red-900 space-y-1">
-                    <h5 className="font-bold">Confirm Discarding Local Offline Edits</h5>
+              <div className="p-4 sm:p-5 bg-rose-50/90 border border-rose-200 rounded-2xl space-y-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-4 h-4" />
+                  </div>
+                  <div className="text-xs text-rose-900 space-y-1.5 leading-relaxed">
+                    <h5 className="font-bold text-rose-950">Confirm Discarding Local Offline Edits</h5>
                     <p>
                       Are you sure you want to discard your local modifications for this inspection? This will cancel
                       your offline draft mutation and adopt the server inspection version entirely.
                     </p>
-                    <p className="font-semibold text-red-800">
+                    <p className="font-semibold text-rose-800">
                       Photographic evidence Blobs saved in your device storage will NOT be deleted.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2 pt-1">
                   <Button
                     size="sm"
                     variant="secondary"
                     onClick={() => setShowDiscardConfirm(false)}
                     disabled={discarding}
+                    className="rounded-full"
                   >
                     Keep Local Changes
                   </Button>
@@ -732,6 +770,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                     variant="danger"
                     onClick={handleConfirmDiscard}
                     disabled={discarding}
+                    className="rounded-full"
                   >
                     {discarding ? "Discarding..." : "Yes, Discard Local Edits"}
                   </Button>
@@ -742,14 +781,14 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
         )}
 
         {/* Modal Actions */}
-        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-200">
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100">
           <div className="w-full sm:w-auto">
             {!showDiscardConfirm && (
               <button
                 type="button"
                 onClick={() => setShowDiscardConfirm(true)}
                 disabled={loading || submitting || discarding}
-                className="text-xs text-red-600 hover:text-red-700 font-medium inline-flex items-center gap-1.5 p-1.5 rounded hover:bg-red-50 transition-colors"
+                className="text-xs text-rose-600 hover:text-rose-700 font-semibold inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-rose-50 transition-colors cursor-pointer"
               >
                 <Trash2 className="w-3.5 h-3.5" />
                 Discard Local Draft
@@ -758,13 +797,19 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
           </div>
 
           <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto">
-            <Button variant="secondary" onClick={onClose} disabled={submitting || discarding}>
+            <Button
+              variant="secondary"
+              onClick={onClose}
+              disabled={submitting || discarding}
+              className="rounded-full"
+            >
               Cancel
             </Button>
             <Button
               variant="primary"
               onClick={handleApplyResolution}
               disabled={loading || !isResolutionComplete || submitting || discarding}
+              className="rounded-full shadow-pill"
             >
               {submitting ? (
                 <span className="flex items-center gap-1.5">
