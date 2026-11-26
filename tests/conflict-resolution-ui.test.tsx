@@ -245,7 +245,7 @@ describe("ConflictResolutionModal Component", () => {
 
     // Human Review Decision Invariant banner
     await waitFor(() => {
-      expect(screen.getByText("Human Review Decision Invariant")).toBeInTheDocument();
+      expect(screen.getByText("Protected Review Decision")).toBeInTheDocument();
     });
     expect(
       screen.getByText(/strictly protects human review decisions/i)
@@ -415,7 +415,7 @@ describe("ConflictResolutionModal Component", () => {
     // Safeguard dialog displayed
     expect(screen.getByText("Confirm Discarding Local Offline Edits")).toBeInTheDocument();
     expect(
-      screen.getByText(/Photographic evidence Blobs saved in your device storage will NOT be deleted/i)
+      screen.getByText(/Photos saved on this device will NOT be deleted/i)
     ).toBeInTheDocument();
 
     // Confirm Discard

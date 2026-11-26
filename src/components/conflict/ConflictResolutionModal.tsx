@@ -447,7 +447,7 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                     <ShieldAlert className="w-4 h-4" />
                   </div>
                   <div className="text-xs text-amber-900 space-y-1.5 leading-relaxed">
-                    <h4 className="font-bold text-amber-950 tracking-tight">Human Review Decision Invariant</h4>
+                    <h4 className="font-bold text-amber-950 tracking-tight">Protected Review Decision</h4>
                     <p>{reviewConflictMessage}</p>
                     <p className="text-amber-800">
                       ForeSite strictly protects human review decisions: you cannot automatically approve or reject this
@@ -716,14 +716,14 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
               {showAutoMerged && (
                 <div className="p-4 bg-slate-50/60 border-t border-slate-100 text-xs text-slate-600 space-y-2">
                   <p className="text-[11px] text-slate-500">
-                    The following fields had non-conflicting updates and merged automatically according to 3-way merge rules:
+                    The following fields did not conflict and were combined automatically:
                   </p>
                   <ul className="list-disc list-inside space-y-1 font-mono text-[11px] text-slate-700">
                     <li>
-                      Evidence items: {mergedSnapshot?.visibleEvidence?.length ?? 0} items merged via string set-difference
+                      Evidence items: {mergedSnapshot?.visibleEvidence?.length ?? 0} items combined
                     </li>
                     <li>
-                      Photo references: {mergedSnapshot?.photoIds?.length ?? 0} photos linked (local Blobs preserved)
+                      Photo references: {mergedSnapshot?.photoIds?.length ?? 0} photos linked (device photos preserved)
                     </li>
                     <li>
                       Uncertainties: {mergedSnapshot?.uncertainties?.length ?? 0} items
@@ -746,11 +746,11 @@ export const ConflictResolutionModal: React.FC<ConflictResolutionModalProps> = (
                   <div className="text-xs text-rose-900 space-y-1.5 leading-relaxed">
                     <h5 className="font-bold text-rose-950">Confirm Discarding Local Offline Edits</h5>
                     <p>
-                      Are you sure you want to discard your local modifications for this inspection? This will cancel
-                      your offline draft mutation and adopt the server inspection version entirely.
+                      Are you sure you want to discard your offline edits for this inspection? This will cancel your
+                      pending offline changes and keep the server version.
                     </p>
                     <p className="font-semibold text-rose-800">
-                      Photographic evidence Blobs saved in your device storage will NOT be deleted.
+                      Photos saved on this device will NOT be deleted.
                     </p>
                   </div>
                 </div>

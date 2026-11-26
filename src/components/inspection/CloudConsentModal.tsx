@@ -101,14 +101,14 @@ export const CloudConsentModal: React.FC<CloudConsentModalProps> = ({
         {/* Privacy & Sync Delineation */}
         <div className="space-y-2 pt-1 border-t border-slate-100 text-slate-600">
           <h4 className="font-semibold text-slate-900">
-            Data Isolation Invariants:
+            Privacy &amp; Storage Guarantees:
           </h4>
           <ul className="list-disc pl-5 space-y-1">
             <li>
-              <strong>Original photographs stay local:</strong> Original full-resolution photograph binaries remain strictly in your browser&apos;s local IndexedDB and are never uploaded to Firestore or cloud storage.
+              <strong>Original photos stay on your device:</strong> Full-resolution site photos remain safely stored only on this device and are never uploaded to cloud servers.
             </li>
             <li>
-              <strong>Declining AI does not disable normal uploads:</strong> If you decline, your photographs and notes are not sent to Gemini. You can write your inspection manually, and completed structured records will continue to upload to Cloud Firestore as normal.
+              <strong>Declining AI does not affect normal saving:</strong> If you decline, your photos and notes are not sent to AI. You can still write your inspection manually and save or sync your reports online as normal.
             </li>
             <li>
               <strong>Single-request authorization:</strong> This consent applies only to this specific inspection draft request.

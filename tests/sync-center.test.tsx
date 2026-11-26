@@ -277,7 +277,7 @@ describe("SyncCenterScreen Component", () => {
     fireEvent.click(retryBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/Mutation queued for retry/i)).toBeInTheDocument();
+      expect(screen.getByText(/Pending change queued for retry/i)).toBeInTheDocument();
     });
 
     // Verify replay was triggered
@@ -355,17 +355,17 @@ describe("SyncCenterScreen Component", () => {
     fireEvent.click(discardBtns[0]!);
 
     // Discard safeguard modal opened
-    expect(screen.getByText("Confirm Discarding Mutation")).toBeInTheDocument();
+    expect(screen.getByText("Confirm Discarding Pending Change")).toBeInTheDocument();
     expect(
-      screen.getByText(/Photographic evidence Blobs saved on this device will NOT be deleted/i)
+      screen.getByText(/Photos saved on this device will NOT be deleted/i)
     ).toBeInTheDocument();
 
     // Confirm discard
-    const confirmBtn = screen.getByRole("button", { name: /Yes, Discard Mutation/i });
+    const confirmBtn = screen.getByRole("button", { name: /Yes, Discard Change/i });
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
-      expect(screen.getByText(/cancelled. Local photos preserved/i)).toBeInTheDocument();
+      expect(screen.getByText(/discarded\. Device photos preserved/i)).toBeInTheDocument();
     });
 
     // Verify photo still exists in IndexedDB

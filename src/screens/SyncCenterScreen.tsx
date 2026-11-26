@@ -147,7 +147,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
     try {
       await retryFailedMutation(currentUser.uid, mutation.id);
-      setActionSuccess(`Mutation queued for retry. Initiating upload...`);
+      setActionSuccess(`Pending change queued for retry. Starting upload...`);
       // Trigger replay in background
       replayQueuedMutations().catch(() => {});
       await loadQueueData();
@@ -173,7 +173,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
 
     try {
       await discardMutation(currentUser.uid, discardTarget.id, "Discarded via Uploads");
-      setActionSuccess(`Mutation ${discardTarget.id} cancelled. Local photos preserved.`);
+      setActionSuccess(`Pending change ${discardTarget.id} discarded. Device photos preserved.`);
       setDiscardTarget(null);
       await loadQueueData();
     } catch (err) {
@@ -635,7 +635,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                           type="button"
                           onClick={() => setDiscardTarget(m)}
                           className="text-xs text-slate-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition-colors inline-flex items-center gap-1"
-                          title="Discard local mutation"
+                          title="Discard pending change"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span className="hidden sm:inline">Discard</span>
@@ -654,22 +654,22 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
         <Modal
           isOpen={!!discardTarget}
           onClose={() => setDiscardTarget(null)}
-          title="Confirm Discarding Mutation"
+          title="Confirm Discarding Pending Change"
         >
           <div className="space-y-4">
             <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg flex items-start gap-2.5">
               <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div className="space-y-1">
                 <p className="font-semibold text-red-900">
-                  Are you sure you want to discard this offline mutation?
+                  Are you sure you want to discard this offline change?
                 </p>
                 <p>
-                  Mutation <span className="font-mono font-medium">{discardTarget.id}</span> ({formatMutationType(discardTarget.type)})
+                  Pending change <span className="font-mono font-medium">{discardTarget.id}</span> ({formatMutationType(discardTarget.type)})
                   for inspection <span className="font-mono font-medium">{discardTarget.targetInspectionId}</span> will be marked as
                   cancelled and will never be uploaded.
                 </p>
                 <p className="font-semibold text-red-950">
-                  Photographic evidence Blobs saved on this device will NOT be deleted.
+                  Photos saved on this device will NOT be deleted.
                 </p>
               </div>
             </div>
@@ -680,14 +680,14 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                 onClick={() => setDiscardTarget(null)}
                 disabled={discarding}
               >
-                Keep Mutation
+                Keep Change
               </Button>
               <Button
                 variant="danger"
                 onClick={handleConfirmDiscard}
                 disabled={discarding}
               >
-                {discarding ? "Discarding..." : "Yes, Discard Mutation"}
+                {discarding ? "Discarding..." : "Yes, Discard Change"}
               </Button>
             </div>
           </div>

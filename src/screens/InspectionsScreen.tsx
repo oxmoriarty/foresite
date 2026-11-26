@@ -876,7 +876,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                         </div>
                         <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
                           <span>
-                            Reviewer UID:{" "}
+                            Reviewed by:{" "}
                             <span className="font-mono text-slate-700">{evt.byUid}</span>
                           </span>
                           {evt.revision && <span>Rev #{evt.revision}</span>}

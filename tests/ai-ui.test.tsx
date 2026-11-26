@@ -71,9 +71,9 @@ describe("ForeSite Phase 4 AI UI Components", () => {
         screen.getByText(/content submitted to the API \(including inspection photographs and notes\) may be processed by Google/i)
       ).toBeInTheDocument();
 
-      // Verifies local retention invariant disclosure
+      // Verifies local retention disclosure
       expect(
-        screen.getByText(/Original full-resolution photograph binaries remain strictly in your browser's local IndexedDB/i)
+        screen.getByText(/Full-resolution site photos remain safely stored only on this device/i)
       ).toBeInTheDocument();
 
       // Test Consent button
