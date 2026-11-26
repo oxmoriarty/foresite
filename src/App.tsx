@@ -751,14 +751,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           }
         />
       ) : currentView === "demo" ? (
-        <DemoScreen
-          projects={projects}
-          inspections={inspections}
-          stats={stats}
-          onNavigate={handleNavigate}
-          onSaveInspection={handleSaveInspection}
-          onUpdateInspectionStatus={handleUpdateInspectionStatus}
-        />
+        <DemoScreen onNavigate={handleNavigate} />
       ) : !currentUser ? (
         <SignInScreen
           onSuccess={() => {

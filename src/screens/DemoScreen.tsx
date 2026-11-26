@@ -13,9 +13,7 @@ import {
   X,
 } from "lucide-react";
 import {
-  Project,
   Inspection,
-  AppStats,
   ViewMode,
   ReviewStatus,
   ObservationCategory,
@@ -186,24 +184,17 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
 
 const DEFAULT_SCENARIO: DemoScenario = DEMO_SCENARIOS[0]!;
 
+const DEMO_PROJECTS: { id: string; name: string }[] = [
+  { id: "proj-metro-01", name: "Metro North Station Redevelopment" },
+  { id: "proj-terminal-02", name: "Terminal 3 Gate Pier Expansion" },
+];
+
 export interface DemoScreenProps {
-  projects: Project[];
-  inspections: Inspection[];
-  stats: AppStats;
   onNavigate: (view: ViewMode) => void;
-  onSaveInspection: (inspection: Inspection) => void | Promise<void>;
-  onUpdateInspectionStatus: (
-    inspectionId: string,
-    newStatus: ReviewStatus,
-    comment?: string
-  ) => void | Promise<void>;
 }
 
 export const DemoScreen: React.FC<DemoScreenProps> = ({
-  projects,
   onNavigate,
-  onSaveInspection,
-  onUpdateInspectionStatus,
 }) => {
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("rebar");
 
@@ -233,9 +224,10 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
   const [reviewerComment, setReviewerComment] = useState<string>("");
   const [reviewAuditEvents, setReviewAuditEvents] = useState<ReviewAuditEvent[]>([]);
 
-  // Persistence State
+  // Persistence State (strictly isolated to Demo Studio session)
   const [isSaved, setIsSaved] = useState<boolean>(false);
   const [savedInspectionId, setSavedInspectionId] = useState<string | null>(null);
+  const [savedSandboxInspections, setSavedSandboxInspections] = useState<Inspection[]>([]);
 
   // Switch scenario and reset inputs to scenario defaults
   const handleSelectScenario = (scenario: DemoScenario) => {
@@ -370,17 +362,28 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
 
     setReviewAuditEvents((prev) => [auditEvent, ...prev]);
 
-    // If already saved to workspace, update in parent
+    // If already saved in sandbox, update locally inside Demo Studio only
     if (savedInspectionId) {
-      void onUpdateInspectionStatus(savedInspectionId, newStatus, reviewerComment);
+      setSavedSandboxInspections((prev) =>
+        prev.map((insp) =>
+          insp.id === savedInspectionId
+            ? {
+                ...insp,
+                reviewStatus: newStatus,
+                reviewHistory: [auditEvent, ...(insp.reviewHistory || [])],
+                updatedAt: Date.now(),
+              }
+            : insp
+        )
+      );
     }
   };
 
-  // Save inspection to live workspace
-  const handleSaveToWorkspace = async () => {
-    const targetProject = projects.find((p) => p.id === projectId) || projects[0];
+  // Save inspection strictly inside isolated Demo Studio sandbox state
+  const handleSaveToSandbox = () => {
+    const targetProject = DEMO_PROJECTS.find((p) => p.id === projectId) || DEMO_PROJECTS[0];
     const generatedId =
-      savedInspectionId || `insp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      savedInspectionId || `demo-insp-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
 
     const newInspection: Inspection = {
       id: generatedId,
@@ -416,7 +419,13 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
 
     setSavedInspectionId(generatedId);
     setIsSaved(true);
-    await onSaveInspection(newInspection);
+    setSavedSandboxInspections((prev) => {
+      const exists = prev.some((item) => item.id === generatedId);
+      if (exists) {
+        return prev.map((item) => (item.id === generatedId ? newInspection : item));
+      }
+      return [newInspection, ...prev];
+    });
   };
 
   return (
@@ -688,7 +697,7 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
                     onChange={(e) => setProjectId(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500"
                   >
-                    {projects.map((p) => (
+                    {DEMO_PROJECTS.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name}
                       </option>
@@ -1004,18 +1013,18 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
           </div>
         </section>
 
-        {/* Step 5: Save to Workspace Records */}
+        {/* Step 5: Save to Isolated Demo Sandbox */}
         <section className="bg-slate-950 text-white rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-xl">
           <div className="space-y-2 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-emerald-400 text-xs font-semibold">
               <Database className="w-3.5 h-3.5" />
-              <span>Durable Local Persistence</span>
+              <span>Isolated Sandbox Storage</span>
             </div>
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
-              Save this inspection into your local testing workspace.
+              Save this inspection inside your demo sandbox.
             </h3>
             <p className="text-slate-300 text-xs sm:text-sm leading-relaxed font-normal">
-              Saves your findings into your active workspace. View it across all inspection queues without signing in.
+              All data saved here stays strictly inside this Demo Studio session and never touches your real ForeSite account.
             </p>
           </div>
 
@@ -1024,25 +1033,79 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
               variant="primary"
               size="lg"
               icon={isSaved ? <Check className="w-4 h-4" /> : <Database className="w-4 h-4" />}
-              onClick={handleSaveToWorkspace}
+              onClick={handleSaveToSandbox}
               className={`rounded-full shadow-pill ${
                 isSaved ? "bg-emerald-600 hover:bg-emerald-700" : ""
               }`}
             >
-              {isSaved ? "Saved to Workspace" : "Save Inspection"}
+              {isSaved ? "Saved in Sandbox" : "Save Inspection"}
             </Button>
 
             {isSaved && (
               <button
                 type="button"
-                onClick={() => onNavigate("inspections")}
+                onClick={() => onNavigate("signin")}
                 className="px-5 py-3 rounded-full bg-white/10 hover:bg-white text-white hover:text-slate-950 font-semibold text-xs sm:text-sm transition-colors cursor-pointer"
               >
-                View in Records Queue
+                Sign in to Real Workspace
               </button>
             )}
           </div>
         </section>
+
+        {/* Isolated Sandbox Saved Records Preview */}
+        {savedSandboxInspections.length > 0 && (
+          <section className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-4 shadow-2xs">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h4 className="text-base font-bold text-slate-900">
+                  Sandbox Saved Inspections ({savedSandboxInspections.length})
+                </h4>
+                <p className="text-xs text-slate-500">
+                  Stored temporarily in this Demo Studio session only.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSavedSandboxInspections([]);
+                  setIsSaved(false);
+                  setSavedInspectionId(null);
+                }}
+                className="text-xs font-semibold text-slate-500 hover:text-rose-600 transition-colors cursor-pointer"
+              >
+                Clear Sandbox
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {savedSandboxInspections.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-4 rounded-2xl border border-slate-200 bg-slate-50/70 space-y-2"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <h5 className="text-sm font-bold text-slate-900 line-clamp-1">
+                      {item.title}
+                    </h5>
+                    <Badge variant="status" status={item.reviewStatus} className="shrink-0" />
+                  </div>
+                  <p className="text-xs text-slate-600 line-clamp-2">
+                    {item.observation}
+                  </p>
+                  <div className="flex items-center justify-between pt-1 text-[11px] text-slate-500">
+                    <span>{item.projectName}</span>
+                    {item.inferenceSource && (
+                      <span className="font-semibold text-brand-700">
+                        {item.inferenceSource === "ON_DEVICE" ? "On Device AI" : "Cloud AI"}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
     </div>
   );

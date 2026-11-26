@@ -120,16 +120,38 @@ describe("ForeSite Authentication Navigation Guard", () => {
     const approveBtn = screen.getByRole("button", { name: /approve and sign off/i });
     fireEvent.click(approveBtn);
 
-    // Save inspection into local testing workspace
+    // Save inspection into isolated Demo Studio sandbox
     const saveBtn = screen.getByRole("button", { name: /save inspection/i });
     fireEvent.click(saveBtn);
 
     await waitFor(
       () => {
-        expect(screen.getByText("Saved to Workspace")).toBeInTheDocument();
+        expect(screen.getByText("Saved in Sandbox")).toBeInTheDocument();
+        expect(screen.getByText(/Sandbox Saved Inspections \(1\)/i)).toBeInTheDocument();
       },
       { timeout: 5000 }
     );
+
+    // Sign into real workspace and verify Demo Studio inspection did NOT leak
+    const signInWorkspaceBtn = screen.getByRole("button", { name: /sign in to real workspace/i });
+    fireEvent.click(signInWorkspaceBtn);
+
+    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
+    fireEvent.click(demoLoginBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText("Inspection Overview")).toBeInTheDocument();
+    });
+
+    // Navigate to Inspections and confirm the Demo Studio title is NOT in real records
+    const nav = screen.getByRole("navigation", { name: "Main Navigation" });
+    const inspectionsTab = nav.querySelector('button[aria-label*="Inspections"]') || screen.getByRole("button", { name: /inspections/i });
+    fireEvent.click(inspectionsTab);
+
+    await waitFor(() => {
+      expect(screen.getByText("Site Inspections")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("Rebar Spacing and Cover Depth Verification")).not.toBeInTheDocument();
   });
 
   it("redirects direct unauthenticated access to a protected page to Sign in screen", () => {
