@@ -30,6 +30,7 @@ import {
   LayoutGrid,
   List,
   ArrowUpRight,
+  ArrowLeft,
   MapPin,
 } from "lucide-react";
 import {
@@ -381,6 +382,14 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
     }
   };
 
+  const handleCloseDetail = () => {
+    setIsDetailModalOpen(false);
+    setActiveInspection(null);
+    if (onCloseInspection) {
+      onCloseInspection();
+    }
+  };
+
   const handleOpenEditorForNew = () => {
     setEditingDraft(null);
     setEditingInspection(null);
@@ -516,12 +525,383 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Screen Title */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
-            Site Inspections
-          </h1>
+      {activeInspection && isDetailModalOpen ? (
+        /* Full Dedicated Inspection Detail Page */
+        <div className="space-y-6">
+          {/* Top Navigation & Action Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={handleCloseDetail}
+              className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-950 transition-colors cursor-pointer group"
+            >
+              <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-200" />
+              <span>Back to Inspections</span>
+            </button>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                icon={<Edit2 className="w-3.5 h-3.5" />}
+                onClick={() => handleOpenEditorForExisting(activeInspection)}
+                className="rounded-full"
+              >
+                Edit
+              </Button>
+              {activeInspection.isArchived ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  icon={<ArchiveRestore className="w-3.5 h-3.5" />}
+                  onClick={async () => {
+                    if (onUnarchiveInspection) {
+                      await onUnarchiveInspection(activeInspection.id);
+                      setActiveInspection((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              isArchived: false,
+                              archivedAt: null,
+                              archivedByUid: null,
+                              archiveReason: null,
+                            }
+                          : null
+                      );
+                      await loadDrafts();
+                    }
+                  }}
+                  className="rounded-full"
+                >
+                  Unarchive
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  icon={<Archive className="w-3.5 h-3.5" />}
+                  onClick={async () => {
+                    if (onArchiveInspection) {
+                      await onArchiveInspection(activeInspection.id);
+                      setActiveInspection((prev) =>
+                        prev
+                          ? {
+                              ...prev,
+                              isArchived: true,
+                              archivedAt: Date.now(),
+                              archivedByUid: currentUser?.uid || null,
+                            }
+                          : null
+                      );
+                      await loadDrafts();
+                    }
+                  }}
+                  className="rounded-full"
+                >
+                  Archive
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:bg-red-50 rounded-full"
+                icon={<Trash2 className="w-3.5 h-3.5" />}
+                onClick={() => setInspectionToDelete(activeInspection)}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+
+          {/* Inspection Header Card */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                <MapPin className="w-3 h-3 text-slate-500" />
+                {activeInspection.projectName}
+              </span>
+              <Badge variant="category" category={activeInspection.category} />
+              <Badge variant="status" status={activeInspection.reviewStatus} />
+              {renderSyncBadge(syncStatuses[activeInspection.id], activeInspection.id) || (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
+                  {activeInspection.isLocalDraft && !activeInspection.ownerUid
+                    ? "Device Only"
+                    : activeInspection.isLocalDraft &&
+                      activeInspection.ownerUid &&
+                      currentUser &&
+                      activeInspection.ownerUid !== currentUser.uid
+                    ? "Local Only (Other Account)"
+                    : "Local Only"}
+                </span>
+              )}
+              {activeInspection.inferenceSource && (
+                <Badge variant="source" source={activeInspection.inferenceSource} />
+              )}
+            </div>
+
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
+                {activeInspection.title}
+              </h1>
+              <p className="text-xs text-slate-500 mt-1">
+                Recorded on {formatDate(activeInspection.createdAt)}
+              </p>
+            </div>
+          </div>
+
+          {/* Two Column Content Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Left Column: Notes, Photos & Findings */}
+            <div className="lg:col-span-7 space-y-6">
+              {/* Observation Notes */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                  Field Observation Notes
+                </h2>
+                <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-line">
+                  {activeInspection.observation}
+                </p>
+              </div>
+
+              {/* Image Evidence */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+                <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                  <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
+                  <span>Attached Image Evidence ({detailPhotos.length})</span>
+                  <span className="sr-only">Attached Photographic Evidence</span>
+                </h2>
+                <PhotoEvidenceManager
+                  inspectionId={activeInspection.id}
+                  projectId={activeInspection.projectId}
+                  photos={detailPhotos}
+                  onPhotosChange={setDetailPhotos}
+                  readOnly
+                />
+              </div>
+
+              {/* Visible Evidence Checklist */}
+              {activeInspection.visibleEvidence.length > 0 && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Visible Evidence Checklist
+                  </h2>
+                  <ul className="space-y-2">
+                    {activeInspection.visibleEvidence.map((ev, i) => (
+                      <li
+                        key={i}
+                        className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 bg-slate-50/80 p-3 rounded-xl border border-slate-100"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-brand-500 mt-1.5 shrink-0" />
+                        <span>{ev}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Identified Uncertainties */}
+              {activeInspection.uncertainties.length > 0 && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-amber-800 flex items-center gap-1.5">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Identified Uncertainties & Non-Destructive Limits</span>
+                  </h2>
+                  <ul className="space-y-2">
+                    {activeInspection.uncertainties.map((un, i) => (
+                      <li
+                        key={i}
+                        className="text-xs sm:text-sm text-slate-700 italic bg-amber-50/60 p-3 rounded-xl border border-amber-100"
+                      >
+                        &quot;{un}&quot;
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Inspector Recommended Actions */}
+              {activeInspection.inspectorFollowUp.length > 0 && (
+                <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-3">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-blue-800 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>Inspector Recommended Actions</span>
+                  </h2>
+                  <ul className="space-y-2">
+                    {activeInspection.inspectorFollowUp.map((fu, i) => (
+                      <li
+                        key={i}
+                        className="text-xs sm:text-sm text-slate-700 bg-blue-50/60 p-3 rounded-xl border border-blue-100"
+                      >
+                        • {fu}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Review Workflow & Audit Trail */}
+            <div className="lg:col-span-5 space-y-6">
+              {/* Review & Sign Off Control Card */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Current Status:
+                  </h2>
+                  <Badge variant="status" status={activeInspection.reviewStatus} />
+                </div>
+
+                {reviewError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 flex items-start gap-2">
+                    <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-semibold block">Review Action Failed</span>
+                      <span>{reviewError}</span>
+                    </div>
+                  </div>
+                )}
+
+                {!currentUser && (
+                  <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Inspector sign-in required to record review decisions.</span>
+                  </div>
+                )}
+
+                {getPermittedReviewTransitions(activeInspection.reviewStatus || "draft_generated").length > 0 && (
+                  <div className="space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Reviewer Comment
+                    </label>
+                    <input
+                      type="text"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                      placeholder="Optional review comment or justification..."
+                      className="w-full text-xs px-3 py-2 border border-slate-200 rounded-xl focus:outline-hidden focus:border-brand-500"
+                      disabled={isReviewing || !currentUser}
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-wrap items-center gap-2 pt-1">
+                  {getPermittedReviewTransitions(activeInspection.reviewStatus || "draft_generated").map(
+                    (targetStatus) => {
+                      if (targetStatus === "in_review") {
+                        return (
+                          <Button
+                            key={targetStatus}
+                            variant="primary"
+                            size="sm"
+                            disabled={isReviewing || !currentUser}
+                            icon={<Clock className="w-4 h-4" />}
+                            onClick={() => handleReviewTransition("in_review")}
+                            className="rounded-full"
+                          >
+                            {getReviewActionLabel("in_review", activeInspection.reviewStatus)}
+                          </Button>
+                        );
+                      }
+                      if (targetStatus === "approved") {
+                        return (
+                          <Button
+                            key={targetStatus}
+                            variant="primary"
+                            size="sm"
+                            disabled={isReviewing || !currentUser}
+                            icon={<CheckCircle2 className="w-4 h-4" />}
+                            onClick={() => handleReviewTransition("approved")}
+                            className="rounded-full"
+                          >
+                            Approve Inspection
+                          </Button>
+                        );
+                      }
+                      if (targetStatus === "rejected") {
+                        return (
+                          <Button
+                            key={targetStatus}
+                            variant="danger"
+                            size="sm"
+                            disabled={isReviewing || !currentUser}
+                            icon={<XCircle className="w-4 h-4" />}
+                            onClick={() => handleReviewTransition("rejected")}
+                            className="rounded-full"
+                          >
+                            Reject Draft
+                          </Button>
+                        );
+                      }
+                      return null;
+                    }
+                  )}
+                </div>
+              </div>
+
+              {/* Review Audit History Card */}
+              <div className="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-2xs space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                    <Clock className="w-3.5 h-3.5 text-slate-500" />
+                    <span>Review Audit History ({activeInspection.reviewHistory?.length || 0})</span>
+                  </h2>
+                  {activeInspection.reviewHistory && activeInspection.reviewHistory.length >= 100 && (
+                    <span className="text-[10px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full font-medium">
+                      Audit Cap Reached (100 events)
+                    </span>
+                  )}
+                </div>
+
+                {!activeInspection.reviewHistory || activeInspection.reviewHistory.length === 0 ? (
+                  <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    No review actions recorded yet. Inspection is currently in draft state.
+                  </p>
+                ) : (
+                  <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                    {activeInspection.reviewHistory.map((evt, idx) => (
+                      <div
+                        key={evt.id || idx}
+                        className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/70 text-xs space-y-1.5"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 font-medium text-slate-800">
+                            <Badge variant="status" status={evt.fromStatus} />
+                            <span className="text-slate-400">&rarr;</span>
+                            <Badge variant="status" status={evt.toStatus} />
+                          </div>
+                          <span className="text-slate-400 text-[10px]">
+                            {new Date(evt.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+                          <span>
+                            Reviewer UID:{" "}
+                            <span className="font-mono text-slate-700">{evt.byUid}</span>
+                          </span>
+                          {evt.revision && <span>Rev #{evt.revision}</span>}
+                        </div>
+                        {evt.comment && (
+                          <p className="text-slate-600 bg-white p-2 rounded-lg border border-slate-100 text-[11px] italic">
+                            &quot;{evt.comment}&quot;
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Screen Title */}
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+                Site Inspections
+              </h1>
           {selectedProjectId && (
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 text-[10px] font-bold tracking-wide bg-brand-600 text-white rounded-full shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
@@ -880,365 +1260,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
           </div>
         </div>
       )}
-
-      {/* Inspection Detail / Review Modal */}
-      {activeInspection && (
-        <Modal
-          isOpen={isDetailModalOpen}
-          onClose={() => {
-            setIsDetailModalOpen(false);
-            setActiveInspection(null);
-            if (onCloseInspection) {
-              onCloseInspection();
-            }
-          }}
-          title={`Inspection: ${activeInspection.title}`}
-          maxWidth="lg"
-          footer={
-            <div className="flex flex-col gap-2.5 w-full">
-              {/* Optional Review Comment Input when review transition is available */}
-              {getPermittedReviewTransitions(activeInspection.reviewStatus || "draft_generated").length > 0 && (
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={reviewComment}
-                    onChange={(e) => setReviewComment(e.target.value)}
-                    placeholder="Optional review comment or justification..."
-                    className="flex-1 text-xs px-2.5 py-1.5 border border-slate-200 rounded-lg focus:outline-hidden focus:border-brand-500"
-                    disabled={isReviewing || !currentUser}
-                  />
-                </div>
-              )}
-
-              <div className="flex flex-wrap items-center justify-between w-full gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500">Current Status:</span>
-                  <Badge variant="status" status={activeInspection.reviewStatus} />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsDetailModalOpen(false)}
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    icon={<Edit2 className="w-3.5 h-3.5" />}
-                    onClick={() => handleOpenEditorForExisting(activeInspection)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:bg-red-50"
-                    icon={<Trash2 className="w-3.5 h-3.5" />}
-                    onClick={() => setInspectionToDelete(activeInspection)}
-                  >
-                    Delete
-                  </Button>
-
-                  {/* Archive / Unarchive Action */}
-                  {activeInspection.isArchived ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={<ArchiveRestore className="w-3.5 h-3.5" />}
-                      onClick={async () => {
-                        if (onUnarchiveInspection) {
-                          await onUnarchiveInspection(activeInspection.id);
-                          setActiveInspection((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  isArchived: false,
-                                  archivedAt: null,
-                                  archivedByUid: null,
-                                  archiveReason: null,
-                                }
-                              : null
-                          );
-                          await loadDrafts();
-                        }
-                      }}
-                    >
-                      Unarchive
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      icon={<Archive className="w-3.5 h-3.5" />}
-                      onClick={async () => {
-                        if (onArchiveInspection) {
-                          await onArchiveInspection(activeInspection.id);
-                          setActiveInspection((prev) =>
-                            prev
-                              ? {
-                                  ...prev,
-                                  isArchived: true,
-                                  archivedAt: Date.now(),
-                                  archivedByUid: currentUser?.uid || null,
-                                }
-                              : null
-                          );
-                          await loadDrafts();
-                        }
-                      }}
-                    >
-                      Archive
-                    </Button>
-                  )}
-
-                  {/* Strictly Permitted Review Actions */}
-                  {getPermittedReviewTransitions(activeInspection.reviewStatus || "draft_generated").map(
-                    (targetStatus) => {
-                      if (targetStatus === "in_review") {
-                        return (
-                          <Button
-                            key={targetStatus}
-                            variant="primary"
-                            size="sm"
-                            disabled={isReviewing || !currentUser}
-                            icon={<Clock className="w-4 h-4" />}
-                            onClick={() => handleReviewTransition("in_review")}
-                          >
-                            {getReviewActionLabel("in_review", activeInspection.reviewStatus)}
-                          </Button>
-                        );
-                      }
-                      if (targetStatus === "approved") {
-                        return (
-                          <Button
-                            key={targetStatus}
-                            variant="primary"
-                            size="sm"
-                            disabled={isReviewing || !currentUser}
-                            icon={<CheckCircle2 className="w-4 h-4" />}
-                            onClick={() => handleReviewTransition("approved")}
-                          >
-                            Approve Inspection
-                          </Button>
-                        );
-                      }
-                      if (targetStatus === "rejected") {
-                        return (
-                          <Button
-                            key={targetStatus}
-                            variant="danger"
-                            size="sm"
-                            disabled={isReviewing || !currentUser}
-                            icon={<XCircle className="w-4 h-4" />}
-                            onClick={() => handleReviewTransition("rejected")}
-                          >
-                            Reject Draft
-                          </Button>
-                        );
-                      }
-                      return null;
-                    }
-                  )}
-                </div>
-              </div>
-            </div>
-          }
-        >
-          <div className="space-y-5 text-sm">
-            {/* Review Error Notification */}
-            {reviewError && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800 flex items-start gap-2">
-                <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-semibold block">Review Action Failed</span>
-                  <span>{reviewError}</span>
-                </div>
-              </div>
-            )}
-
-            {/* Unauthenticated Inspector Notice */}
-            {!currentUser && (
-              <div className="p-2.5 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>Inspector sign-in required to record review decisions.</span>
-              </div>
-            )}
-
-            {/* Project & Category Header */}
-            <div className="flex flex-wrap items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-200">
-              <div>
-                <span className="text-xs text-slate-400 block">Project</span>
-                <span className="font-semibold text-slate-800">
-                  {activeInspection.projectName}
-                </span>
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block">Category</span>
-                <Badge variant="category" category={activeInspection.category} />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block">Review Status</span>
-                <Badge variant="status" status={activeInspection.reviewStatus} />
-              </div>
-              <div>
-                <span className="text-xs text-slate-400 block mb-1">Upload Status</span>
-                {renderSyncBadge(syncStatuses[activeInspection.id], activeInspection.id) || (
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-slate-500 text-white shadow-xs">
-                    <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                    {activeInspection.isLocalDraft && !activeInspection.ownerUid
-                      ? "Device Only"
-                      : activeInspection.isLocalDraft &&
-                        activeInspection.ownerUid &&
-                        currentUser &&
-                        activeInspection.ownerUid !== currentUser.uid
-                      ? "Local Only (Other Account)"
-                      : "Local Only"}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Observation Notes */}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                Field Observation Notes
-              </h4>
-              <p className="text-slate-800 bg-white p-3.5 rounded-lg border border-slate-200 leading-relaxed whitespace-pre-line">
-                {activeInspection.observation}
-              </p>
-            </div>
-
-            {/* Image Evidence Section */}
-            <div>
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
-                <ImageIcon className="w-3.5 h-3.5 text-slate-500" />
-                <span>Attached Image Evidence ({detailPhotos.length})</span>
-                <span className="sr-only">Attached Photographic Evidence</span>
-              </h4>
-              <PhotoEvidenceManager
-                inspectionId={activeInspection.id}
-                projectId={activeInspection.projectId}
-                photos={detailPhotos}
-                onPhotosChange={setDetailPhotos}
-                readOnly
-              />
-            </div>
-
-            {/* Visible Evidence List */}
-            {activeInspection.visibleEvidence.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5">
-                  Visible Evidence Checklist
-                </h4>
-                <ul className="space-y-1.5">
-                  {activeInspection.visibleEvidence.map((ev, i) => (
-                    <li
-                      key={i}
-                      className="flex items-start gap-2 text-xs text-slate-700 bg-slate-50 p-2 rounded border border-slate-100"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-brand-500 mt-1 shrink-0" />
-                      <span>{ev}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Uncertainties & Constraints */}
-            {activeInspection.uncertainties.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1 text-amber-800">
-                  <HelpCircle className="w-3.5 h-3.5" />
-                  Identified Uncertainties & Non-Destructive Limits
-                </h4>
-                <ul className="space-y-1">
-                  {activeInspection.uncertainties.map((un, i) => (
-                    <li
-                      key={i}
-                      className="text-xs text-slate-600 italic bg-amber-50/60 p-2 rounded border border-amber-100"
-                    >
-                      &quot;{un}&quot;
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Inspector Follow-Up Items */}
-            {activeInspection.inspectorFollowUp.length > 0 && (
-              <div>
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1 text-blue-800">
-                  <Clock className="w-3.5 h-3.5" />
-                  Inspector Recommended Actions
-                </h4>
-                <ul className="space-y-1">
-                  {activeInspection.inspectorFollowUp.map((fu, i) => (
-                    <li
-                      key={i}
-                      className="text-xs text-slate-700 bg-blue-50/60 p-2 rounded border border-blue-100"
-                    >
-                      • {fu}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* Review Audit History Timeline */}
-            <div className="pt-3 border-t border-slate-200">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-2 flex items-center justify-between">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  Review Audit History ({activeInspection.reviewHistory?.length || 0})
-                </span>
-                {activeInspection.reviewHistory && activeInspection.reviewHistory.length >= 100 && (
-                  <span className="text-[10px] text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-normal">
-                    Audit Cap Reached (100 events)
-                  </span>
-                )}
-              </h4>
-              {(!activeInspection.reviewHistory || activeInspection.reviewHistory.length === 0) ? (
-                <p className="text-xs text-slate-400 italic bg-slate-50 p-2.5 rounded border border-slate-200">
-                  No review actions recorded yet. Inspection is currently in draft state.
-                </p>
-              ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                  {activeInspection.reviewHistory.map((evt, idx) => (
-                    <div
-                      key={evt.id || idx}
-                      className="p-2.5 rounded-lg border border-slate-200 bg-slate-50 text-xs space-y-1"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5 font-medium text-slate-800">
-                          <Badge variant="status" status={evt.fromStatus} />
-                          <span className="text-slate-400">&rarr;</span>
-                          <Badge variant="status" status={evt.toStatus} />
-                        </div>
-                        <span className="text-slate-400 text-[10px]">
-                          {new Date(evt.timestamp).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
-                        <span>
-                          Reviewer UID:{" "}
-                          <span className="font-mono text-slate-700">{evt.byUid}</span>
-                        </span>
-                        {evt.revision && <span>Rev #{evt.revision}</span>}
-                      </div>
-                      {evt.comment && (
-                        <p className="text-slate-600 bg-white p-1.5 rounded border border-slate-100 text-[11px] italic">
-                          &quot;{evt.comment}&quot;
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </Modal>
+        </>
       )}
 
       {/* Delete Inspection Confirmation Modal */}

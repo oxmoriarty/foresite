@@ -560,8 +560,8 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
       expect(screen.getByRole("button", { name: /approve inspection/i })).toBeDefined();
     });
 
-    // 3. Close the detail modal
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    // 3. Navigate back from detail page
+    fireEvent.click(screen.getByRole("button", { name: /back to inspections/i }));
 
     // 4. List view verification: card MUST show "In Review" badge, NOT "Draft Generated"
     await waitFor(() => {
@@ -598,8 +598,8 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
       expect(reopenBtn).not.toBeDisabled();
     }, { timeout: 5000 });
 
-    // Close modal, check list card shows Approved
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    // Navigate back, check list card shows Approved
+    fireEvent.click(screen.getByRole("button", { name: /back to inspections/i }));
     await waitFor(() => {
       // Expect 2 elements: 1 in the filter tabs and 1 on the inspection card badge
       expect(screen.getAllByText("Approved")).toHaveLength(2);
@@ -636,8 +636,8 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
       expect(reopenBtn).not.toBeDisabled();
     }, { timeout: 5000 });
 
-    // Close modal, check list card shows Rejected
-    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+    // Navigate back, check list card shows Rejected
+    fireEvent.click(screen.getByRole("button", { name: /back to inspections/i }));
     await waitFor(() => {
       // Expect 2 elements: 1 in the filter tabs and 1 on the inspection card badge
       expect(screen.getAllByText("Rejected")).toHaveLength(2);

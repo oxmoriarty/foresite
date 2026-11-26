@@ -102,23 +102,23 @@ describe("ForeSite URL Router & History Navigation", () => {
       });
     });
 
-    it("deep links directly to a specific inspection modal (/project/proj-metro-01/inspection/insp-rebar-01)", async () => {
+    it("deep links directly to a specific inspection page (/project/proj-metro-01/inspection/insp-rebar-01)", async () => {
       render(<App initialPath="/project/proj-metro-01/inspection/insp-rebar-01" />);
 
       await waitFor(() => {
+        expect(screen.getByRole("button", { name: /back to inspections/i })).toBeInTheDocument();
         expect(
-          screen.getByText(/Inspection: Rebar Spacing & Cover Depth — Pier Footing 4/i)
+          screen.getByRole("heading", { name: /Rebar Spacing & Cover Depth — Pier Footing 4/i })
         ).toBeInTheDocument();
       });
 
-      // Simulate browser Back button closing modal to /project/proj-metro-01
+      // Simulate browser Back button returning to /project/proj-metro-01 list view
       window.history.replaceState({}, "", "/project/proj-metro-01");
       fireEvent(window, new PopStateEvent("popstate"));
 
       await waitFor(() => {
-        expect(
-          screen.queryByText(/Inspection: Rebar Spacing & Cover Depth — Pier Footing 4/i)
-        ).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /back to inspections/i })).not.toBeInTheDocument();
+        expect(screen.getByText("Site Inspections")).toBeInTheDocument();
       });
     });
   });
