@@ -100,7 +100,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
         }
       : null
   );
-  const [loading, setLoading] = useState(false);
+  const shouldWaitForFirebaseAuth =
+    hasValidConfig && initialUser === undefined && process.env.NODE_ENV !== "test";
+  const [loading, setLoading] = useState(shouldWaitForFirebaseAuth);
   const [error, setError] = useState<string | null>(null);
 
   const clearError = () => setError(null);
@@ -117,7 +119,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
   }, [currentUser]);
 
   useEffect(() => {
-    if (!hasValidConfig) {
+    if (!hasValidConfig || process.env.NODE_ENV === "test") {
       setLoading(false);
       return;
     }

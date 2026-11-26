@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { ViewMode, Project, Inspection, AppStats, ReviewStatus } from "./types";
+import { parseRouteFromPath, buildPathFromState } from "./utils/router";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopNavbar } from "./components/layout/TopNavbar";
 import { MobileNavDrawer } from "./components/layout/MobileNavDrawer";
@@ -152,27 +153,59 @@ const INITIAL_INSPECTIONS: Inspection[] = [
 export interface AppProps {
   initialView?: ViewMode;
   initialUser?: User | null;
+  initialPath?: string;
 }
 
-const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
-  const { currentUser, isConfigured, logout } = useAuth();
-  const defaultInitialView: ViewMode =
-    !currentUser && initialView && initialView !== "landing" && initialView !== "demo"
-      ? "signin"
-      : initialView || (process.env.NODE_ENV === "test" && currentUser ? "overview" : "landing");
-  const [currentView, setCurrentView] = useState<ViewMode>(defaultInitialView);
+const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
+  const { currentUser, loading: authLoading, isConfigured, logout } = useAuth();
+
+  const initialParsedRoute = useMemo(() => {
+    if (initialPath) {
+      return parseRouteFromPath(initialPath);
+    }
+    if (!initialView && typeof window !== "undefined" && process.env.NODE_ENV !== "test") {
+      return parseRouteFromPath(window.location.pathname);
+    }
+    return {
+      view: initialView || (process.env.NODE_ENV === "test" && currentUser ? "overview" : "landing"),
+      projectId: null,
+      inspectionId: null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const isInitialProtectedUnauth =
+    !currentUser &&
+    !authLoading &&
+    initialParsedRoute.view !== "landing" &&
+    initialParsedRoute.view !== "signin" &&
+    initialParsedRoute.view !== "demo";
+
+  const [currentView, setCurrentView] = useState<ViewMode>(
+    isInitialProtectedUnauth ? "signin" : initialParsedRoute.view
+  );
   const [pendingDestination, setPendingDestination] = useState<{
     view: ViewMode;
     openProjectModal?: boolean;
     projectId?: string;
+    inspectionId?: string;
   } | null>(
-    !currentUser && initialView && initialView !== "landing" && initialView !== "signin" && initialView !== "demo"
-      ? { view: initialView }
+    isInitialProtectedUnauth
+      ? {
+          view: initialParsedRoute.view,
+          projectId: initialParsedRoute.projectId || undefined,
+          inspectionId: initialParsedRoute.inspectionId || undefined,
+        }
       : null
   );
   const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
   const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
+    initialParsedRoute.projectId
+  );
+  const [selectedInspectionId, setSelectedInspectionId] = useState<string | null>(
+    initialParsedRoute.inspectionId
+  );
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [isNewInspectionModalOpen, setIsNewInspectionModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
@@ -666,16 +699,83 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
     );
   };
 
-  // Central Guarded Navigation: Enforces authentication on all non-landing views
-  const handleNavigate = useCallback(
-    (targetView: ViewMode, options?: { openProjectModal?: boolean; projectId?: string }) => {
-      if (targetView === "landing" || targetView === "demo") {
-        setCurrentView(targetView);
+  // Sync browser URL via HTML5 History API without triggering full page reload
+  const syncUrl = useCallback(
+    (
+      view: ViewMode,
+      projectId?: string | null,
+      inspectionId?: string | null,
+      replace = false
+    ) => {
+      if (typeof window === "undefined" || !window.history) return;
+      const nextPath = buildPathFromState(view, projectId, inspectionId);
+      if (window.location.pathname === nextPath) return;
+      try {
+        if (replace) {
+          window.history.replaceState({ view, projectId, inspectionId }, "", nextPath);
+        } else {
+          window.history.pushState({ view, projectId, inspectionId }, "", nextPath);
+        }
+      } catch {
+        // Ignore history errors in restricted environments
+      }
+    },
+    []
+  );
+
+  // Listen to browser Back / Forward buttons (popstate)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      const parsed = parseRouteFromPath(window.location.pathname);
+      if (
+        !currentUser &&
+        !authLoading &&
+        parsed.view !== "landing" &&
+        parsed.view !== "signin" &&
+        parsed.view !== "demo"
+      ) {
+        setPendingDestination({
+          view: parsed.view,
+          projectId: parsed.projectId || undefined,
+          inspectionId: parsed.inspectionId || undefined,
+        });
+        setCurrentView("signin");
+        setSelectedProjectId(null);
+        setSelectedInspectionId(null);
         return;
       }
+      setCurrentView(parsed.view);
+      setSelectedProjectId(parsed.projectId);
+      setSelectedInspectionId(parsed.inspectionId);
+    };
 
-      if (targetView === "signin") {
-        setCurrentView("signin");
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [currentUser, authLoading]);
+
+  // Canonical short-link resolution: if /inspection/:id was opened without projectId, resolve its projectId
+  useEffect(() => {
+    if (currentView === "inspections" && selectedInspectionId && !selectedProjectId) {
+      const match = inspections.find((i) => i.id === selectedInspectionId);
+      if (match?.projectId) {
+        setSelectedProjectId(match.projectId);
+        syncUrl("inspections", match.projectId, match.id, true);
+      }
+    }
+  }, [currentView, selectedInspectionId, selectedProjectId, inspections, syncUrl]);
+
+  // Central Guarded Navigation: Enforces authentication on all non-landing views
+  const handleNavigate = useCallback(
+    (
+      targetView: ViewMode,
+      options?: { openProjectModal?: boolean; projectId?: string; inspectionId?: string }
+    ) => {
+      if (targetView === "landing" || targetView === "demo" || targetView === "signin") {
+        setSelectedProjectId(null);
+        setSelectedInspectionId(null);
+        setCurrentView(targetView);
+        syncUrl(targetView, null, null);
         return;
       }
 
@@ -685,8 +785,10 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           view: targetView,
           openProjectModal: options?.openProjectModal,
           projectId: options?.projectId,
+          inspectionId: options?.inspectionId,
         });
         setCurrentView("signin");
+        syncUrl("signin", null, null);
         return;
       }
 
@@ -694,20 +796,26 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
         return;
       }
 
+      const nextProjectId = options?.projectId ?? null;
+      const nextInspectionId = options?.inspectionId ?? null;
+
       // User is authenticated: proceed to destination
       setCurrentView(targetView);
-      if (options?.projectId) {
-        setSelectedProjectId(options.projectId);
-      }
+      setSelectedProjectId(nextProjectId);
+      setSelectedInspectionId(nextInspectionId);
+      syncUrl(targetView, nextProjectId, nextInspectionId);
+
       if (options?.openProjectModal) {
         setIsProjectModalOpen(true);
       }
     },
-    [currentUser]
+    [currentUser, syncUrl]
   );
 
   // Reactive redirect: When user signs in, immediately take them to their intended destination
   useEffect(() => {
+    if (authLoading) return;
+
     if (currentUser) {
       if (!currentUser.emailVerified) {
         return;
@@ -716,34 +824,70 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
         const dest = pendingDestination;
         setPendingDestination(null);
         setCurrentView(dest.view);
-        if (dest.projectId) {
-          setSelectedProjectId(dest.projectId);
-        }
+        setSelectedProjectId(dest.projectId ?? null);
+        setSelectedInspectionId(dest.inspectionId ?? null);
+        syncUrl(dest.view, dest.projectId ?? null, dest.inspectionId ?? null, true);
         if (dest.openProjectModal) {
           setIsProjectModalOpen(true);
         }
       } else if (currentView === "signin") {
         setCurrentView("overview");
+        syncUrl("overview", null, null, true);
       }
     } else {
       // If user is unauthenticated while on a protected page, redirect to signin
       if (currentView !== "landing" && currentView !== "signin" && currentView !== "demo") {
-        setPendingDestination({ view: currentView });
+        setPendingDestination({
+          view: currentView,
+          projectId: selectedProjectId || undefined,
+          inspectionId: selectedInspectionId || undefined,
+        });
         setCurrentView("signin");
+        syncUrl("signin", null, null, true);
       }
     }
-  }, [currentUser, pendingDestination, currentView]);
+  }, [
+    authLoading,
+    currentUser,
+    pendingDestination,
+    currentView,
+    selectedProjectId,
+    selectedInspectionId,
+    syncUrl,
+  ]);
 
   // Handler: Select a project to filter inspections
   const handleSelectProject = (projectId: string) => {
     handleNavigate("inspections", { projectId });
   };
 
+  // Handler: Open a specific inspection with canonical project/inspection URL
+  const handleSelectInspection = (inspection: Inspection) => {
+    const projId = inspection.projectId || selectedProjectId || null;
+    setCurrentView("inspections");
+    setSelectedProjectId(projId);
+    setSelectedInspectionId(inspection.id);
+    syncUrl("inspections", projId, inspection.id);
+  };
+
+  // Handler: Close inspection modal and revert URL to project or inspections list
+  const handleCloseInspection = () => {
+    setSelectedInspectionId(null);
+    syncUrl("inspections", selectedProjectId, null);
+  };
+
   const selectedProject = projects.find((p) => p.id === selectedProjectId);
 
   return (
     <>
-      {currentView === "landing" ? (
+      {authLoading ? (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center font-sans">
+          <div className="w-10 h-10 rounded-full bg-slate-950 text-white font-bold text-sm flex items-center justify-center shadow-md mb-3 animate-pulse">
+            FS
+          </div>
+          <p className="text-xs font-medium text-slate-500">Restoring session...</p>
+        </div>
+      ) : currentView === "landing" ? (
         <LandingScreen
           onNavigate={handleNavigate}
           onCreateProject={() =>
@@ -757,7 +901,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           onSuccess={() => {
             // Handled reactively by currentUser useEffect
           }}
-          onNavigateHome={() => setCurrentView("landing")}
+          onNavigateHome={() => handleNavigate("landing")}
           targetDestinationName={
             pendingDestination?.openProjectModal
               ? "Project Creation"
@@ -773,10 +917,10 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
           email={currentUser.email || ""}
           onSignOut={async () => {
             await logout();
-            setCurrentView("landing");
+            handleNavigate("landing");
           }}
           onVerificationSuccess={() => {
-            setCurrentView("overview");
+            handleNavigate("overview");
           }}
         />
       ) : (
@@ -805,7 +949,11 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
               onSelectView={handleNavigate}
               selectedProjectId={selectedProjectId}
               selectedProjectName={selectedProject?.name}
-              onClearProjectFilter={() => setSelectedProjectId(null)}
+              onClearProjectFilter={() => {
+                setSelectedProjectId(null);
+                setSelectedInspectionId(null);
+                syncUrl("inspections", null, null);
+              }}
               onOpenMobileMenu={() => setIsMobileNavOpen(true)}
             />
 
@@ -816,6 +964,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
                   inspections={inspections}
                   stats={stats}
                   onNavigate={handleNavigate}
+                  onSelectInspection={handleSelectInspection}
                   onOpenNewProjectModal={() => {
                     handleNavigate("projects", { openProjectModal: true });
                   }}
@@ -846,7 +995,14 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
                   onArchiveInspection={handleArchiveInspection}
                   onUnarchiveInspection={handleUnarchiveInspection}
                   selectedProjectId={selectedProjectId}
-                  onClearProjectFilter={() => setSelectedProjectId(null)}
+                  onClearProjectFilter={() => {
+                    setSelectedProjectId(null);
+                    setSelectedInspectionId(null);
+                    syncUrl("inspections", null, null);
+                  }}
+                  selectedInspectionId={selectedInspectionId}
+                  onSelectInspection={handleSelectInspection}
+                  onCloseInspection={handleCloseInspection}
                   isNewInspectionModalOpen={isNewInspectionModalOpen}
                   setIsNewInspectionModalOpen={setIsNewInspectionModalOpen}
                 />
@@ -879,10 +1035,10 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView }) => {
   );
 };
 
-export const App: React.FC<AppProps> = ({ initialView, initialUser }) => {
+export const App: React.FC<AppProps> = ({ initialView, initialUser, initialPath }) => {
   return (
     <AuthProvider initialUser={initialUser}>
-      <ForeSiteApp initialView={initialView} />
+      <ForeSiteApp initialView={initialView} initialPath={initialPath} />
     </AuthProvider>
   );
 };

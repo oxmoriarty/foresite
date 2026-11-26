@@ -80,6 +80,9 @@ export interface InspectionsScreenProps {
   onUnarchiveInspection?: (inspectionId: string) => void | Promise<void>;
   selectedProjectId?: string | null;
   onClearProjectFilter?: () => void;
+  selectedInspectionId?: string | null;
+  onSelectInspection?: (inspection: Inspection) => void;
+  onCloseInspection?: () => void;
   isNewInspectionModalOpen?: boolean;
   setIsNewInspectionModalOpen?: (open: boolean) => void;
 }
@@ -95,6 +98,9 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
   onUnarchiveInspection,
   selectedProjectId,
   onClearProjectFilter,
+  selectedInspectionId,
+  onSelectInspection,
+  onCloseInspection,
   isNewInspectionModalOpen: externalIsNewModalOpen,
   setIsNewInspectionModalOpen: externalSetIsNewModalOpen,
 }) => {
@@ -349,11 +355,30 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
     };
   }, [currentUser?.uid, inspectionIdsKey, allDisplayInspections]);
 
+  // Sync active inspection modal with URL-selected inspectionId
+  useEffect(() => {
+    if (selectedInspectionId) {
+      const target = allDisplayInspections.find((i) => i.id === selectedInspectionId);
+      if (target && (!activeInspection || activeInspection.id !== target.id || !isDetailModalOpen)) {
+        setActiveInspection(target);
+        setReviewError(null);
+        setReviewComment("");
+        setIsDetailModalOpen(true);
+      }
+    } else if (selectedInspectionId === null && isDetailModalOpen) {
+      setIsDetailModalOpen(false);
+      setActiveInspection(null);
+    }
+  }, [selectedInspectionId, allDisplayInspections, activeInspection, isDetailModalOpen]);
+
   const handleOpenDetail = (insp: Inspection) => {
     setActiveInspection(insp);
     setReviewError(null);
     setReviewComment("");
     setIsDetailModalOpen(true);
+    if (onSelectInspection) {
+      onSelectInspection(insp);
+    }
   };
 
   const handleOpenEditorForNew = () => {
@@ -860,7 +885,13 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
       {activeInspection && (
         <Modal
           isOpen={isDetailModalOpen}
-          onClose={() => setIsDetailModalOpen(false)}
+          onClose={() => {
+            setIsDetailModalOpen(false);
+            setActiveInspection(null);
+            if (onCloseInspection) {
+              onCloseInspection();
+            }
+          }}
           title={`Inspection: ${activeInspection.title}`}
           maxWidth="lg"
           footer={

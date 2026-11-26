@@ -27,6 +27,7 @@ export interface OverviewScreenProps {
   stats: AppStats;
   onNavigate: (view: ViewMode) => void;
   onOpenNewProjectModal: () => void;
+  onSelectInspection?: (inspection: Inspection) => void;
 }
 
 export const OverviewScreen: React.FC<OverviewScreenProps> = ({
@@ -34,6 +35,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   stats,
   onNavigate,
   onOpenNewProjectModal,
+  onSelectInspection,
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const recentInspections = inspections.slice(0, 6);
@@ -205,7 +207,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
               return (
                 <div
                   key={insp.id}
-                  onClick={() => onNavigate("inspections")}
+                  onClick={() => (onSelectInspection ? onSelectInspection(insp) : onNavigate("inspections"))}
                   className="group relative rounded-2xl border border-slate-200/90 bg-white hover:border-slate-300 hover:shadow-card-hover hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 flex flex-col justify-between cursor-pointer overflow-hidden"
                 >
                   {/* Top: Image or No Image Placeholder */}
@@ -302,7 +304,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                 return (
                   <div
                     key={insp.id}
-                    onClick={() => onNavigate("inspections")}
+                    onClick={() => (onSelectInspection ? onSelectInspection(insp) : onNavigate("inspections"))}
                     className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50 transition-all duration-150 cursor-pointer items-center group active:bg-slate-100/80"
                   >
                     {/* Column 1: Thumbnail + Title + ID */}
