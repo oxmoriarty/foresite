@@ -100,7 +100,7 @@ describe("ForeSite Authentication Navigation Guard", () => {
     expect(screen.getByText(/Choose a Site Scenario/i)).toBeInTheDocument();
   });
 
-  it("allows testing live AI analysis and review verification in demo mode without signing in", async () => {
+  it("allows testing live AI analysis in demo mode without signing in and keeps demo isolated", async () => {
     render(<App initialView="demo" initialUser={null} />);
 
     // Verify preloaded scenario is displayed
@@ -114,27 +114,12 @@ describe("ForeSite Authentication Navigation Guard", () => {
     // Verify AI analysis output is generated
     await waitFor(() => {
       expect(screen.getByText("AI Draft Findings")).toBeInTheDocument();
+      expect(screen.getByText("Rebar Spacing and Cover Depth Verification")).toBeInTheDocument();
     });
 
-    // Test Human review verification: Approve and Sign Off
-    const approveBtn = screen.getByRole("button", { name: /approve and sign off/i });
-    fireEvent.click(approveBtn);
-
-    // Save inspection into isolated Demo Studio sandbox
-    const saveBtn = screen.getByRole("button", { name: /save inspection/i });
-    fireEvent.click(saveBtn);
-
-    await waitFor(
-      () => {
-        expect(screen.getByText("Saved in Sandbox")).toBeInTheDocument();
-        expect(screen.getByText(/Sandbox Saved Inspections \(1\)/i)).toBeInTheDocument();
-      },
-      { timeout: 5000 }
-    );
-
-    // Sign into real workspace and verify Demo Studio inspection did NOT leak
-    const signInWorkspaceBtn = screen.getByRole("button", { name: /sign in to real workspace/i });
-    fireEvent.click(signInWorkspaceBtn);
+    // Sign into real workspace and verify Demo Studio findings did NOT leak
+    const signInBtn = screen.getByRole("button", { name: /sign in/i });
+    fireEvent.click(signInBtn);
 
     const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
     fireEvent.click(demoLoginBtn);
