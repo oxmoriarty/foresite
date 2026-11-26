@@ -667,7 +667,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                   Discard this offline change?
                 </p>
                 <p className="text-xs text-slate-500 leading-relaxed">
-                  It will be cancelled and will not be uploaded.
+                  Photos saved on this device will NOT be deleted.
                 </p>
               </div>
             </div>
@@ -679,11 +679,6 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
               <span className="font-mono text-[11px] text-slate-500 truncate">
                 {discardTarget.targetInspectionId}
               </span>
-            </div>
-
-            <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50/70 border border-emerald-200/70 rounded-xl px-3.5 py-2.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span className="font-medium">Photos saved on this device will NOT be deleted.</span>
             </div>
 
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
