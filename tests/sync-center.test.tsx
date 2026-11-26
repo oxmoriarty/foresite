@@ -355,7 +355,7 @@ describe("SyncCenterScreen Component", () => {
     fireEvent.click(discardBtns[0]!);
 
     // Discard safeguard modal opened
-    expect(screen.getByText("Confirm Discarding Pending Change")).toBeInTheDocument();
+    expect(screen.getByText("Discard Pending Change")).toBeInTheDocument();
     expect(
       screen.getByText(/Photos saved on this device will NOT be deleted/i)
     ).toBeInTheDocument();

@@ -654,31 +654,44 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
         <Modal
           isOpen={!!discardTarget}
           onClose={() => setDiscardTarget(null)}
-          title="Confirm Discarding Pending Change"
+          title="Discard Pending Change"
+          maxWidth="sm"
         >
           <div className="space-y-4">
-            <div className="p-3 bg-red-50 border border-red-200 text-red-800 text-xs rounded-lg flex items-start gap-2.5">
-              <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-              <div className="space-y-1">
-                <p className="font-semibold text-red-900">
-                  Are you sure you want to discard this offline change?
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1 pt-0.5">
+                <p className="text-sm font-semibold text-slate-900">
+                  Discard this offline change?
                 </p>
-                <p>
-                  Pending change <span className="font-mono font-medium">{discardTarget.id}</span> ({formatMutationType(discardTarget.type)})
-                  for inspection <span className="font-mono font-medium">{discardTarget.targetInspectionId}</span> will be marked as
-                  cancelled and will never be uploaded.
-                </p>
-                <p className="font-semibold text-red-950">
-                  Photos saved on this device will NOT be deleted.
+                <p className="text-xs text-slate-500 leading-relaxed">
+                  It will be cancelled and will not be uploaded.
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-200">
+            <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
+              <span className="font-semibold text-slate-700">
+                {formatMutationType(discardTarget.type)}
+              </span>
+              <span className="font-mono text-[11px] text-slate-500 truncate">
+                {discardTarget.targetInspectionId}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-emerald-800 bg-emerald-50/70 border border-emerald-200/70 rounded-xl px-3.5 py-2.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              <span className="font-medium">Photos saved on this device will NOT be deleted.</span>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100">
               <Button
                 variant="secondary"
                 onClick={() => setDiscardTarget(null)}
                 disabled={discarding}
+                className="rounded-full"
               >
                 Keep Change
               </Button>
@@ -686,6 +699,7 @@ export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
                 variant="danger"
                 onClick={handleConfirmDiscard}
                 disabled={discarding}
+                className="rounded-full"
               >
                 {discarding ? "Discarding..." : "Yes, Discard Change"}
               </Button>
