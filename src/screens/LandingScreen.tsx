@@ -251,11 +251,6 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
                     loading="lazy"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/40 via-transparent to-transparent pointer-events-none" />
-                  <div className="absolute bottom-4 left-6 right-6 flex items-center justify-between text-slate-800 text-xs bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-200/80 shadow-xs z-10">
-                    <span className="font-semibold text-slate-900">
-                      Structural inspection sign off review
-                    </span>
-                  </div>
                 </div>
               </div>
             </ScrollReveal>
