@@ -150,6 +150,46 @@ const INITIAL_INSPECTIONS: Inspection[] = [
   },
 ];
 
+function getDeletedProjectIds(uid?: string): string[] {
+  try {
+    const key = uid ? `foresite_deleted_projects_${uid}` : "foresite_deleted_projects";
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function recordDeletedProjectId(projectId: string, uid?: string): void {
+  try {
+    const key = uid ? `foresite_deleted_projects_${uid}` : "foresite_deleted_projects";
+    const existing = getDeletedProjectIds(uid);
+    if (!existing.includes(projectId)) {
+      localStorage.setItem(key, JSON.stringify([...existing, projectId]));
+    }
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function getHasCustomProjects(uid?: string): boolean {
+  try {
+    const key = uid ? `foresite_has_custom_projects_${uid}` : "foresite_has_custom_projects";
+    return localStorage.getItem(key) === "true";
+  } catch {
+    return false;
+  }
+}
+
+function markHasCustomProjects(uid?: string): void {
+  try {
+    const key = uid ? `foresite_has_custom_projects_${uid}` : "foresite_has_custom_projects";
+    localStorage.setItem(key, "true");
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export interface AppProps {
   initialView?: ViewMode;
   initialUser?: User | null;
@@ -198,8 +238,18 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
         }
       : null
   );
-  const [projects, setProjects] = useState<Project[]>(INITIAL_PROJECTS);
-  const [inspections, setInspections] = useState<Inspection[]>(INITIAL_INSPECTIONS);
+  const [projects, setProjects] = useState<Project[]>(() => {
+    const deletedIds = getDeletedProjectIds(currentUser?.uid);
+    const hasCustom = getHasCustomProjects(currentUser?.uid);
+    if (hasCustom) return [];
+    return INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id));
+  });
+  const [inspections, setInspections] = useState<Inspection[]>(() => {
+    const deletedIds = getDeletedProjectIds(currentUser?.uid);
+    const hasCustom = getHasCustomProjects(currentUser?.uid);
+    if (hasCustom) return [];
+    return INITIAL_INSPECTIONS.filter((i) => !deletedIds.includes(i.projectId));
+  });
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(
     initialParsedRoute.projectId
   );
@@ -240,15 +290,24 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
         getUserProjects(uid),
         getUserInspections(uid),
       ]);
+      const deletedIds = getDeletedProjectIds(uid);
+      const hasCustom = getHasCustomProjects(uid);
+
       if (userProjects.length > 0) {
-        setProjects(userProjects);
+        markHasCustomProjects(uid);
+        setProjects(userProjects.filter((p) => !deletedIds.includes(p.id)));
+      } else if (hasCustom) {
+        setProjects([]);
       } else {
-        setProjects(INITIAL_PROJECTS);
+        setProjects(INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id)));
       }
+
       if (userInspections.length > 0) {
-        setInspections(userInspections);
+        setInspections(userInspections.filter((i) => !deletedIds.includes(i.projectId)));
+      } else if (hasCustom) {
+        setInspections([]);
       } else {
-        setInspections(INITIAL_INSPECTIONS);
+        setInspections(INITIAL_INSPECTIONS.filter((i) => !deletedIds.includes(i.projectId)));
       }
     } catch (err) {
       console.warn("Could not load user Firestore data, falling back to local seed:", err);
@@ -264,8 +323,9 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
         });
       }
     } else {
-      setProjects(INITIAL_PROJECTS);
-      setInspections(INITIAL_INSPECTIONS);
+      const deletedIds = getDeletedProjectIds(currentUser?.uid);
+      setProjects(INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id)));
+      setInspections(INITIAL_INSPECTIONS.filter((i) => !deletedIds.includes(i.projectId)));
     }
     refreshLocalStorageCounts();
   }, [currentUser, isConfigured, loadUserData, refreshLocalStorageCounts]);
@@ -296,6 +356,8 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
   const handleCreateProject = async (
     newProj: Omit<Project, "id" | "inspectionCount" | "createdAt" | "updatedAt">
   ) => {
+    markHasCustomProjects(currentUser?.uid);
+
     if (currentUser?.uid && isConfigured) {
       try {
         const created = await createFirestoreProject(currentUser.uid, newProj);
@@ -344,6 +406,8 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
 
   // Handler: Cascade delete project
   const handleDeleteProject = async (projectId: string) => {
+    recordDeletedProjectId(projectId, currentUser?.uid);
+
     if (currentUser?.uid && isConfigured) {
       try {
         await deleteFirestoreProject(currentUser.uid, projectId);
@@ -359,6 +423,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
     setInspections((prev) => prev.filter((i) => i.projectId !== projectId));
     if (selectedProjectId === projectId) {
       setSelectedProjectId(null);
+      setSelectedInspectionId(null);
     }
     await refreshLocalStorageCounts();
   };

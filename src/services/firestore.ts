@@ -175,6 +175,12 @@ export async function deleteProject(uid: string, projectId: string): Promise<voi
   if (!hasValidConfig) return;
   const projectRef = doc(db, "users", uid, "projects", projectId);
   await deleteDoc(projectRef);
+
+  // Cascade delete all associated inspections in Firestore
+  const inspectionsRef = collection(db, "users", uid, "inspections");
+  const q = query(inspectionsRef, where("projectId", "==", projectId));
+  const snapshot = await getDocs(q);
+  await Promise.all(snapshot.docs.map((docSnap) => deleteDoc(docSnap.ref)));
 }
 
 // ============================================================================

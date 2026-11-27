@@ -573,37 +573,51 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
       <Modal
         isOpen={Boolean(projectToDelete)}
         onClose={() => setProjectToDelete(null)}
-        title={
-          <div className="flex items-center gap-2 text-red-700">
-            <AlertTriangle className="w-5 h-5 text-red-600" />
-            <span>Confirm Project Deletion</span>
-          </div>
-        }
+        title="Delete Project"
+        maxWidth="sm"
         footer={
           <>
             <Button
               variant="outline"
               size="md"
               onClick={() => setProjectToDelete(null)}
+              className="rounded-full"
             >
               Cancel
             </Button>
-            <Button variant="danger" size="md" onClick={confirmDelete}>
-              Permanently Delete Project
+            <Button
+              variant="danger"
+              size="md"
+              onClick={confirmDelete}
+              className="rounded-full"
+            >
+              Delete Project
             </Button>
           </>
         }
       >
-        <div className="space-y-3 text-xs text-slate-700">
-          <p>
-            Are you sure you want to delete <strong>{projectToDelete?.name}</strong> (Site Label: {projectToDelete?.siteLabel})?
-          </p>
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800 space-y-1">
-            <span className="font-semibold block">Cascade Cleanup Warning:</span>
-            <p>
-              Deleting this project will permanently remove all associated inspections, image evidence, and project records.
-            </p>
-            <p className="font-bold">This operation cannot be undone.</p>
+        <div className="space-y-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertTriangle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1 pt-0.5">
+              <p className="text-sm font-semibold text-slate-900">
+                Delete {projectToDelete?.name}?
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                All associated inspections and photos will be permanently deleted. This cannot be undone.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-slate-700 truncate">
+              {projectToDelete?.name}
+            </span>
+            <span className="font-mono text-[11px] text-slate-500 shrink-0">
+              {projectToDelete?.siteLabel}
+            </span>
           </div>
         </div>
       </Modal>
