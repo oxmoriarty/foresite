@@ -52,7 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: inspectionBadgeCount > 0 ? inspectionBadgeCount : undefined,
     },
     {
-      id: "sync",
+      id: "uploads",
       label: "Uploads",
       icon: UploadCloud,
       badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,

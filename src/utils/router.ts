@@ -31,8 +31,8 @@ export function parseRouteFromPath(pathname: string): ParsedRoute {
   if (first === "settings") {
     return { view: "settings", projectId: null, inspectionId: null };
   }
-  if (first === "sync" || first === "uploads") {
-    return { view: "sync", projectId: null, inspectionId: null };
+  if (first === "uploads" || first === "sync") {
+    return { view: "uploads", projectId: null, inspectionId: null };
   }
 
   // /project or /projects
@@ -87,8 +87,8 @@ export function buildPathFromState(
       return "/signin";
     case "settings":
       return "/settings";
-    case "sync":
-      return "/sync";
+    case "uploads":
+      return "/uploads";
     case "projects":
       return "/project";
     case "inspections":

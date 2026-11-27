@@ -15,7 +15,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { SyncCenterScreen } from "../src/screens/SyncCenterScreen";
+import { UploadsScreen } from "../src/screens/UploadsScreen";
 import {
   enqueueMutation,
   transitionMutationStatus,
@@ -108,7 +108,7 @@ function createMockConflictDetails(inspectionId = "insp-sc-1"): ConflictDetails 
   };
 }
 
-describe("SyncCenterScreen Component", () => {
+describe("UploadsScreen Component", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
     (auth as { currentUser: { uid: string; email?: string } | null }).currentUser = {
@@ -206,7 +206,7 @@ describe("SyncCenterScreen Component", () => {
   });
 
   it("renders Uploads heading, KPI counters, and mutation cards", async () => {
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     // Heading and items loaded
     await waitFor(() => {
@@ -226,7 +226,7 @@ describe("SyncCenterScreen Component", () => {
   });
 
   it("filters mutations when clicking filter tabs", async () => {
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByText("insp-queued-1")).toBeInTheDocument();
@@ -251,7 +251,7 @@ describe("SyncCenterScreen Component", () => {
   });
 
   it("opens ConflictResolutionModal when clicking '[Resolve Conflict]'", async () => {
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByText("Needs conflict resolution")).toBeInTheDocument();
@@ -267,7 +267,7 @@ describe("SyncCenterScreen Component", () => {
   });
 
   it("manually retries a failed mutation and resets it to 'queued'", async () => {
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
@@ -311,7 +311,7 @@ describe("SyncCenterScreen Component", () => {
       isTransientFailure: false, // sets failed_exhausted
     });
 
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getAllByRole("button", { name: /Retry Upload/i }).length).toBeGreaterThan(0);
@@ -343,7 +343,7 @@ describe("SyncCenterScreen Component", () => {
       blob: new Blob(["crack-photo"], { type: "image/png" }),
     });
 
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByText("Upload failed, retries exhausted")).toBeInTheDocument();
@@ -375,7 +375,7 @@ describe("SyncCenterScreen Component", () => {
   });
 
   it("triggers manual sync replay on '[Upload Now]' button click", async () => {
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Upload Now/i })).toBeInTheDocument();
@@ -412,7 +412,7 @@ describe("SyncCenterScreen Component", () => {
     expect(jsonStr).not.toContain("apiKey");
     expect(jsonStr).not.toContain("secret");
 
-    render(<SyncCenterScreen />);
+    render(<UploadsScreen />);
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: /Export Diagnostics/i })).toBeEnabled();

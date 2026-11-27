@@ -63,7 +63,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               </button>
               <button
                 type="button"
-                onClick={() => onNavigate("sync")}
+                onClick={() => onNavigate("uploads")}
                 className="hover:text-slate-950 transition-colors cursor-pointer"
               >
                 Uploads

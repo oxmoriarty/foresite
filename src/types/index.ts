@@ -3,7 +3,7 @@
  * Construction Site Inspection & Observation Workspace
  */
 
-export type ViewMode = "landing" | "signin" | "overview" | "projects" | "inspections" | "sync" | "settings" | "demo";
+export type ViewMode = "landing" | "signin" | "overview" | "projects" | "inspections" | "uploads" | "settings" | "demo";
 
 export type ReviewStatus = "draft_generated" | "in_review" | "approved" | "rejected";
 

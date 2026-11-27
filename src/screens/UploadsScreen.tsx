@@ -47,13 +47,13 @@ import {
 import { replayQueuedMutations } from "../services/mutationReplay";
 import { ConflictResolutionModal } from "../components/conflict/ConflictResolutionModal";
 
-export interface SyncCenterScreenProps {
+export interface UploadsScreenProps {
   onNavigateToInspections?: () => void;
 }
 
 type FilterTab = "all" | "attention" | "pending" | "synced" | "cancelled";
 
-export const SyncCenterScreen: React.FC<SyncCenterScreenProps> = ({
+export const UploadsScreen: React.FC<UploadsScreenProps> = ({
   onNavigateToInspections,
 }) => {
   const [mutations, setMutations] = useState<MutationRecord[]>([]);

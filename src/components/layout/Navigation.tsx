@@ -25,7 +25,7 @@ export const Navigation: React.FC<NavigationProps> = ({
       badge: inspectionBadgeCount > 0 ? inspectionBadgeCount : undefined,
     },
     {
-      id: "sync",
+      id: "uploads",
       label: "Uploads",
       icon: UploadCloud,
       badge: syncBadgeCount > 0 ? syncBadgeCount : undefined,

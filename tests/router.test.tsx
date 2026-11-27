@@ -26,8 +26,9 @@ describe("ForeSite URL Router & History Navigation", () => {
       expect(parseRouteFromPath("/settings")).toEqual({ view: "settings", projectId: null, inspectionId: null });
       expect(buildPathFromState("settings")).toBe("/settings");
 
-      expect(parseRouteFromPath("/sync")).toEqual({ view: "sync", projectId: null, inspectionId: null });
-      expect(buildPathFromState("sync")).toBe("/sync");
+      expect(parseRouteFromPath("/uploads")).toEqual({ view: "uploads", projectId: null, inspectionId: null });
+      expect(parseRouteFromPath("/sync")).toEqual({ view: "uploads", projectId: null, inspectionId: null });
+      expect(buildPathFromState("uploads")).toBe("/uploads");
 
       expect(parseRouteFromPath("/signin")).toEqual({ view: "signin", projectId: null, inspectionId: null });
       expect(buildPathFromState("signin")).toBe("/signin");

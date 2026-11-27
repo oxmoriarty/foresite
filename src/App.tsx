@@ -11,7 +11,7 @@ import { DemoScreen } from "./screens/DemoScreen";
 import { User } from "firebase/auth";
 import { ProjectsScreen } from "./screens/ProjectsScreen";
 import { InspectionsScreen } from "./screens/InspectionsScreen";
-import { SyncCenterScreen } from "./screens/SyncCenterScreen";
+import { UploadsScreen } from "./screens/UploadsScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { VerifyEmailScreen } from "./screens/VerifyEmailScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -1073,8 +1073,8 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
                 />
               )}
 
-              {currentView === "sync" && (
-                <SyncCenterScreen
+              {currentView === "uploads" && (
+                <UploadsScreen
                   onNavigateToInspections={() => handleNavigate("inspections")}
                 />
               )}
