@@ -24,6 +24,7 @@ import {
 } from "./services/firestore";
 import {
   saveLocalProject,
+  getAllLocalProjects,
   deleteProjectCascade,
   deleteEvidencePhoto,
   deleteLocalDraft,
@@ -314,8 +315,13 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
     }
   }, []);
 
+  const isRemoteUser = Boolean(
+    currentUser?.uid && currentUser.uid !== "inspector-demo-01" && isConfigured
+  );
+
   useEffect(() => {
-    if (currentUser?.uid && isConfigured) {
+    let cancelled = false;
+    if (isRemoteUser && currentUser?.uid) {
       if (currentUser.emailVerified) {
         loadUserData(currentUser.uid);
         void recoverPhotoCleanups(currentUser.uid).catch((err) => {
@@ -324,11 +330,30 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
       }
     } else {
       const deletedIds = getDeletedProjectIds(currentUser?.uid);
-      setProjects(INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id)));
+      const loadLocal = async () => {
+        try {
+          const localProjects = await getAllLocalProjects();
+          if (cancelled) return;
+          const localMap = new Map(localProjects.map((p) => [p.id, p]));
+          const merged = [
+            ...localProjects,
+            ...INITIAL_PROJECTS.filter((p) => !localMap.has(p.id)),
+          ].filter((p) => !deletedIds.includes(p.id));
+          setProjects(merged);
+        } catch {
+          if (!cancelled) {
+            setProjects(INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id)));
+          }
+        }
+      };
+      void loadLocal();
       setInspections(INITIAL_INSPECTIONS.filter((i) => !deletedIds.includes(i.projectId)));
     }
     refreshLocalStorageCounts();
-  }, [currentUser, isConfigured, loadUserData, refreshLocalStorageCounts]);
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, isRemoteUser, loadUserData, refreshLocalStorageCounts]);
 
   // Safe startup initialization for Firebase Remote Config
   useEffect(() => {
@@ -358,7 +383,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
   ) => {
     markHasCustomProjects(currentUser?.uid);
 
-    if (currentUser?.uid && isConfigured) {
+    if (isRemoteUser && currentUser?.uid) {
       try {
         const created = await createFirestoreProject(currentUser.uid, newProj);
         setProjects([created, ...projects]);
@@ -384,7 +409,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
 
   // Handler: Update project
   const handleUpdateProject = async (projectId: string, updates: Partial<Project>) => {
-    if (currentUser?.uid && isConfigured) {
+    if (isRemoteUser && currentUser?.uid) {
       try {
         await updateFirestoreProject(currentUser.uid, projectId, updates);
       } catch (err) {
@@ -408,7 +433,7 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
   const handleDeleteProject = async (projectId: string) => {
     recordDeletedProjectId(projectId, currentUser?.uid);
 
-    if (currentUser?.uid && isConfigured) {
+    if (isRemoteUser && currentUser?.uid) {
       try {
         await deleteFirestoreProject(currentUser.uid, projectId);
       } catch (err) {

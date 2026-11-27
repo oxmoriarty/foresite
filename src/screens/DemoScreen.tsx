@@ -110,7 +110,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     projectId: "proj-terminal-02",
     projectName: "Terminal 3 Gate Pier Expansion",
     category: "equipment",
-    photoUrl: "/images/ai-inspection-hero.jpg",
+    photoUrl: "/images/ConstructionAudit.jpg",
     photoName: "scaffold_west_facade.jpg",
     elementLabel: "West Elevation Bay 12",
     initialFieldNotes:
@@ -144,7 +144,7 @@ export const DEMO_SCENARIOS: DemoScenario[] = [
     projectId: "proj-metro-01",
     projectName: "Metro North Station Redevelopment",
     category: "installation",
-    photoUrl: "/images/offline-site.jpg",
+    photoUrl: "/images/engineers-collaboration.jpg",
     photoName: "conduit_riser_vault_b2.jpg",
     elementLabel: "Electrical Room B2",
     initialFieldNotes:

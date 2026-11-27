@@ -44,6 +44,15 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const DEMO_SESSION_KEY = "foresite_demo_session";
+
+const DEMO_INSPECTOR_USER: User = {
+  uid: "inspector-demo-01",
+  email: "inspector@foresite.local",
+  displayName: "Lead Site Inspector",
+  emailVerified: true,
+} as unknown as User;
+
 const TEST_INSPECTOR: User = {
   uid: "test-inspector-01",
   email: "inspector@foresite.test",
@@ -119,42 +128,66 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
   }, [currentUser]);
 
   useEffect(() => {
+    const restoreDemoSession = () => {
+      try {
+        if (sessionStorage.getItem(DEMO_SESSION_KEY) === "true") {
+          setCurrentUser(DEMO_INSPECTOR_USER);
+          setUserProfile({
+            uid: DEMO_INSPECTOR_USER.uid,
+            email: DEMO_INSPECTOR_USER.email || "inspector@foresite.local",
+            displayName: DEMO_INSPECTOR_USER.displayName || "Lead Site Inspector",
+            emailVerified: true,
+            role: "inspector",
+            createdAt: Date.now(),
+            lastLoginAt: Date.now(),
+          });
+          return true;
+        }
+      } catch {
+        // Ignore sessionStorage errors in restricted environments
+      }
+      return false;
+    };
+
     if (!hasValidConfig || process.env.NODE_ENV === "test") {
+      if (!initialUser) {
+        restoreDemoSession();
+      }
       setLoading(false);
       return;
     }
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
       if (user) {
+        setCurrentUser(user);
         try {
           const profile = await syncUserProfile(user);
           setUserProfile(profile);
         } catch (err) {
           console.warn("Profile sync error on auth state change:", err);
         }
-      } else {
+      } else if (!restoreDemoSession()) {
+        setCurrentUser(null);
         setUserProfile(null);
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [initialUser]);
 
   const loginAsDemo = async () => {
     setError(null);
-    const demoUser = {
-      uid: "inspector-demo-01",
-      email: "inspector@foresite.local",
-      displayName: "Lead Site Inspector",
-      emailVerified: true,
-    } as unknown as User;
-    setCurrentUser(demoUser);
+    try {
+      sessionStorage.setItem(DEMO_SESSION_KEY, "true");
+    } catch {
+      // Ignore sessionStorage errors
+    }
+    setCurrentUser(DEMO_INSPECTOR_USER);
     setUserProfile({
-      uid: demoUser.uid,
-      email: demoUser.email || "inspector@foresite.local",
-      displayName: demoUser.displayName || "Lead Site Inspector",
+      uid: DEMO_INSPECTOR_USER.uid,
+      email: DEMO_INSPECTOR_USER.email || "inspector@foresite.local",
+      displayName: DEMO_INSPECTOR_USER.displayName || "Lead Site Inspector",
       emailVerified: true,
       role: "inspector",
       createdAt: Date.now(),
@@ -238,6 +271,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
 
   const logout = async () => {
     setError(null);
+    try {
+      sessionStorage.removeItem(DEMO_SESSION_KEY);
+    } catch {
+      // Ignore sessionStorage errors
+    }
     if (!hasValidConfig) {
       setCurrentUser(null);
       setUserProfile(null);

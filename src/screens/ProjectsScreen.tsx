@@ -321,7 +321,7 @@ export const ProjectsScreen: React.FC<ProjectsScreenProps> = ({
                     {project.name}
                   </h3>
                   <p className="text-xs text-slate-500 line-clamp-2 leading-relaxed min-h-[32px]">
-                    {project.description || project.location || "Active construction inspection project and parcel."}
+                    {project.description || "Active construction inspection project and parcel."}
                   </p>
                 </div>
 
