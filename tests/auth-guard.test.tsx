@@ -85,17 +85,17 @@ describe("ForeSite Authentication Navigation Guard", () => {
     });
   });
 
-  it("renders View Demo button and Powered by Firebase AI Logic badge on landing page", () => {
+  it("renders Try Demo button and Powered by Firebase AI Logic badge on landing page", () => {
     render(<App initialView="landing" initialUser={null} />);
-    expect(screen.getByRole("button", { name: /view demo/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /try demo/i })).toBeInTheDocument();
     expect(screen.getByText("AI Logic")).toBeInTheDocument();
   });
 
-  it("navigates directly to the interactive Demo Studio when clicking View Demo without authentication", async () => {
+  it("navigates directly to the interactive Demo Studio when clicking Try Demo without authentication", async () => {
     render(<App initialView="landing" initialUser={null} />);
 
-    // Click "View Demo" CTA in hero
-    const viewDemoBtn = screen.getByRole("button", { name: /view demo/i });
+    // Click "Try Demo" CTA in hero
+    const viewDemoBtn = screen.getByRole("button", { name: /try demo/i });
     fireEvent.click(viewDemoBtn);
 
     // It MUST NOT require authentication; opens Demo Studio directly

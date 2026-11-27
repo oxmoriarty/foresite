@@ -32,7 +32,7 @@ export const CloudConsentModal: React.FC<CloudConsentModalProps> = ({
             onClick={onDecline}
             className="rounded-full"
           >
-            Write Manually
+            Decline
           </Button>
           <Button
             variant="primary"

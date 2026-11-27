@@ -75,7 +75,7 @@ describe("ForeSite Phase 4 AI UI Components", () => {
       expect(onConsentMock).toHaveBeenCalledTimes(1);
 
       // Test Decline button
-      fireEvent.click(screen.getByRole("button", { name: /Write Manually/i }));
+      fireEvent.click(screen.getByRole("button", { name: /Decline/i }));
       expect(onDeclineMock).toHaveBeenCalledTimes(1);
     });
   });

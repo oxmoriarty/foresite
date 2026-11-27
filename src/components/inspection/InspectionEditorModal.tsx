@@ -539,7 +539,7 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
           )}
         </div>
       }
-      maxWidth="xl"
+      maxWidth="3xl"
       footer={
         <div className="flex flex-col sm:flex-row items-center justify-between w-full gap-3">
           {/* Last Saved Status */}
@@ -552,7 +552,7 @@ export const InspectionEditorModal: React.FC<InspectionEditorModalProps> = ({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-nowrap">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
             <Button
               type="button"
               variant="outline"
