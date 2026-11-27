@@ -1069,22 +1069,11 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                     </div>
                   )}
 
-                  {/* Badges Overlay on Image */}
+                  {/* Inspection Label Overlay on Image */}
                   <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
                     <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider shadow-xs bg-slate-900/90 text-white backdrop-blur-xs border border-white/10">
                       {insp.id.slice(0, 12).toUpperCase()}
                     </span>
-                    {insp.isLocalDraft && (
-                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide bg-amber-500 text-white shadow-xs">
-                        <span className="w-1.5 h-1.5 rounded-full bg-white shrink-0" />
-                        Local Draft
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
-                    {renderSyncBadge(syncStatuses[insp.id], insp.id)}
-                    <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                   </div>
                 </div>
 
@@ -1166,17 +1155,15 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
         <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
           {/* Table Header */}
           <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider items-center">
-            <div className="col-span-6 sm:col-span-5">Inspection / Title</div>
-            <div className="col-span-3 hidden sm:block">Project / Location</div>
-            <div className="col-span-6 sm:col-span-2">Status</div>
-            <div className="col-span-2 hidden sm:block text-right">Activity</div>
+            <div className="col-span-8 sm:col-span-6">Inspection / Title</div>
+            <div className="col-span-4 hidden sm:block">Project / Location</div>
+            <div className="col-span-4 sm:col-span-2 text-right">Activity</div>
           </div>
 
           {/* Table Rows */}
           <div className="divide-y divide-slate-100">
             {filteredInspections.map((insp) => {
               const photoUrl = photoUrls[insp.id];
-              const imageCount = photoCounts[insp.id] ?? (insp.photoIds?.length || (insp.photoMeta ? 1 : 0));
 
               return (
                 <div
@@ -1185,7 +1172,7 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50 active:bg-slate-100/80 transition-all duration-150 cursor-pointer items-center group"
                 >
                   {/* Column 1: Thumbnail + Title + ID */}
-                  <div className="col-span-6 sm:col-span-5 flex items-center gap-3 min-w-0">
+                  <div className="col-span-8 sm:col-span-6 flex items-center gap-3 min-w-0">
                     <div className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200/70 relative">
                       {photoUrl ? (
                         <img
@@ -1210,42 +1197,13 @@ export const InspectionsScreen: React.FC<InspectionsScreenProps> = ({
                   </div>
 
                   {/* Column 2: Project / Location */}
-                  <div className="col-span-3 hidden sm:flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
+                  <div className="col-span-4 hidden sm:flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
                     <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                     <span className="truncate">{insp.projectName}</span>
                   </div>
 
-                  {/* Column 3: Status, Images & Actions */}
-                  <div className="col-span-6 sm:col-span-2 flex items-center gap-2">
-                    <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
-                    {insp.isLocalDraft && (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-xs">
-                        <span className="w-1 h-1 rounded-full bg-white shrink-0" />
-                        Local Draft
-                      </span>
-                    )}
-                    <span className="text-[11px] text-slate-400 hidden xl:inline-block">
-                      {imageCount > 0 ? `${imageCount} image${imageCount > 1 ? "s" : ""}` : "No images"}
-                    </span>
-                    {insp.isLocalDraft ? (
-                      <button
-                        type="button"
-                        onClick={(e) => handleDeleteDraft(insp.id, e)}
-                        className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer hidden sm:block"
-                        title="Discard Draft"
-                        aria-label="Discard Draft"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <span className="text-brand-600 font-semibold text-xs hidden xl:inline-block">
-                        Review
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Column 4: Activity & Arrow */}
-                  <div className="col-span-2 hidden sm:flex items-center justify-end gap-2 text-right">
+                  {/* Column 3: Activity & Arrow */}
+                  <div className="col-span-4 sm:col-span-2 flex items-center justify-end gap-2 text-right">
                     <span
                       title={formatDate(insp.createdAt)}
                       className="text-xs text-slate-400 whitespace-nowrap"

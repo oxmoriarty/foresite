@@ -62,6 +62,12 @@ export function useInspectionPhotoMap(inspections: Inspection[]): {
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
   const [photoCounts, setPhotoCounts] = useState<Record<string, number>>({});
   const createdUrlsRef = useRef<Record<string, string>>({});
+  const inspectionsRef = useRef<Inspection[]>(inspections);
+  inspectionsRef.current = inspections;
+
+  const inspectionKey = inspections
+    .map((i) => `${i.id}:${i.photoIds?.join(",") || ""}:${i.updatedAt || i.createdAt || 0}`)
+    .join("|");
 
   useEffect(() => {
     let isMounted = true;
@@ -71,7 +77,7 @@ export function useInspectionPhotoMap(inspections: Inspection[]): {
       const counts: Record<string, number> = {};
       const newCreated: Record<string, string> = {};
 
-      for (const insp of inspections) {
+      for (const insp of inspectionsRef.current) {
         let loadedUrl: string | undefined = undefined;
         let count = 0;
 
@@ -116,7 +122,7 @@ export function useInspectionPhotoMap(inspections: Inspection[]): {
       Object.values(createdUrlsRef.current).forEach(revokePhotoPreviewUrl);
       createdUrlsRef.current = {};
     };
-  }, [inspections]);
+  }, [inspectionKey]);
 
   return { photoUrls, photoCounts };
 }

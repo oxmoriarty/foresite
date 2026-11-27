@@ -119,10 +119,10 @@ describe("ForeSite Manual Inspection & Local Evidence Workflows", () => {
     const nav = screen.getByRole("navigation", { name: "Main Navigation" });
     fireEvent.click(within(nav).getByRole("button", { name: /inspections/i }));
 
-    // Verify draft item appears with "Local Draft" badge
+    // Verify draft item appears with "Continue Draft" action
     await waitFor(() => {
       expect(screen.getByText("Anchor Bolt Tension Verification")).toBeInTheDocument();
-      expect(screen.getByText(/Local Draft/i)).toBeInTheDocument();
+      expect(screen.getByText(/Continue Draft/i)).toBeInTheDocument();
     });
   });
 

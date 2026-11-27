@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   FolderKanban,
   ClipboardCheck,
@@ -15,7 +15,6 @@ import {
 import { Project, Inspection, AppStats, ViewMode } from "../types";
 import { Card, CardBody } from "../components/ui/Card";
 import { Button } from "../components/ui/Button";
-import { Badge } from "../components/ui/Badge";
 import {
   useInspectionPhotoMap,
   formatRelativeTime,
@@ -38,7 +37,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
   onSelectInspection,
 }) => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
-  const recentInspections = inspections.slice(0, 6);
+  const recentInspections = useMemo(() => inspections.slice(0, 6), [inspections]);
   const { photoUrls, photoCounts } = useInspectionPhotoMap(recentInspections);
 
   return (
@@ -232,15 +231,11 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                       </div>
                     )}
 
-                    {/* Badges Overlay on Image */}
+                    {/* Inspection Label Overlay on Image */}
                     <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5">
                       <span className="px-2.5 py-0.5 rounded-md text-[10px] font-mono font-bold tracking-wider shadow-xs bg-slate-900/90 text-white backdrop-blur-xs border border-white/10">
                         {insp.id.slice(0, 12).toUpperCase()}
                       </span>
-                    </div>
-
-                    <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5">
-                      <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
                     </div>
                   </div>
 
@@ -290,10 +285,9 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
           <div className="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-2xs">
             {/* Table Header */}
             <div className="grid grid-cols-12 gap-3 px-5 py-3.5 bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold text-slate-400 uppercase tracking-wider items-center">
-              <div className="col-span-6 sm:col-span-5">Inspection / Title</div>
-              <div className="col-span-3 hidden sm:block">Project / Location</div>
-              <div className="col-span-6 sm:col-span-2">Status</div>
-              <div className="col-span-2 hidden sm:block text-right">Activity</div>
+              <div className="col-span-8 sm:col-span-6">Inspection / Title</div>
+              <div className="col-span-4 hidden sm:block">Project / Location</div>
+              <div className="col-span-4 sm:col-span-2 text-right">Activity</div>
             </div>
 
             {/* Table Rows */}
@@ -308,7 +302,7 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                     className="grid grid-cols-12 gap-3 px-5 py-3.5 hover:bg-slate-50 transition-all duration-150 cursor-pointer items-center group active:bg-slate-100/80"
                   >
                     {/* Column 1: Thumbnail + Title + ID */}
-                    <div className="col-span-6 sm:col-span-5 flex items-center gap-3 min-w-0">
+                    <div className="col-span-8 sm:col-span-6 flex items-center gap-3 min-w-0">
                       <div className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200/70 relative">
                         {photoUrl ? (
                           <img
@@ -333,18 +327,13 @@ export const OverviewScreen: React.FC<OverviewScreenProps> = ({
                     </div>
 
                     {/* Column 2: Project / Location */}
-                    <div className="col-span-3 hidden sm:flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
+                    <div className="col-span-4 hidden sm:flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
                       <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
                       <span className="truncate">{insp.projectName}</span>
                     </div>
 
-                    {/* Column 3: Status */}
-                    <div className="col-span-6 sm:col-span-2">
-                      <Badge variant="status" status={insp.reviewStatus} className="text-[10px]" />
-                    </div>
-
-                    {/* Column 4: Activity & Arrow */}
-                    <div className="col-span-2 hidden sm:flex items-center justify-end gap-2 text-right">
+                    {/* Column 3: Activity & Arrow */}
+                    <div className="col-span-4 sm:col-span-2 flex items-center justify-end gap-2 text-right">
                       <span className="text-xs text-slate-400 whitespace-nowrap">
                         {formatRelativeTime(insp.createdAt)}
                       </span>
