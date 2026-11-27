@@ -135,19 +135,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
           title="ForeSite Dashboard"
         >
-          {/* Brand mark circle monogram logo on dark blue sidebar */}
-          <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200 shadow-sm shrink-0 border border-brand-500/40">
-            FS
-          </div>
-
-          {!isCollapsed && (
-            <div className="overflow-hidden">
-              <span className="text-base font-extrabold tracking-tight text-white block leading-tight">
-                ForeSite
-              </span>
-              <span className="text-[10px] font-semibold text-brand-300 tracking-wide uppercase block">
-                Field Intelligence
-              </span>
+          {isCollapsed ? (
+            <img
+              src="/favicon.svg"
+              alt="ForeSite"
+              className="w-8 h-8 object-contain group-hover:scale-105 transition-transform duration-200 shrink-0"
+            />
+          ) : (
+            <div className="flex items-center gap-2 overflow-hidden">
+              <img
+                src="/ForeSiteLogo.svg"
+                alt="ForeSite"
+                className="h-6 w-auto object-contain group-hover:scale-[1.02] transition-transform duration-200 shrink-0"
+              />
+              <span className="sr-only">ForeSite</span>
             </div>
           )}
         </button>

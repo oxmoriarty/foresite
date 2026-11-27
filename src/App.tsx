@@ -972,9 +972,11 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
     <>
       {authLoading ? (
         <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center font-sans">
-          <div className="w-10 h-10 rounded-full bg-slate-950 text-white font-bold text-sm flex items-center justify-center shadow-md mb-3 animate-pulse">
-            FS
-          </div>
+          <img
+            src="/favicon.svg"
+            alt="ForeSite"
+            className="w-10 h-10 object-contain mb-3 animate-pulse"
+          />
           <p className="text-xs font-medium text-slate-500">Restoring session...</p>
         </div>
       ) : currentView === "landing" ? (

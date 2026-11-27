@@ -34,9 +34,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               className="flex items-center gap-2 group cursor-pointer focus:outline-none"
               title="ForeSite Home"
             >
-              <div className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200">
-                FS
-              </div>
+              <img
+                src="/ForeSiteLogo.svg"
+                alt="ForeSite"
+                className="h-7 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
+              />
             </button>
 
             <div className="hidden md:flex items-center space-x-7 text-[13px] text-slate-600 font-medium">
@@ -326,9 +328,11 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       {/* Conversion Banner: Clean, Spacious, Startup Level */}
       <section className="py-24 sm:py-32 bg-white text-slate-900 border-t border-slate-100">
         <ScrollReveal className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-10 h-10 rounded-full bg-slate-950 text-white font-bold text-sm flex items-center justify-center mx-auto mb-8 shadow-sm">
-            FS
-          </div>
+          <img
+            src="/ForeSiteLogo.svg"
+            alt="ForeSite"
+            className="h-8 w-auto object-contain mx-auto mb-8"
+          />
 
           <h2 className="font-display text-3xl sm:text-5xl lg:text-6xl font-semibold tracking-[-0.03em] text-slate-950 mb-6 leading-[1.1]">
             Ready to inspect with speed and complete field reliability?

@@ -323,9 +323,11 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
               className="flex items-center gap-2 group cursor-pointer focus:outline-none"
               title="ForeSite"
             >
-              <div className="w-8 h-8 rounded-full bg-slate-950 text-white flex items-center justify-center font-bold text-xs tracking-tight group-hover:scale-105 transition-transform duration-200">
-                FS
-              </div>
+              <img
+                src="/ForeSiteLogo.svg"
+                alt="ForeSite"
+                className="h-7 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
+              />
             </button>
 
             <div className="flex items-center gap-2">

@@ -50,9 +50,11 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onSelectView }) => 
                 className="flex items-center gap-3 group text-left cursor-pointer focus:outline-none"
                 title="Go to ForeSite Home"
               >
-                <div className="w-9 h-9 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-sm shadow-pill group-hover:scale-105 transition-transform duration-200">
-                  FS
-                </div>
+                <img
+                  src="/favicon.svg"
+                  alt="ForeSite"
+                  className="w-9 h-9 object-contain group-hover:scale-105 transition-transform duration-200"
+                />
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg font-bold tracking-tight text-slate-900 group-hover:text-brand-600 transition-colors">

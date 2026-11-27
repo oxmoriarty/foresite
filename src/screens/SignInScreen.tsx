@@ -113,9 +113,11 @@ export const SignInScreen: React.FC<SignInScreenProps> = ({
       <div className="sm:mx-auto sm:w-full sm:max-w-md px-4">
         {/* Brand Monogram */}
         <div className="text-center mb-6">
-          <div className="w-12 h-12 rounded-full bg-slate-950 text-white font-bold text-base flex items-center justify-center mx-auto shadow-md">
-            FS
-          </div>
+          <img
+            src="/ForeSiteLogo.svg"
+            alt="ForeSite"
+            className="h-8 w-auto object-contain mx-auto"
+          />
         </div>
 
         {/* Main Card */}

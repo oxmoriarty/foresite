@@ -126,17 +126,12 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         {/* Drawer Header */}
         <div className="h-16 px-5 border-b border-brand-800/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-600 text-white flex items-center justify-center font-bold text-xs tracking-tight shadow-xs border border-brand-500/40">
-              FS
-            </div>
-            <div>
-              <span className="font-extrabold text-sm text-white block leading-tight">
-                ForeSite
-              </span>
-              <span className="text-[10px] font-semibold text-brand-300 tracking-wide uppercase block">
-                Field Intelligence
-              </span>
-            </div>
+            <img
+              src="/ForeSiteLogo.svg"
+              alt="ForeSite"
+              className="h-6 w-auto object-contain"
+            />
+            <span className="sr-only">ForeSite</span>
           </div>
 
           <button
