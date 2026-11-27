@@ -27,6 +27,30 @@ import {
 } from "firebase/firestore";
 import { User } from "firebase/auth";
 import { db, hasValidConfig } from "../lib/firebase";
+
+/**
+ * Recursively strips all properties with `undefined` values from plain objects and arrays
+ * before writing to Cloud Firestore, which strictly rejects `undefined` field values.
+ */
+export function stripUndefined<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefined(item)) as unknown as T;
+  }
+  if (
+    value !== null &&
+    typeof value === "object" &&
+    Object.getPrototypeOf(value) === Object.prototype
+  ) {
+    const result: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      if (v !== undefined) {
+        result[k] = stripUndefined(v);
+      }
+    }
+    return result as T;
+  }
+  return value;
+}
 import {
   Project,
   Inspection,
@@ -90,7 +114,7 @@ export async function syncUserProfile(user: User): Promise<UserProfile> {
   };
 
   if (hasValidConfig) {
-    await setDoc(userRef, newProfile);
+    await setDoc(userRef, stripUndefined(newProfile));
   }
 
   return newProfile;
@@ -102,7 +126,7 @@ export async function updateUserProfile(
 ): Promise<void> {
   if (!hasValidConfig) return;
   const userRef = doc(db, "users", uid);
-  await updateDoc(userRef, updates);
+  await updateDoc(userRef, stripUndefined(updates));
 }
 
 // ============================================================================
@@ -152,7 +176,7 @@ export async function createProject(
 
   if (hasValidConfig) {
     const projectRef = doc(db, "users", uid, "projects", projectId);
-    await setDoc(projectRef, newProject);
+    await setDoc(projectRef, stripUndefined(newProject));
   }
 
   return newProject;
@@ -314,7 +338,7 @@ export async function createInspectionTransaction(
     const docSnap = await transaction.get(inspectionRef);
 
     if (!docSnap.exists()) {
-      transaction.set(inspectionRef, newInspection);
+      transaction.set(inspectionRef, stripUndefined(newInspection));
       return {
         status: "CREATED",
         inspection: newInspection,
@@ -454,7 +478,7 @@ export async function updateInspectionDraftTransaction(
             updatedAt: now,
           };
 
-          transaction.set(inspectionRef, updatedDoc);
+          transaction.set(inspectionRef, stripUndefined(updatedDoc));
 
           return {
             status: "APPLIED",
@@ -502,7 +526,7 @@ export async function updateInspectionDraftTransaction(
       updatedAt: now,
     };
 
-    transaction.set(inspectionRef, updatedDoc);
+    transaction.set(inspectionRef, stripUndefined(updatedDoc));
 
     return {
       status: "APPLIED",
@@ -655,7 +679,7 @@ export async function transitionInspectionReviewTransaction(
       updatedAt: now,
     };
 
-    transaction.set(inspectionRef, updatedDoc);
+    transaction.set(inspectionRef, stripUndefined(updatedDoc));
 
     return {
       status: "APPLIED",
@@ -728,7 +752,7 @@ export async function archiveInspectionTransaction(
       updatedAt: now,
     };
 
-    transaction.set(inspectionRef, updatedDoc);
+    transaction.set(inspectionRef, stripUndefined(updatedDoc));
 
     return {
       status: "APPLIED",
@@ -801,7 +825,7 @@ export async function unarchiveInspectionTransaction(
       updatedAt: now,
     };
 
-    transaction.set(inspectionRef, updatedDoc);
+    transaction.set(inspectionRef, stripUndefined(updatedDoc));
 
     return {
       status: "APPLIED",
@@ -888,7 +912,7 @@ export async function createInspection(
 
   if (hasValidConfig) {
     const inspectionRef = doc(db, "users", uid, "inspections", inspectionId);
-    await setDoc(inspectionRef, newInspection);
+    await setDoc(inspectionRef, stripUndefined(newInspection));
   }
 
   return newInspection;
