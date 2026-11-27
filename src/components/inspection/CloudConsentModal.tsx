@@ -1,18 +1,9 @@
 /**
  * ForeSite Cloud AI Processing Consent Modal
- *
- * Presented when on-device Gemini Nano inference is unavailable in Mode B (Automatic cloud fallback OFF).
- *
- * Invariants:
- * 1. Halts execution immediately before network transmission.
- * 2. Plain-language disclosure of Google Cloud transmission (gemini-3.5-flash-lite).
- * 3. Gemini Developer API free-tier terms disclosure (Google may use submitted data to improve products).
- * 4. Clear distinction: Declining cloud AI does NOT disable ordinary Firestore synchronization.
- * 5. Original photograph binaries remain strictly in local browser IndexedDB.
  */
 
 import React from "react";
-import { Cloud, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
+import { Cloud, ShieldAlert, CheckCircle } from "lucide-react";
 import { Modal } from "../ui/Modal";
 import { Button } from "../ui/Button";
 
@@ -27,93 +18,58 @@ export const CloudConsentModal: React.FC<CloudConsentModalProps> = ({
   isOpen,
   onConsent,
   onDecline,
-  targetModel = "gemini-3.5-flash-lite",
 }) => {
   return (
     <Modal
       isOpen={isOpen}
       onClose={onDecline}
-      title={
-        <div className="flex items-center gap-2 text-amber-700">
-          <div className="p-1.5 bg-amber-100 rounded-md">
-            <Cloud className="w-5 h-5 text-amber-600" />
-          </div>
-          <span className="font-semibold text-slate-900">
-            Cloud AI Inference Consent
-          </span>
-        </div>
-      }
+      title="Use Cloud AI?"
+      maxWidth="sm"
       footer={
-        <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 w-full">
+        <div className="flex items-center justify-end gap-2.5 w-full">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={onDecline}
-            className="w-full sm:w-auto"
+            className="rounded-full"
           >
-            <XCircle className="w-4 h-4 mr-1.5" />
-            Decline (Manual Authoring)
+            Write Manually
           </Button>
           <Button
             variant="primary"
             onClick={onConsent}
-            className="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 focus:ring-amber-500"
+            className="rounded-full shadow-pill"
           >
-            <CheckCircle className="w-4 h-4 mr-1.5" />
-            Consent & Process in Cloud
+            Use Cloud AI
           </Button>
         </div>
       }
     >
-      <div className="space-y-4 text-xs text-slate-700 leading-relaxed">
-        {/* Notice Banner */}
-        <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-lg flex items-start gap-2.5">
-          <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div>
-            <p className="font-semibold text-amber-900">
-              On-device Gemini Nano inference is unavailable on this system.
+      <div className="space-y-4">
+        <div className="flex items-start gap-3.5">
+          <div className="w-10 h-10 rounded-2xl bg-brand-50 border border-brand-100 text-brand-600 flex items-center justify-center shrink-0">
+            <Cloud className="w-5 h-5" />
+          </div>
+          <div className="space-y-1 pt-0.5">
+            <p className="text-sm font-semibold text-slate-900">
+              On-device AI is unavailable right now.
             </p>
-            <p className="text-amber-800 mt-1">
-              Your device lacks required hardware acceleration (WebGPU), is missing Chrome Prompt API flags, or the on-device model is not installed.
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Allow ForeSite to send a compressed copy of your photo and notes to Google Cloud AI for this draft?
             </p>
           </div>
         </div>
 
-        {/* Transmission Disclosure */}
-        <div className="space-y-2">
-          <h4 className="font-semibold text-slate-900">
-            What will happen if you consent?
-          </h4>
-          <p>
-            ForeSite will transmit an ephemeral downscaled photograph derivative (max 1600px, under 4 MB) and your current observation notes to Google Cloud for processing using <strong>{targetModel}</strong> via Firebase AI Logic.
-          </p>
-        </div>
-
-        {/* Free-tier terms disclosure */}
-        <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg space-y-1.5">
-          <span className="font-semibold text-slate-900 block">
-            Google Gemini Developer API Free-Tier Terms:
-          </span>
-          <p className="text-slate-600">
-            Under Google&apos;s Gemini Developer API free-tier terms, content submitted to the API (including inspection photographs and notes) may be processed by Google and used to improve Google products and services.
-          </p>
-        </div>
-
-        {/* Privacy & Sync Delineation */}
-        <div className="space-y-2 pt-1 border-t border-slate-100 text-slate-600">
-          <h4 className="font-semibold text-slate-900">
-            Privacy &amp; Storage Guarantees:
-          </h4>
-          <ul className="list-disc pl-5 space-y-1">
-            <li>
-              <strong>Original photos stay on your device:</strong> Full-resolution site photos remain safely stored only on this device and are never uploaded to cloud servers.
-            </li>
-            <li>
-              <strong>Declining AI does not affect normal saving:</strong> If you decline, your photos and notes are not sent to AI. You can still write your inspection manually and save or sync your reports online as normal.
-            </li>
-            <li>
-              <strong>Single-request authorization:</strong> This consent applies only to this specific inspection draft request.
-            </li>
-          </ul>
+        <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 space-y-2.5 text-xs text-slate-600">
+          <div className="flex items-start gap-2">
+            <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            <span>Your original full-resolution photos stay safely on this device.</span>
+          </div>
+          <div className="flex items-start gap-2">
+            <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <span>
+              Google may process submitted drafts under free-tier terms. If you decline, you can still write and save inspections normally.
+            </span>
+          </div>
         </div>
       </div>
     </Modal>

@@ -452,15 +452,16 @@ export const SettingsScreen: React.FC = () => {
       <Modal
         isOpen={isClearModalOpen}
         onClose={() => setIsClearModalOpen(false)}
-        title={
-          <div className="flex items-center gap-2 text-red-700">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            <span>Clear Local Data</span>
-          </div>
-        }
+        title="Clear Local Data"
+        maxWidth="sm"
         footer={
           <>
-            <Button variant="outline" size="md" onClick={() => setIsClearModalOpen(false)}>
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => setIsClearModalOpen(false)}
+              className="rounded-full"
+            >
               Cancel
             </Button>
             <Button
@@ -468,19 +469,31 @@ export const SettingsScreen: React.FC = () => {
               size="md"
               disabled={isClearing}
               onClick={handleClearAllEvidence}
+              className="rounded-full"
             >
               {isClearing ? "Clearing..." : "Clear Local Data"}
             </Button>
           </>
         }
       >
-        <div className="space-y-3 text-xs text-slate-700">
-          <p>
-            Are you sure you want to delete stored evidence photos and drafts from this device?
-          </p>
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-800">
-            <span className="font-bold block">Destructive Action:</span>
-            This will delete {localPhotoCount} photo(s) and {localDraftCount} draft(s).
+        <div className="space-y-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 text-rose-600 flex items-center justify-center shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div className="space-y-1 pt-0.5">
+              <p className="text-sm font-semibold text-slate-900">
+                Clear device storage?
+              </p>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                All saved photos and offline drafts on this device will be removed. Cloud synced inspections are not affected.
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 border border-slate-200/80 rounded-xl px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs">
+            <span className="font-semibold text-slate-700">{localPhotoCount} photos</span>
+            <span className="font-semibold text-slate-500">{localDraftCount} drafts</span>
           </div>
         </div>
       </Modal>

@@ -61,27 +61,21 @@ describe("ForeSite Phase 4 AI UI Components", () => {
         />
       );
 
-      // Verifies title and model disclosure
-      expect(screen.getByText(/Cloud AI Inference Consent/i)).toBeInTheDocument();
-      expect(screen.getByText(/gemini-3.5-flash-lite/i)).toBeInTheDocument();
-
-      // Verifies free-tier terms disclosure
-      expect(screen.getByText(/Google Gemini Developer API Free-Tier Terms/i)).toBeInTheDocument();
+      // Verifies title and plain-language disclosures
+      expect(screen.getByText(/Use Cloud AI\?/i)).toBeInTheDocument();
       expect(
-        screen.getByText(/content submitted to the API \(including inspection photographs and notes\) may be processed by Google/i)
+        screen.getByText(/On-device AI is unavailable right now/i)
       ).toBeInTheDocument();
-
-      // Verifies local retention disclosure
       expect(
-        screen.getByText(/Full-resolution site photos remain safely stored only on this device/i)
+        screen.getByText(/Your original full-resolution photos stay safely on this device/i)
       ).toBeInTheDocument();
 
       // Test Consent button
-      fireEvent.click(screen.getByText(/Consent & Process in Cloud/i));
+      fireEvent.click(screen.getByRole("button", { name: /Use Cloud AI/i }));
       expect(onConsentMock).toHaveBeenCalledTimes(1);
 
       // Test Decline button
-      fireEvent.click(screen.getByText(/Decline \(Manual Authoring\)/i));
+      fireEvent.click(screen.getByRole("button", { name: /Write Manually/i }));
       expect(onDeclineMock).toHaveBeenCalledTimes(1);
     });
   });

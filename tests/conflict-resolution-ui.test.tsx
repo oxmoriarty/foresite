@@ -211,17 +211,17 @@ describe("ConflictResolutionModal Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
     });
 
     // Header notice
-    expect(screen.getByText("Concurrent Modifications Detected")).toBeInTheDocument();
+    expect(screen.getByText("Conflicting Changes Found")).toBeInTheDocument();
     expect(screen.getByText(/insp-conflict-1/)).toBeInTheDocument();
 
     // 3 columns rendered in the grid
-    expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Your Local Change/i).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Server Remote/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Your Offline Edit/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Online Version/i).length).toBeGreaterThan(0);
 
     // Conflicting fields rendered
     expect(screen.getByText("title")).toBeInTheDocument();
@@ -233,7 +233,7 @@ describe("ConflictResolutionModal Component", () => {
     expect(screen.getByText("Remote Update: Anchor Spec Revision B")).toBeInTheDocument();
   });
 
-  it("displays Human Review Decision Invariant banner when review status is divergent", async () => {
+  it("displays Review Status Protected banner when review status is divergent", async () => {
     render(
       <ConflictResolutionModal
         isOpen={true}
@@ -243,16 +243,16 @@ describe("ConflictResolutionModal Component", () => {
       />
     );
 
-    // Human Review Decision Invariant banner
+    // Review Status Protected banner
     await waitFor(() => {
-      expect(screen.getByText("Protected Review Decision")).toBeInTheDocument();
+      expect(screen.getByText("Review Status Protected")).toBeInTheDocument();
     });
     expect(
-      screen.getByText(/strictly protects human review decisions/i)
+      screen.getByText(/cannot be overwritten here/i)
     ).toBeInTheDocument();
   });
 
-  it("disables 'Apply Resolution & Upload' until all conflicting fields have an explicit choice", async () => {
+  it("disables 'Save & Upload' until all conflicting fields have an explicit choice", async () => {
     render(
       <ConflictResolutionModal
         isOpen={true}
@@ -263,17 +263,17 @@ describe("ConflictResolutionModal Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
     });
 
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
+    const resolveBtn = screen.getByRole("button", { name: /Save & Upload/i });
     expect(resolveBtn).toBeDisabled();
     expect(
-      screen.getByText(/Selection required for all fields/i)
+      screen.getByText(/Pick an option for each field/i)
     ).toBeInTheDocument();
 
     // Select Local for Title by clicking the local card
-    const localChangeCards = screen.getAllByText(/Your Local Change/i);
+    const localChangeCards = screen.getAllByText(/Your Offline Edit/i);
     expect(localChangeCards[0]).toBeDefined();
     fireEvent.click(localChangeCards[0]!);
 
@@ -295,21 +295,21 @@ describe("ConflictResolutionModal Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
     });
 
     // 1. Choose Local for Title
-    const localChangeCards = screen.getAllByText(/Your Local Change/i);
+    const localChangeCards = screen.getAllByText(/Your Offline Edit/i);
     expect(localChangeCards[0]).toBeDefined();
     fireEvent.click(localChangeCards[0]!);
 
     // 2. Choose Remote for Observation
-    const remoteChangeCards = screen.getAllByText(/Server Remote/i);
+    const remoteChangeCards = screen.getAllByText(/Online Version/i);
     expect(remoteChangeCards[1]).toBeDefined();
     fireEvent.click(remoteChangeCards[1]!);
 
     // Now Resolve button must be enabled
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
+    const resolveBtn = screen.getByRole("button", { name: /Save & Upload/i });
     expect(resolveBtn).toBeEnabled();
 
     // Click Resolve
@@ -351,18 +351,18 @@ describe("ConflictResolutionModal Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
     });
 
     // Make choices
-    const localChangeCards = screen.getAllByText(/Your Local Change/i);
+    const localChangeCards = screen.getAllByText(/Your Offline Edit/i);
     expect(localChangeCards[0]).toBeDefined();
     fireEvent.click(localChangeCards[0]!);
-    const remoteChangeCards = screen.getAllByText(/Server Remote/i);
+    const remoteChangeCards = screen.getAllByText(/Online Version/i);
     expect(remoteChangeCards[1]).toBeDefined();
     fireEvent.click(remoteChangeCards[1]!);
 
-    const resolveBtn = screen.getByRole("button", { name: /Apply Resolution & Upload/i });
+    const resolveBtn = screen.getByRole("button", { name: /Save & Upload/i });
     fireEvent.click(resolveBtn);
 
     // Should detect concurrency and show error
@@ -404,22 +404,22 @@ describe("ConflictResolutionModal Component", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getAllByText(/Original Base/i).length).toBeGreaterThan(0);
-      expect(screen.getByRole("button", { name: /Discard Local Draft/i })).toBeEnabled();
+      expect(screen.getAllByText(/^Original$/i).length).toBeGreaterThan(0);
+      expect(screen.getByRole("button", { name: /Discard Offline Edits/i })).toBeEnabled();
     });
 
-    // Click "Discard Local Draft"
-    const discardBtn = screen.getByRole("button", { name: /Discard Local Draft/i });
+    // Click "Discard Offline Edits"
+    const discardBtn = screen.getByRole("button", { name: /Discard Offline Edits/i });
     fireEvent.click(discardBtn);
 
     // Safeguard dialog displayed
-    expect(screen.getByText("Confirm Discarding Local Offline Edits")).toBeInTheDocument();
+    expect(screen.getByText("Discard Offline Edits?")).toBeInTheDocument();
     expect(
       screen.getByText(/Photos saved on this device will NOT be deleted/i)
     ).toBeInTheDocument();
 
     // Confirm Discard
-    const confirmBtn = screen.getByRole("button", { name: /Yes, Discard Local Edits/i });
+    const confirmBtn = screen.getByRole("button", { name: /Discard Edits/i });
     fireEvent.click(confirmBtn);
 
     await waitFor(() => {
