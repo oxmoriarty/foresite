@@ -117,7 +117,7 @@ export const VerifyEmailScreen: React.FC<VerifyEmailScreenProps> = ({
         {/* Brand Monogram */}
         <div className="text-center mb-6">
           <img
-            src="/ForeSiteLogo.svg"
+            src="/ForeSiteLogo.svg?v=2"
             alt="ForeSite"
             className="h-8 w-auto object-contain mx-auto"
           />

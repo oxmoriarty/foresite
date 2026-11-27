@@ -144,7 +144,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <div className="flex items-center gap-2 overflow-hidden">
               <img
-                src="/ForeSiteLogo.svg"
+                src="/ForeSiteLogo.svg?v=2"
                 alt="ForeSite"
                 className="h-6 w-auto object-contain group-hover:scale-[1.02] transition-transform duration-200 shrink-0"
               />

@@ -127,7 +127,7 @@ export const MobileNavDrawer: React.FC<MobileNavDrawerProps> = ({
         <div className="h-16 px-5 border-b border-brand-800/60 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <img
-              src="/ForeSiteLogo.svg"
+              src="/ForeSiteLogo.svg?v=2"
               alt="ForeSite"
               className="h-6 w-auto object-contain"
             />

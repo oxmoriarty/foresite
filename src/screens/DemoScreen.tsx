@@ -324,7 +324,7 @@ export const DemoScreen: React.FC<DemoScreenProps> = ({
               title="ForeSite"
             >
               <img
-                src="/ForeSiteLogo.svg"
+                src="/ForeSiteLogo.svg?v=2"
                 alt="ForeSite"
                 className="h-7 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />

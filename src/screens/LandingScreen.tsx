@@ -35,7 +35,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
               title="ForeSite Home"
             >
               <img
-                src="/ForeSiteLogo.svg"
+                src="/ForeSiteLogo.svg?v=2"
                 alt="ForeSite"
                 className="h-7 w-auto object-contain group-hover:scale-105 transition-transform duration-200"
               />
@@ -329,7 +329,7 @@ export const LandingScreen: React.FC<LandingScreenProps> = ({
       <section className="py-24 sm:py-32 bg-white text-slate-900 border-t border-slate-100">
         <ScrollReveal className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <img
-            src="/ForeSiteLogo.svg"
+            src="/ForeSiteLogo.svg?v=2"
             alt="ForeSite"
             className="h-8 w-auto object-contain mx-auto mb-8"
           />
