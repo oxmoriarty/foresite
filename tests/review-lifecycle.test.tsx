@@ -493,7 +493,7 @@ describe("ForeSite Phase 5 Stage 1: Review UI Integration in InspectionsScreen",
     // Verify audit event is now visible in the timeline
     await waitFor(() => {
       expect(screen.getByText(/"Starting formal field audit"/i)).toBeDefined();
-      expect(screen.getByText(/Reviewer UID:/i)).toBeDefined();
+      expect(screen.getByText(/Reviewed by:/i)).toBeDefined();
     });
 
     // Now in in_review state: verify Approve and Reject are available
@@ -586,7 +586,7 @@ describe("ForeSite Phase 5 Stage 1: Integration Regression Test Suite (Defects A
     // 6. Reopen detail modal: verify in_review and audit history retained
     fireEvent.click(screen.getByText("Foundation Reinforcement Grid"));
     await waitFor(() => {
-      expect(screen.getByText(/Reviewer UID:/i)).toBeDefined();
+      expect(screen.getByText(/Reviewed by:/i)).toBeDefined();
       expect(screen.getByRole("button", { name: /approve inspection/i })).toBeDefined();
     });
 

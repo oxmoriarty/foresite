@@ -150,7 +150,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children, initialUse
     };
 
     if (!hasValidConfig || process.env.NODE_ENV === "test") {
-      if (!initialUser) {
+      if (initialUser === undefined) {
         restoreDemoSession();
       }
       setLoading(false);

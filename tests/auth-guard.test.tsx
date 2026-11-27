@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { App } from "../src/App";
 import * as aiService from "../src/services/ai";
@@ -23,6 +23,10 @@ vi.mock("../src/services/ai", async (importOriginal) => {
 });
 
 describe("ForeSite Authentication Navigation Guard", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
   it("renders the public landing page when unauthenticated", () => {
     render(<App initialView="landing" initialUser={null} />);
     expect(
