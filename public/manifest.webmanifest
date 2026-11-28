@@ -1,0 +1,18 @@
+{
+  "name": "ForeSite — Construction Site Inspection Workspace",
+  "short_name": "ForeSite",
+  "description": "Hybrid on-device and cloud AI construction site inspection workspace.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#0e3860",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
