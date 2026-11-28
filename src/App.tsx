@@ -240,7 +240,11 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
       : null
   );
   const isRemoteUser = Boolean(
-    currentUser?.uid && currentUser.uid !== "inspector-demo-01" && isConfigured
+    currentUser?.uid &&
+      currentUser.uid !== "inspector-demo-01" &&
+      currentUser.uid !== "test-inspector-01" &&
+      isConfigured &&
+      process.env.NODE_ENV !== "test"
   );
 
   const [projects, setProjects] = useState<Project[]>(() => {
