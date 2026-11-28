@@ -239,13 +239,19 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
         }
       : null
   );
+  const isRemoteUser = Boolean(
+    currentUser?.uid && currentUser.uid !== "inspector-demo-01" && isConfigured
+  );
+
   const [projects, setProjects] = useState<Project[]>(() => {
+    if (isRemoteUser) return [];
     const deletedIds = getDeletedProjectIds(currentUser?.uid);
     const hasCustom = getHasCustomProjects(currentUser?.uid);
     if (hasCustom) return [];
     return INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id));
   });
   const [inspections, setInspections] = useState<Inspection[]>(() => {
+    if (isRemoteUser) return [];
     const deletedIds = getDeletedProjectIds(currentUser?.uid);
     const hasCustom = getHasCustomProjects(currentUser?.uid);
     if (hasCustom) return [];
@@ -292,36 +298,24 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
         getUserInspections(uid),
       ]);
       const deletedIds = getDeletedProjectIds(uid);
-      const hasCustom = getHasCustomProjects(uid);
 
       if (userProjects.length > 0) {
         markHasCustomProjects(uid);
-        setProjects(userProjects.filter((p) => !deletedIds.includes(p.id)));
-      } else if (hasCustom) {
-        setProjects([]);
-      } else {
-        setProjects(INITIAL_PROJECTS.filter((p) => !deletedIds.includes(p.id)));
       }
-
-      if (userInspections.length > 0) {
-        setInspections(userInspections.filter((i) => !deletedIds.includes(i.projectId)));
-      } else if (hasCustom) {
-        setInspections([]);
-      } else {
-        setInspections(INITIAL_INSPECTIONS.filter((i) => !deletedIds.includes(i.projectId)));
-      }
+      setProjects(userProjects.filter((p) => !deletedIds.includes(p.id)));
+      setInspections(userInspections.filter((i) => !deletedIds.includes(i.projectId)));
     } catch (err) {
-      console.warn("Could not load user Firestore data, falling back to local seed:", err);
+      console.warn("Could not load user Firestore data:", err);
+      setProjects([]);
+      setInspections([]);
     }
   }, []);
-
-  const isRemoteUser = Boolean(
-    currentUser?.uid && currentUser.uid !== "inspector-demo-01" && isConfigured
-  );
 
   useEffect(() => {
     let cancelled = false;
     if (isRemoteUser && currentUser?.uid) {
+      setProjects([]);
+      setInspections([]);
       if (currentUser.emailVerified) {
         loadUserData(currentUser.uid);
         void recoverPhotoCleanups(currentUser.uid).catch((err) => {
