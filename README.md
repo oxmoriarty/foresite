@@ -13,7 +13,7 @@ Construction inspectors often work in low-connectivity environments and handle s
 1. **On-Device First AI Drafting:** Runs multimodal inspection drafting locally on-device using Chrome's built-in Gemini Nano model via Firebase AI Logic before ever touching the cloud.
 2. **Consent-Gated Cloud Fallback:** Automatic cloud fallback is **off by default**. When on-device inference is unavailable, ForeSite halts network calls and prompts the inspector for explicit approval (or lets them enable automatic cloud fallback in Settings).
 3. **Local Photo Retention:** High-resolution inspection photographs remain in the browser's IndexedDB database and are never uploaded to cloud storage. Only compressed, resized copies are used during approved cloud AI drafting.
-4. **Offline-First Resilience & Human Review:** Supports local drafting, a durable background **Uploads** queue with conflict resolution, and a strict review lifecycle (`Draft Generated -> In Review -> Approved / Rejected`) with an audit trail.
+4. **Offline-First Resilience & Human Review:** Supports local drafting, an installable Progressive Web App (PWA) service worker (`public/sw.js` & `public/manifest.webmanifest`) for cold offline launches, a durable background **Uploads** queue with conflict resolution, and a strict review lifecycle (`Draft Generated -> In Review -> Approved / Rejected`) with an audit trail.
 
 ---
 
