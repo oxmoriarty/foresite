@@ -241,7 +241,6 @@ const ForeSiteApp: React.FC<AppProps> = ({ initialView, initialPath }) => {
   );
   const isRemoteUser = Boolean(
     currentUser?.uid &&
-      currentUser.uid !== "inspector-demo-01" &&
       currentUser.uid !== "test-inspector-01" &&
       isConfigured &&
       process.env.NODE_ENV !== "test"

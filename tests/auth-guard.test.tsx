@@ -3,6 +3,35 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { App } from "../src/App";
 import * as aiService from "../src/services/ai";
 
+vi.mock("firebase/auth", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("firebase/auth")>();
+  return {
+    ...actual,
+    signInWithEmailAndPassword: vi.fn().mockResolvedValue({
+      user: {
+        uid: "test-inspector-01",
+        email: "inspector@agency.gov",
+        displayName: "Lead Site Inspector",
+        emailVerified: true,
+      },
+    }),
+  };
+});
+
+vi.mock("../src/services/userProfile", () => ({
+  syncUserProfile: vi.fn().mockResolvedValue({
+    uid: "test-inspector-01",
+    email: "inspector@agency.gov",
+    displayName: "Lead Site Inspector",
+    emailVerified: true,
+    role: "inspector",
+    createdAt: Date.now(),
+    lastLoginAt: Date.now(),
+  }),
+  updateLastLoginTimestamp: vi.fn().mockResolvedValue(undefined),
+  updateUserDisplayName: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("../src/services/ai", async (importOriginal) => {
   const actual = await importOriginal<typeof aiService>();
   return {
@@ -43,15 +72,17 @@ describe("ForeSite Authentication Navigation Guard", () => {
 
     // Should now be on the Sign In page
     expect(
-      screen.getByRole("button", { name: /continue as demo inspector/i })
-    ).toBeInTheDocument();
-    expect(
       screen.getByPlaceholderText(/inspector@agency\.gov/i)
     ).toBeInTheDocument();
 
-    // Click "Continue as Demo Inspector"
-    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
-    fireEvent.click(demoLoginBtn);
+    // Sign in with email and password
+    fireEvent.change(screen.getByPlaceholderText(/inspector@agency\.gov/i), {
+      target: { value: "inspector@agency.gov" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/••••••••/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in to workspace/i }));
 
     // Should now be automatically redirected to Inspections screen!
     await waitFor(() => {
@@ -69,15 +100,17 @@ describe("ForeSite Authentication Navigation Guard", () => {
 
     // Should be on Sign in page
     expect(
-      screen.getByRole("button", { name: /continue as demo inspector/i })
-    ).toBeInTheDocument();
-    expect(
       screen.getByPlaceholderText(/inspector@agency\.gov/i)
     ).toBeInTheDocument();
 
     // Authenticate
-    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
-    fireEvent.click(demoLoginBtn);
+    fireEvent.change(screen.getByPlaceholderText(/inspector@agency\.gov/i), {
+      target: { value: "inspector@agency.gov" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/••••••••/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in to workspace/i }));
 
     // Should be redirected to Projects and show Create Project modal
     await waitFor(() => {
@@ -125,8 +158,13 @@ describe("ForeSite Authentication Navigation Guard", () => {
     const signInBtn = screen.getByRole("button", { name: /sign in/i });
     fireEvent.click(signInBtn);
 
-    const demoLoginBtn = screen.getByRole("button", { name: /continue as demo inspector/i });
-    fireEvent.click(demoLoginBtn);
+    fireEvent.change(screen.getByPlaceholderText(/inspector@agency\.gov/i), {
+      target: { value: "inspector@agency.gov" },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/••••••••/i), {
+      target: { value: "password123" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /sign in to workspace/i }));
 
     await waitFor(() => {
       expect(screen.getByText("Inspection Overview")).toBeInTheDocument();
@@ -146,10 +184,10 @@ describe("ForeSite Authentication Navigation Guard", () => {
   it("redirects direct unauthenticated access to a protected page to Sign in screen", () => {
     render(<App initialView="projects" initialUser={null} />);
     expect(
-      screen.getByRole("button", { name: /continue as demo inspector/i })
+      screen.getByPlaceholderText(/inspector@agency\.gov/i)
     ).toBeInTheDocument();
     expect(
-      screen.getByPlaceholderText(/inspector@agency\.gov/i)
+      screen.getByRole("button", { name: /sign in to workspace/i })
     ).toBeInTheDocument();
   });
 });
